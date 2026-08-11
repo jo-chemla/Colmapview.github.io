@@ -131,11 +131,11 @@ describe('hotkey help view model', () => {
     expect(getHotkeyHelpOverlayStyle()).toEqual({ zIndex: Z_INDEX.modalOverlay });
     expect(getHotkeyHelpOverlayStyle(91)).toEqual({ zIndex: 91 });
     // Centering is done by the overlay's flexbox and the viewport-height cap is
-    // applied inline via getHotkeyHelpPanelStyle (arbitrary viewport-unit
-    // utilities like max-h-[80vh] are not generated here). The layout class must
+    // applied inline via getHotkeyHelpPanelStyle. The layout class must
     // therefore carry no absolute-position, translate, fraction, or
-    // arbitrary-bracket utilities that would defeat flex centering / go silently
-    // dead.
+    // arbitrary-bracket utilities that would defeat flex centering — and, since
+    // every utility here is hand-written in index.css, an undefined one would go
+    // silently dead.
     // The panel no longer scrolls as one block: it caps at 80vh and clips
     // (overflow-hidden) while the active tab's rows area owns the scroll. No
     // outer p-6: the header is a full-bleed tool-header bar (SplatPicker

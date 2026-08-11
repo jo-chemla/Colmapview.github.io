@@ -500,9 +500,14 @@ legend {
 .top-3 { top: 0.75rem; }
 .top-4 { top: 1rem; }
 .top-6 { top: 1.5rem; }
+/* top-full/bottom-full anchor a popover to the edge of its positioned parent.
+   Both were referenced but undefined, so the profile dropdown/selector menus and
+   the drop-zone hover cards fell back to their static (in-flow) position. */
+.top-full { top: 100%; }
 .right-1 { right: 0.25rem; }
 .right-2 { right: 0.5rem; }
 .right-3 { right: 0.75rem; }
+.right-4 { right: 1rem; }
 .right-6 { right: 1.5rem; }
 .right-10 { right: 2.5rem; }
 .right-12 { right: 3rem; }
@@ -512,7 +517,9 @@ legend {
 .bottom-1 { bottom: 0.25rem; }
 .bottom-2 { bottom: 0.5rem; }
 .bottom-3 { bottom: 0.75rem; }
+.bottom-4 { bottom: 1rem; }
 .bottom-6 { bottom: 1.5rem; }
+.bottom-full { bottom: 100%; }
 .left-1 { left: 0.25rem; }
 .left-2 { left: 0.5rem; }
 .left-3 { left: 0.75rem; }
@@ -610,6 +617,7 @@ legend {
 .pb-6 { padding-bottom: 1.5rem; }
 .pb-8 { padding-bottom: 2rem; }
 .pl-0 { padding-left: 0; }
+.pl-0\.5 { padding-left: 0.125rem; }
 .pl-1 { padding-left: 0.25rem; }
 .pl-2 { padding-left: 0.5rem; }
 .pl-4 { padding-left: 1rem; }
@@ -718,6 +726,7 @@ legend {
 .gap-x-2 { column-gap: 0.5rem; }
 .gap-x-3 { column-gap: 0.75rem; }
 .gap-x-4 { column-gap: 1rem; }
+.gap-x-5 { column-gap: 1.25rem; }
 .gap-y-1 { row-gap: 0.25rem; }
 .gap-y-2 { row-gap: 0.5rem; }
 .gap-y-3 { row-gap: 0.75rem; }
@@ -921,6 +930,7 @@ legend {
 .normal-case { text-transform: none; }
 
 /* Letter Spacing */
+.tracking-tight { letter-spacing: -0.025em; }
 /* Referenced by contextMenuStyles.hotkey (and the hotkey help panel's key combos)
    but previously undefined, so it was a silent no-op; add the real rule. */
 .tracking-wide { letter-spacing: 0.025em; }
@@ -961,6 +971,7 @@ legend {
 
 /* Semi-transparent backgrounds */
 .bg-ds-void\/50 { background-color: rgba(10, 10, 10, 0.5); }
+.bg-ds-void\/60 { background-color: rgba(10, 10, 10, 0.6); }
 .bg-ds-void\/70 { background-color: rgba(10, 10, 10, 0.7); }
 .bg-ds-void\/80 { background-color: rgba(10, 10, 10, 0.8); }
 .bg-ds-accent\/10 { background-color: rgba(184, 184, 184, 0.1); }
@@ -968,9 +979,14 @@ legend {
 .bg-ds-tertiary\/50 { background-color: rgba(30, 30, 30, 0.5); }
 .bg-ds-tertiary\/75 { background-color: rgba(30, 30, 30, 0.75); }
 .bg-ds-tertiary\/90 { background-color: rgba(30, 30, 30, 0.9); }
+.bg-ds-tertiary\/95 { background-color: rgba(30, 30, 30, 0.95); }
+.bg-ds-secondary\/20 { background-color: rgba(22, 22, 22, 0.2); }  /* --bg-secondary @ 20% */
 .bg-ds-secondary\/50 { background-color: rgba(22, 22, 22, 0.5); }  /* --bg-secondary @ 50% */
 .bg-ds-success\/20 { background-color: rgba(107, 155, 107, 0.2); } /* --success @ 20% */
 .bg-ds-error\/20 { background-color: rgba(184, 107, 107, 0.2); }   /* --error @ 20% */
+/* Hairline dividers borrow the --text-muted ramp (#5a5a5a) as a fill; there is
+   no opaque .bg-ds-muted because nothing wants the flat colour. */
+.bg-ds-muted\/30 { background-color: rgba(90, 90, 90, 0.3); }      /* --text-muted @ 30% */
 
 /* Standard colors */
 .bg-transparent { background-color: transparent; }
@@ -998,6 +1014,7 @@ legend {
 .text-ds-secondary { color: var(--text-secondary); }
 .text-ds-muted { color: var(--text-muted); }
 .text-ds-muted\/70 { color: rgba(90, 90, 90, 0.7); }
+.text-ds-muted\/80 { color: rgba(90, 90, 90, 0.8); }
 .text-ds-void\/70 { color: rgba(10, 10, 10, 0.7); }
 .text-ds-accent { color: var(--accent); }
 .text-ds-success { color: var(--success); }
@@ -1099,8 +1116,12 @@ legend {
 .rounded-t { border-top-left-radius: 0.25rem; border-top-right-radius: 0.25rem; }
 .rounded-r { border-top-right-radius: 0.25rem; border-bottom-right-radius: 0.25rem; }
 .rounded-r-lg { border-top-right-radius: 0.5rem; border-bottom-right-radius: 0.5rem; }
+/* Squares off the right edge so an input can butt against its sibling button.
+   Must stay after the .rounded shorthand above to win at equal specificity. */
+.rounded-r-none { border-top-right-radius: 0; border-bottom-right-radius: 0; }
 .rounded-b { border-bottom-left-radius: 0.25rem; border-bottom-right-radius: 0.25rem; }
 .rounded-l { border-top-left-radius: 0.25rem; border-bottom-left-radius: 0.25rem; }
+.rounded-l-lg { border-top-left-radius: 0.5rem; border-bottom-left-radius: 0.5rem; }
 .rounded-t-lg { border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; }
 .rounded-t-2xl { border-top-left-radius: 1rem; border-top-right-radius: 1rem; }
 .rounded-b-lg { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; }
@@ -1109,12 +1130,18 @@ legend {
    EFFECTS UTILITIES
    ============================================ */
 
-/* Shadows */
+/* Shadows — every rule resolves to a --shadow-* tier; there are no ad-hoc values. */
 .shadow-none { box-shadow: none; }
 .shadow-ds-xs { box-shadow: var(--shadow-xs); }
 .shadow-ds-sm { box-shadow: var(--shadow-sm); }
 .shadow-ds-md { box-shadow: var(--shadow-md); }
 .shadow-ds-lg { box-shadow: var(--shadow-lg); }
+/* Un-suffixed .shadow-ds is the default elevation, i.e. the middle of the ramp —
+   the same tier the built-in [data-tooltip] rule below hard-codes (--shadow-md). */
+.shadow-ds { box-shadow: var(--shadow-md); }
+/* Tier-named aliases for call sites written in Tailwind's vocabulary. */
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
 
 /* Opacity */
 .opacity-0 { opacity: 0; }
@@ -1178,6 +1205,7 @@ legend {
 .cursor-auto { cursor: auto; }
 .cursor-default { cursor: default; }
 .cursor-pointer { cursor: pointer; }
+.cursor-help { cursor: help; }
 .cursor-wait { cursor: wait; }
 .cursor-text { cursor: text; }
 .cursor-move { cursor: move; }
@@ -1320,6 +1348,7 @@ legend {
 .hover-ds-text-secondary:hover { color: var(--text-secondary); }
 .hover-ds-text-error:hover { color: var(--error); }
 .hover-ds-accent:hover { color: var(--accent); }
+.hover-underline:hover { text-decoration: underline; }
 
 /* DropZone info lines (was an inline <style> tag in DropZonePanels.tsx) */
 .info-line:hover { color: rgba(255, 255, 255, 0.9); }
@@ -1351,6 +1380,7 @@ legend {
 
 .active-scale-95:active { transform: scale(0.95); }
 .active-scale-98:active { transform: scale(0.98); }
+.active-bg-ds-hover:active { background-color: var(--bg-hover); }
 
 /* ============================================
    FOCUS STATE UTILITIES
@@ -1684,9 +1714,12 @@ legend {
    exactly covers the element (all consumers are position:absolute, so inset:0
    resolves to their own padding box) and paints nothing. Hits on generated
    content are attributed to the originating element, so the event target is
-   still the .idle-hideable element; its children (and the footer logo <a>, which
-   carries the class itself) stay visibility:hidden — out of tab order and
-   unclickable. ::before, not ::after: tooltips own ::after, and an absolutely
+   still the .idle-hideable element; its children stay visibility:hidden — out of
+   tab order and individually un-hittable. Note the element itself is NOT inert:
+   the footer logo <a> carries .idle-hideable directly, so a blind click in its
+   hot-zone follows the link — unchanged from the pre-visibility baseline, where
+   the faded-out anchor was hit-testable too.
+   ::before, not ::after: tooltips own ::after, and an absolutely
    positioned ::before paints beneath positioned children, so control buttons
    still win the hit test while they are visible during the fade. pointer-events
    is inherited, so the pointer-lock rule below still disables this in fly mode. */

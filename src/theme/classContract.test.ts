@@ -8,9 +8,8 @@ import { resolve } from 'node:path';
  * hand-written rule exists. Undefined classes are silent no-ops (see the
  * retro-fix precedent at index.css ~line 889 and docs in CLAUDE.md).
  *
- * ALLOWLIST = known debt, being burned down task-by-task by the
- * 2026-08-10-design-system-integrity plan. Do NOT add entries without a
- * task/issue reference.
+ * ALLOWLIST was the known-debt escape hatch; the 2026-08-10-design-system-integrity
+ * plan burned it down to zero. Do NOT add entries without a task/issue reference.
  */
 
 // ---- collect defined classes from index.css ----
@@ -49,6 +48,7 @@ const PREFIXES = [
   // A bare 'hover' prefix also swallows enum strings such as the PopupKind
   // 'hover-card' in components/ui/popupLayerInventory.ts.
   'hover-ds', 'hover-bg', 'hover-border', 'hover-opacity', 'hover-brightness',
+  'hover-underline',
 ];
 
 // Positional utilities take numeric, fractional, arbitrary or keyword values —
@@ -104,19 +104,16 @@ for (const [path, source] of Object.entries(SOURCES)) {
   }
 }
 
-// Known debt — burned down by the design-system-integrity plan.
-const ALLOWLIST = new Set<string>([
-  // discovered on first run — assign to a task
-  'active:bg-ds-hover', 'bg-ds-muted/30', 'bg-ds-secondary/20',
-  'bg-ds-tertiary/95', 'bg-ds-void/60', 'border-ds-muted', 'bottom-4',
-  'bottom-full', 'cursor-help', 'gap-x-5', 'pl-0.5', 'right-4',
-  'rounded-l-lg', 'rounded-r-none', 'shadow-ds', 'shadow-lg', 'shadow-sm',
-  'text-ds-muted/80', 'top-full', 'tracking-tight',
-]);
-// Note: 'info-line' is also an undefined class, but its prefix is outside the
-// scanner's candidate list so it cannot be allowlisted here (the stale-check
-// would flag it). Task 11 defines it in index.css. Task 4 deleted the other
-// such marker, 'tool-header-close'.
+// Empty, and meant to stay that way: the design-system-integrity plan burned
+// down every entry. A new class must be defined in index.css (or the reference
+// removed) in the same change that introduces it — do not re-open this list
+// without a task/issue reference.
+const ALLOWLIST = new Set<string>([]);
+// Note: some undefined classes have prefixes outside the scanner's candidate
+// list and so could never be allowlisted here anyway (the stale check would flag
+// them). The two the plan found — 'info-line' and 'tool-header-close' — were
+// fixed directly: Task 11 defined the former in index.css, Task 4 deleted the
+// latter.
 
 describe('utility class contract', () => {
   it('every referenced utility class is defined in index.css', () => {

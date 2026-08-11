@@ -13,8 +13,12 @@ export const DROP_ZONE_DESKTOP_OVERLAY_CLASS = 'absolute inset-0 flex items-cent
 export const DROP_ZONE_TOUCH_OVERLAY_CLASS = `${DROP_ZONE_DESKTOP_OVERLAY_CLASS} px-3`;
 export const DROP_ZONE_ICON_BUTTON_CLASS = `${buttonStyles.base} w-8 h-8 ${buttonStyles.variants.ghost}`;
 export const DROP_ZONE_TOUCH_CLOSE_BUTTON_CLASS = `${buttonStyles.base} w-11 h-11 ${buttonStyles.variants.ghost} text-xl`;
+// No border-color utility here on purpose: the dashed box rides `currentColor`
+// (the panel's inherited text colour), which is what ships today. `border-ds-muted`
+// used to be listed but was never defined in index.css, so it painted nothing;
+// adding the rule would darken the landing modal's centrepiece.
 export const DROP_ZONE_BROWSE_BOX_CLASS =
-  'w-32 h-32 mt-6 mb-6 flex items-center justify-center border-2 border-dashed border-ds-muted rounded-lg cursor-pointer hover-border-ds-primary transition-colors';
+  'w-32 h-32 mt-6 mb-6 flex items-center justify-center border-2 border-dashed rounded-lg cursor-pointer hover-border-ds-primary transition-colors';
 export const DROP_ZONE_DESKTOP_ACTION_BUTTON_ICON_CLASS = 'w-3.5 h-3.5';
 export const DROP_ZONE_TOUCH_ACTION_ICON_CLASS = 'w-5 h-5 mr-2';
 

@@ -665,7 +665,7 @@ export const touchStyles = {
   drawerTitle: 'text-ds-primary text-base font-medium',
 
   // Touch rows (for control panels)
-  touchRow: 'min-h-[48px] flex items-center gap-3 px-4 active:bg-ds-hover',
+  touchRow: 'min-h-[48px] flex items-center gap-3 px-4 active-bg-ds-hover',
   touchRowLabel: 'flex-1 text-ds-primary text-sm',
   touchRowValue: 'text-ds-secondary text-sm',
 

@@ -48,7 +48,7 @@ interface DeletionModalPosition {
 
 const ENABLED_INLINE_BUTTON_CLASS = 'text-ds-accent hover-ds-hover';
 const DISABLED_INLINE_BUTTON_CLASS = 'text-ds-muted cursor-default';
-const ENABLED_PAGINATION_BUTTON_CLASS = 'text-ds-accent hover:underline';
+const ENABLED_PAGINATION_BUTTON_CLASS = 'text-ds-accent hover-underline';
 const DISABLED_PAGINATION_BUTTON_CLASS = 'text-ds-muted cursor-default';
 
 interface CameraGroupAccumulator {
