@@ -26,17 +26,28 @@ describe('DropZone panels', () => {
     const props = createDesktopProps();
     render(<DesktopDropZonePanel {...props} />);
 
-    fireEvent.click(screen.getByText('+'));
+    fireEvent.click(screen.getByRole('button', { name: /Browse for a COLMAP dataset folder/i }));
     fireEvent.click(screen.getByRole('button', { name: /Load URL/i }));
     fireEvent.click(screen.getByRole('button', { name: /Load JSON/i }));
     fireEvent.click(screen.getByRole('button', { name: /Try a Toy!/i }));
-    fireEvent.click(screen.getByRole('button', { name: '×' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss this panel' }));
 
     expect(props.onBrowse).toHaveBeenCalledTimes(1);
     expect(props.onOpenUrlModal).toHaveBeenCalledTimes(1);
     expect(props.onOpenManifestFile).toHaveBeenCalledTimes(1);
     expect(props.onLoadToy).toHaveBeenCalledTimes(1);
     expect(props.onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('exposes the desktop config icon buttons by accessible name', () => {
+    const props = createDesktopProps();
+    render(<DesktopDropZonePanel {...props} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Upload configuration file (.yaml)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reset all settings to defaults' }));
+
+    expect(props.onUploadConfig).toHaveBeenCalledTimes(1);
+    expect(props.onResetConfig).toHaveBeenCalledTimes(1);
   });
 
   it('routes desktop secondary context actions', () => {

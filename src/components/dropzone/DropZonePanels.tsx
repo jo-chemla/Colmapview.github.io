@@ -84,6 +84,7 @@ export function DesktopDropZonePanel({
               className={DROP_ZONE_ICON_BUTTON_CLASS}
               onClick={onUploadConfig}
               data-tooltip={DROP_ZONE_UPLOAD_CONFIG_TOOLTIP}
+              aria-label={DROP_ZONE_UPLOAD_CONFIG_TOOLTIP}
             >
               <UploadIcon className="w-4 h-4" />
             </button>
@@ -92,6 +93,7 @@ export function DesktopDropZonePanel({
               className={DROP_ZONE_ICON_BUTTON_CLASS}
               onClick={onResetConfig}
               data-tooltip={DROP_ZONE_RESET_CONFIG_TOOLTIP}
+              aria-label={DROP_ZONE_RESET_CONFIG_TOOLTIP}
             >
               <ResetIcon className="w-4 h-4" />
             </button>
@@ -101,18 +103,21 @@ export function DesktopDropZonePanel({
             className={DROP_ZONE_ICON_BUTTON_CLASS}
             onClick={onDismiss}
             data-tooltip={DROP_ZONE_DISMISS_TOOLTIP}
+            aria-label={DROP_ZONE_DISMISS_TOOLTIP}
           >
             ×
           </button>
         </div>
 
         <div className="flex flex-col items-center">
-          <div
+          <button
+            type="button"
             className={DROP_ZONE_BROWSE_BOX_CLASS}
             onClick={onBrowse}
+            aria-label="Browse for a COLMAP dataset folder"
           >
             <span className="text-ds-muted font-light leading-none" style={getDropZoneBrowseIconStyle()}>+</span>
-          </div>
+          </button>
           <h2 className={emptyStateStyles.title}>{DROP_ZONE_DESKTOP_TITLE}</h2>
           <p className={emptyStateStyles.message}>
             {DROP_ZONE_DESKTOP_MESSAGE.split('\n').map((line, index) => (
@@ -122,7 +127,6 @@ export function DesktopDropZonePanel({
               </span>
             ))}
           </p>
-          <style>{`.info-line:hover { color: rgba(255,255,255,0.9); }`}</style>
           <div className="text-ds-muted text-sm text-left max-w-md mt-6 mb-4">
             {DROP_ZONE_INFO_LINES.map((line) => (
               <div key={`${line.label ?? ''}${line.text}`} className={getDropZoneInfoLineClass(line.muted === true)}>

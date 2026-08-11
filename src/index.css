@@ -1321,6 +1321,9 @@ legend {
 .hover-ds-text-error:hover { color: var(--error); }
 .hover-ds-accent:hover { color: var(--accent); }
 
+/* DropZone info lines (was an inline <style> tag in DropZonePanels.tsx) */
+.info-line:hover { color: rgba(255, 255, 255, 0.9); }
+
 /* Border hover */
 .hover-border-ds-accent:hover { border-color: var(--accent); }
 .hover-border-ds-light:hover { border-color: var(--border-light); }
