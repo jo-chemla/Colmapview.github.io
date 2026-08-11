@@ -72,14 +72,14 @@ describe('image detail modal headers', () => {
     })).toBe('text-ds-primary line-through text-ds-error');
 
     expect(getDeleteScopeButtonClassName(false)).toBe(
-      `${modalStyles.headerIconButton} text-ds-muted hover:text-ds-error hover:bg-ds-error/20`
+      `${modalStyles.headerIconButton} text-ds-muted hover-ds-text-error hover-bg-ds-error-20`
     );
     expect(getDeleteScopeButtonClassName(true)).toBe(
-      `${modalStyles.headerIconButton} text-ds-success hover:bg-ds-success/20`
+      `${modalStyles.headerIconButton} text-ds-success hover-bg-ds-success-20`
     );
 
     expect(getTouchHeaderCloseButtonState()).toEqual({
-      className: 'w-10 h-10 flex items-center justify-center text-ds-muted hover:text-ds-primary text-2xl',
+      className: 'w-10 h-10 flex items-center justify-center text-ds-muted hover-ds-text-primary text-2xl',
       style: { minWidth: TOUCH.minTapTarget, minHeight: TOUCH.minTapTarget },
       title: 'Close',
     });

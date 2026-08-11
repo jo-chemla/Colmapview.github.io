@@ -171,7 +171,7 @@ describe('DeletionModal view-model helpers', () => {
     expect(getDeletionBulkAddButtonState('2')).toMatchObject({
       disabled: false,
     });
-    expect(getDeletionBulkAddButtonState('2').className).toContain('hover:bg-ds-hover');
+    expect(getDeletionBulkAddButtonState('2').className).toContain('hover-ds-hover');
 
     expect(getDeletionPaginationButtonState('previous', 0, 3)).toMatchObject({
       disabled: true,

@@ -106,14 +106,6 @@ for (const [path, source] of Object.entries(SOURCES)) {
 
 // Known debt — burned down by the design-system-integrity plan.
 const ALLOWLIST = new Set<string>([
-  // Task 4 (hover/press restoration)
-  'hover:opacity-90', 'hover:text-ds-primary', 'hover:bg-ds-tertiary',
-  'hover:bg-ds-accent/90', 'hover:bg-ds-hover', 'hover:bg-ds-secondary',
-  'hover:text-ds-error', 'hover:text-ds-accent', 'hover:bg-ds-success/20',
-  'hover:bg-ds-error/20', 'hover:border-ds-border-hover',
-  'active:scale-95', 'active:scale-98',
-  'bg-ds-secondary/50', 'bg-ds-error/20', 'bg-ds-success/20',
-  'hover-ds-accent', 'border-ds-border', 'bg-ds-bg-secondary', 'shrink-0',
   // Task 5 (focus)
   'focus:outline-none',
   // Task 6 (geometry)
@@ -132,10 +124,10 @@ const ALLOWLIST = new Set<string>([
   'shadow-ds', 'shadow-lg', 'shadow-sm', 'text-ds-muted/80', 'top-full',
   'tracking-tight',
 ]);
-// Note: 'tool-header-close' and 'info-line' are also undefined classes, but
-// their prefixes are outside the scanner's candidate list so they cannot be
-// allowlisted here (the stale-check would flag them). Task 4 deletes the
-// former; Task 11 defines the latter in index.css.
+// Note: 'info-line' is also an undefined class, but its prefix is outside the
+// scanner's candidate list so it cannot be allowlisted here (the stale-check
+// would flag it). Task 11 defines it in index.css. Task 4 deleted the other
+// such marker, 'tool-header-close'.
 
 describe('utility class contract', () => {
   it('every referenced utility class is defined in index.css', () => {

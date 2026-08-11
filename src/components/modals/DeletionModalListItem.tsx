@@ -53,7 +53,7 @@ export const DeletionModalListItem = memo(function DeletionModalListItem({
       <td className="px-2 py-0.5 align-middle min-w-0">
         <button
           onClick={() => onView(id)}
-          className="w-full text-left text-ds-primary hover:text-ds-accent truncate"
+          className="w-full text-left text-ds-primary hover-ds-accent truncate"
           title={`View ${name}`}
           aria-label={`View ${name}`}
         >
@@ -63,7 +63,7 @@ export const DeletionModalListItem = memo(function DeletionModalListItem({
       <td className="px-1 py-0.5 align-middle text-right">
         <button
           onClick={() => onRestore(id)}
-          className="text-ds-success hover:bg-ds-success/20 p-1 rounded"
+          className="text-ds-success hover-bg-ds-success-20 p-1 rounded"
           title="Restore"
           aria-label={`Restore ${name}`}
         >

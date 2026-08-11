@@ -104,7 +104,7 @@ export function UrlInputModal({ isOpen, onClose, onLoad, loading = false }: UrlI
           <button
             type="button"
             onClick={() => setShowHelp(!showHelp)}
-            className="flex items-center gap-1 text-ds-muted text-xs hover:text-ds-primary transition-colors"
+            className="flex items-center gap-1 text-ds-muted text-xs hover-ds-text-primary transition-colors"
           >
             <UrlInputHelpIcon iconKind={helpIconKind} />
             Supported URL formats

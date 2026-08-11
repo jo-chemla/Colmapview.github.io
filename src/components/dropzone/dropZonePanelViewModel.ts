@@ -58,14 +58,14 @@ export function getDesktopDropZoneActionButtonClass(isDisabled: boolean): string
 
 export function getTouchDropZoneUrlButtonClass(isDisabled: boolean): string {
   return withOptionalDisabledClass(
-    `${buttonStyles.base} h-12 text-sm ${buttonStyles.variants.secondary} active:scale-98`,
+    `${buttonStyles.base} h-12 text-sm ${buttonStyles.variants.secondary} active-scale-98`,
     isDisabled,
   );
 }
 
 export function getTouchDropZoneToyButtonClass(isDisabled: boolean): string {
   return withOptionalDisabledClass(
-    `${buttonStyles.base} h-12 text-sm ${buttonStyles.variants.primary} active:scale-98`,
+    `${buttonStyles.base} h-12 text-sm ${buttonStyles.variants.primary} active-scale-98`,
     isDisabled,
   );
 }

@@ -80,7 +80,7 @@ export function getShareButtonClass(
   const baseClass = `${buttonStyles.base} ${buttonStyles.sizes.sm} ${ROUNDED_CLASSES[rounded]}`;
   const variantClass = copied
     ? `${buttonStyles.variants.toggleSuccess} border-0`
-    : 'bg-ds-secondary/50 text-ds-muted hover:text-ds-primary hover:bg-ds-secondary';
+    : 'bg-ds-secondary/50 text-ds-muted hover-ds-text-primary hover-bg-ds-secondary';
 
   return `${baseClass} ${variantClass}`;
 }

@@ -70,7 +70,7 @@ export const ColorPickerRow = memo(function ColorPickerRow({ label, value, onCha
       <div className="flex items-center gap-2 flex-1">
         {/* Color picker swatch */}
         <label
-          className="relative w-8 h-6 rounded overflow-hidden border border-ds-border hover:border-ds-border-hover transition-colors cursor-pointer block shrink-0"
+          className="relative w-8 h-6 rounded overflow-hidden border border-ds hover-border-ds-light transition-colors cursor-pointer block flex-shrink-0"
           style={getBackgroundColorStyle(value)}
         >
           <input
@@ -89,12 +89,12 @@ export const ColorPickerRow = memo(function ColorPickerRow({ label, value, onCha
             onChange={(e) => setInputValue(e.target.value)}
             onBlur={applyValue}
             onKeyDown={handleKeyDown}
-            className="bg-ds-bg-secondary text-ds-primary text-sm font-mono px-1 py-0.5 rounded border border-ds-border w-16"
+            className="bg-ds-secondary text-ds-primary text-sm font-mono px-1 py-0.5 rounded border border-ds w-16"
             maxLength={HEX_COLOR_MAX_LENGTH}
           />
         ) : (
           <span
-            className="text-ds-secondary text-sm font-mono cursor-pointer hover:text-ds-primary transition-colors"
+            className="text-ds-secondary text-sm font-mono cursor-pointer hover-ds-text-primary transition-colors"
             onDoubleClick={handleDoubleClick}
             title="Double-click to edit"
           >

@@ -13,9 +13,9 @@ export const TOUCH_FAB_POSITION_CLASSES: Record<TouchFabPosition, string> = {
 };
 
 export const TOUCH_FAB_BASE_CLASS =
-  'fixed rounded-full shadow-lg flex items-center justify-center transition-all duration-200 active:scale-95';
-export const TOUCH_FAB_PRIMARY_CLASS = 'bg-ds-accent text-ds-void hover:bg-ds-accent/90';
-export const TOUCH_FAB_SECONDARY_CLASS = 'bg-ds-tertiary text-ds-primary border border-ds hover:bg-ds-hover';
+  'fixed rounded-full shadow-lg flex items-center justify-center transition-all duration-200 active-scale-95';
+export const TOUCH_FAB_PRIMARY_CLASS = 'bg-ds-accent text-ds-void hover-bg-ds-accent-90';
+export const TOUCH_FAB_SECONDARY_CLASS = 'bg-ds-tertiary text-ds-primary border border-ds hover-ds-hover';
 export const TOUCH_FAB_PRIMARY_ICON_CLASS = 'w-5 h-5';
 export const TOUCH_FAB_SECONDARY_ICON_CLASS = 'w-4 h-4';
 

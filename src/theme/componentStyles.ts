@@ -107,7 +107,7 @@ export const actionButtonStyles = {
   buttonPrimaryDisabled: `${buttonStyles.base} px-1 py-1 text-sm ${buttonStyles.disabled} bg-ds-secondary text-ds-muted flex-1`,
 
   // Full-width primary action button (for "Done", "Confirm" dialogs)
-  buttonFullWidth: 'w-full px-3 py-1.5 bg-ds-accent text-ds-void rounded text-sm hover:opacity-90 transition-opacity',
+  buttonFullWidth: 'w-full px-3 py-1.5 bg-ds-accent text-ds-void rounded text-sm hover-opacity-90 transition-opacity',
 
   // Icon action buttons (for confirm/retry/cancel style buttons)
   iconButton: 'p-0.5 transition-colors flex items-center',
@@ -217,7 +217,7 @@ export const modalStyles = {
   popupHeader: POPUP_HEADER_BASE,
   toolHeader: `${POPUP_HEADER_BASE} cursor-move`,
   toolHeaderTitle: 'text-ds-primary text-sm font-medium',
-  toolHeaderClose: 'w-6 h-6 flex items-center justify-center rounded cursor-pointer text-ds-muted hover:text-ds-primary hover:bg-ds-tertiary transition-colors tool-header-close',
+  toolHeaderClose: 'w-6 h-6 flex items-center justify-center rounded cursor-pointer text-ds-muted hover-ds-text-primary hover-ds-hover transition-colors',
   /** Base for modal header icon buttons (delete/restore actions) */
   headerIconButton: 'w-6 h-6 flex items-center justify-center rounded cursor-pointer transition-colors',
   /** Standard tool modal content area */
@@ -647,9 +647,9 @@ export const histogramStyles = {
  */
 export const touchStyles = {
   // FAB (Floating Action Button)
-  fab: 'fixed rounded-full shadow-lg flex items-center justify-center transition-all duration-200 active:scale-95',
-  fabPrimary: 'bg-ds-accent text-ds-void hover:bg-ds-accent/90',
-  fabSecondary: 'bg-ds-tertiary text-ds-primary border border-ds hover:bg-ds-hover',
+  fab: 'fixed rounded-full shadow-lg flex items-center justify-center transition-all duration-200 active-scale-95',
+  fabPrimary: 'bg-ds-accent text-ds-void hover-bg-ds-accent-90',
+  fabSecondary: 'bg-ds-tertiary text-ds-primary border border-ds hover-ds-hover',
 
   // Bottom sheet
   bottomSheet: 'fixed inset-x-0 bottom-0 bg-ds-tertiary rounded-t-2xl shadow-ds-lg z-touch-sheet',
