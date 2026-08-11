@@ -106,8 +106,6 @@ for (const [path, source] of Object.entries(SOURCES)) {
 
 // Known debt — burned down by the design-system-integrity plan.
 const ALLOWLIST = new Set<string>([
-  // Task 5 (focus)
-  'focus:outline-none',
   // Task 6 (geometry)
   'px-2.5', 'py-0.5', 'pb-1.5', 'rounded-t-2xl',
   'min-w-[120px]', 'min-w-[300px]', 'min-w-[420px]',

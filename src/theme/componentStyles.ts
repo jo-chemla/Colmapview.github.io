@@ -396,7 +396,7 @@ export const controlPanelStyles = {
   row: 'flex items-center gap-2',
   label: 'text-ds-secondary text-sm whitespace-nowrap w-24 flex-shrink-0',
   value: 'text-ds-primary text-sm w-8 text-right flex-shrink-0 cursor-pointer hover-ds-accent box-border',
-  valueInput: 'bg-transparent text-ds-primary text-sm w-8 text-right flex-shrink-0 border-none p-0 m-0 focus:outline-none box-border',
+  valueInput: 'bg-transparent text-ds-primary text-sm w-8 text-right flex-shrink-0 border-none p-0 m-0 box-border',
   slider: `${inputStyles.range.base} flex-1 min-w-0`,
   select: `${inputStyles.selectPanel} py-0.5 pl-2 ml-1.5 text-sm flex-1`,
   selectRight: `${inputStyles.selectPanel} py-0.5 pl-2 pr-6 text-sm flex-1 min-w-0 w-full`,  // Same width as slider track

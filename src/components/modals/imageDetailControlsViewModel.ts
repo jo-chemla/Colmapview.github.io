@@ -184,7 +184,7 @@ const DESKTOP_MATCH_OPACITY_SLIDER_CLASS = 'w-14 accent-ds-success';
 const DESKTOP_MATCH_OPACITY_VALUE_CLASS =
   'text-ds-primary text-xs w-8 text-right flex-shrink-0 cursor-pointer hover-bg-ds-accent';
 const DESKTOP_MATCH_OPACITY_EDITOR_CLASS =
-  'bg-transparent text-ds-primary text-xs w-8 text-right flex-shrink-0 border-none p-0 m-0 focus-outline-none';
+  'bg-transparent text-ds-primary text-xs w-8 text-right flex-shrink-0 border-none p-0 m-0';
 
 export function getPointCountClass(
   isMarkedForDeletion: boolean,
