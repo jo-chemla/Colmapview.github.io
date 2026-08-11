@@ -1674,6 +1674,27 @@ legend {
   visibility: hidden;
 }
 
+/* Hover-to-reveal hot-zone. Un-idling is gated on isIdlePauseTarget, whose first
+   entry is .idle-hideable itself (src/hooks/idleTimerPolicy.ts) — the designed
+   gesture is "hover the hidden chrome", so the chrome's own box must stay
+   hit-testable. This transparent pseudo re-enables visibility for a box that
+   exactly covers the element (all consumers are position:absolute, so inset:0
+   resolves to their own padding box) and paints nothing. Hits on generated
+   content are attributed to the originating element, so the event target is
+   still the .idle-hideable element; its children (and the footer logo <a>, which
+   carries the class itself) stay visibility:hidden — out of tab order and
+   unclickable. ::before, not ::after: tooltips own ::after, and an absolutely
+   positioned ::before paints beneath positioned children, so control buttons
+   still win the hit test while they are visible during the fade. pointer-events
+   is inherited, so the pointer-lock rule below still disables this in fly mode. */
+.scene-3d-container[data-idle="true"] .idle-hideable::before,
+.scene-3d-container[data-autohide-preview="true"] .idle-hideable::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  visibility: visible;
+}
+
 /* During pointer lock (fly mode), fully block hover/click on overlays */
 .scene-3d-container[data-pointer-locked="true"] .idle-hideable {
   pointer-events: none;
