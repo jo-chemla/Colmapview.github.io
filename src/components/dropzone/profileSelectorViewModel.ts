@@ -8,8 +8,11 @@ export const PROFILE_SELECTOR_FALLBACK_LABEL = 'Select...';
 export const PROFILE_SELECTOR_SAVE_LABEL = 'Save Profile';
 export const PROFILE_SELECTOR_NAME_PLACEHOLDER = 'Profile name';
 export const PROFILE_SELECTOR_NEW_PROFILE_LABEL = '+ New Profile';
+// Deliberately flat: `shadow-lg` was listed here but undefined in index.css, so this
+// menu has always rendered without a drop shadow. The rule exists now; keep-current-pixels
+// (same call as toggleSwitchStyles.thumb's shadow-sm) says do not switch it on.
 export const PROFILE_SELECTOR_MENU_CLASS =
-  'absolute top-full left-0 right-0 mt-1 bg-ds-tertiary border border-ds rounded shadow-lg py-1';
+  'absolute top-full left-0 right-0 mt-1 bg-ds-tertiary border border-ds rounded py-1';
 export const PROFILE_SELECTOR_TRIGGER_CARET_CLASS = 'ml-1 text-ds-muted';
 export const PROFILE_SELECTOR_OPTION_SELECT_BUTTON_CLASS = 'min-w-0 flex-1 text-left cursor-pointer';
 export const PROFILE_SELECTOR_DELETE_BUTTON_CLASS = 'p-0.5 text-ds-muted hover-ds-text-primary ml-2 flex-shrink-0';

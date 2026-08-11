@@ -132,7 +132,8 @@ export function ContextMenuEditor({
               renderSection). This div never had column tracks — grid-cols-3 and the
               children's col-span-3 were undefined classes, so it always resolved to
               grid-template-columns:none, which also made gap-x-5 inert. Removed rather
-              than defined: defining them would change the layout. */}
+              than defined: defining them would change the layout. (The .gap-x-5 rule
+              itself is gone from index.css too — this was its only caller.) */}
           <div className="grid gap-y-3">
             {viewSection && renderSection(viewSection, 3)}
             {displaySection && renderSection(displaySection, 3)}

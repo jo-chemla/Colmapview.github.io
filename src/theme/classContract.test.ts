@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 
 /**
  * Contract: every utility-class token referenced in TS/TSX must be defined in
@@ -13,18 +13,38 @@ import { resolve } from 'node:path';
  */
 
 // ---- collect defined classes from index.css ----
-const css = readFileSync(resolve(__dirname, '../index.css'), 'utf8');
+// CSS comments are stripped first: a class named only inside a /* … */ note is
+// documentation, not a rule, and must not satisfy the contract.
+const css = readFileSync(resolve(__dirname, '../index.css'), 'utf8')
+  .replace(/\/\*[\s\S]*?\*\//g, ' ');
 const defined = new Set<string>();
 for (const m of css.matchAll(/\.((?:[\w-]|\\.)+)/g)) {
   defined.add(m[1].replace(/\\(.)/g, '$1'));
 }
 
 // ---- collect candidate tokens from source string literals ----
-const SOURCES = import.meta.glob('../**/*.{ts,tsx}', {
-  query: '?raw',
-  import: 'default',
-  eager: true,
-}) as Record<string, string>;
+// Deliberately a synchronous fs walk, not `import.meta.glob(..., { eager: true })`:
+// the eager glob made Vite transform every file under src/ before this file's body
+// could run (~40s), which starved the other fs-walking suites and produced timeout
+// failures across the run. Same idiom as components/componentStoreBoundary.test.ts.
+const SRC_ROOT = resolve(__dirname, '..');
+
+function collectSourceFiles(directory: string, out: string[] = []): string[] {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const entryPath = join(directory, entry.name);
+    if (entry.isDirectory()) {
+      collectSourceFiles(entryPath, out);
+    } else if (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx')) {
+      out.push(entryPath);
+    }
+  }
+  return out;
+}
+
+const SOURCES: Record<string, string> = {};
+for (const file of collectSourceFiles(SRC_ROOT)) {
+  SOURCES[file.replace(/\\/g, '/')] = readFileSync(file, 'utf8');
+}
 
 const VARIANT_RE = /^(?:hover|focus|active|disabled|group-hover(?:\/[\w-]+)?):/;
 const SINGLE_WORD_UTILITIES = new Set([
@@ -75,7 +95,10 @@ function isCandidate(token: string): boolean {
     const modifier = base.slice(base.lastIndexOf('/') + 1);
     if (!/^\d+$/.test(modifier) && !/^\[[^\]]*\]$/.test(modifier)) return false;
   }
-  if (!base.includes('-') && !VARIANT_RE.test(token)) {
+  // Applies to the bare token AND to its variant forms: `hover:underline` must be
+  // checked as `underline`, or single-word variants slip past the contract
+  // entirely — the exact blind spot this scanner exists to close.
+  if (!base.includes('-')) {
     return SINGLE_WORD_UTILITIES.has(base);
   }
   return PREFIXES.some((p) => {
@@ -95,18 +118,23 @@ function stripComments(source: string): string {
     .replace(/(^|[^:\w'"`\\])\/\/[^\n]*/g, '$1');
 }
 
-const found = new Set<string>();
-for (const [path, source] of Object.entries(SOURCES)) {
-  if (path.includes('.test.') || path.includes('classContract')) continue;
-  for (const m of stripComments(source).matchAll(/'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"|`((?:[^`\\]|\\.)*)`/g)) {
-    const literal = m[1] ?? m[2] ?? m[3] ?? '';
-    for (const segment of literal.split(/\$\{[^}]*\}/)) {
-      for (const token of segment.split(/\s+/)) {
-        if (isCandidate(token)) found.add(token);
+function harvest(sources: Record<string, string>): Set<string> {
+  const tokens = new Set<string>();
+  for (const [path, source] of Object.entries(sources)) {
+    if (path.includes('.test.') || path.includes('classContract')) continue;
+    for (const m of stripComments(source).matchAll(/'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"|`((?:[^`\\]|\\.)*)`/g)) {
+      const literal = m[1] ?? m[2] ?? m[3] ?? '';
+      for (const segment of literal.split(/\$\{[^}]*\}/)) {
+        for (const token of segment.split(/\s+/)) {
+          if (isCandidate(token)) tokens.add(token);
+        }
       }
     }
   }
+  return tokens;
 }
+
+const found = harvest(SOURCES);
 
 // Empty, and meant to stay that way: the design-system-integrity plan burned
 // down every entry. A new class must be defined in index.css (or the reference
