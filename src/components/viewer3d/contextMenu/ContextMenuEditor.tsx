@@ -77,7 +77,7 @@ export function ContextMenuEditor({
   const renderSection = (group: ContextMenuConfigGroup<ActionDef>, colCount = 1) => {
     const columns = splitActionsIntoColumns(group.actions, colCount);
     return (
-      <div key={group.section} className="col-span-3">
+      <div key={group.section}>
         <div className="text-xs font-medium text-ds-muted uppercase tracking-wide mb-1 px-1">
           {group.label}
         </div>
@@ -127,7 +127,13 @@ export function ContextMenuEditor({
             Select which actions appear in the right-click menu.
           </div>
 
-          <div className="grid grid-cols-3 gap-x-5 gap-y-3">
+          {/* Single-column stack: the sections list vertically with gap-y-3, and each
+              section owns its own 3-column grid (inline gridTemplateColumns in
+              renderSection). This div never had column tracks — grid-cols-3 and the
+              children's col-span-3 were undefined classes, so it always resolved to
+              grid-template-columns:none, which also made gap-x-5 inert. Removed rather
+              than defined: defining them would change the layout. */}
+          <div className="grid gap-y-3">
             {viewSection && renderSection(viewSection, 3)}
             {displaySection && renderSection(displaySection, 3)}
             {camerasSection && renderSection(camerasSection, 3)}

@@ -43,6 +43,10 @@ const PREFIXES = [
   'object', 'aspect', 'cursor', 'select', 'pointer-events', 'transition',
   'duration', 'ease', 'animate', 'outline', 'ring', 'backdrop', 'from', 'to',
   'line', 'group', 'focus', 'active', 'shrink', 'grow',
+  // Grid track/placement families. Omitting these hid a whole inert layout:
+  // ContextMenuEditor asked for `grid-cols-3` + `col-span-3`, neither of which
+  // exists, so its outer grid silently collapsed to one column.
+  'grid-cols', 'grid-rows', 'col-span', 'row-span', 'col-start', 'row-start',
   // Dash-form variant families, enumerated as they exist in index.css
   // (.hover-ds-hover, .hover-bg-ds-accent, …) rather than as a bare 'hover'.
   // A bare 'hover' prefix also swallows enum strings such as the PopupKind

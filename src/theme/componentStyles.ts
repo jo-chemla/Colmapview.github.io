@@ -459,8 +459,12 @@ export const toggleSwitchStyles = {
   trackOff: 'bg-ds-secondary border border-ds-light',
   trackOn: 'bg-ds-accent border border-ds-accent',
 
-  // Inner circle (thumb) - base styles only, position via inline style
-  thumb: 'absolute bg-white rounded-full shadow-sm transition-all duration-200 ease-in-out',
+  // Inner circle (thumb) - base styles only, position via inline style.
+  // Deliberately flat: `shadow-sm` was listed here but never defined in index.css,
+  // so every toggle in the app has always rendered without a drop shadow. The rule
+  // exists now, but adding it back would change live pixels app-wide for no reason
+  // (same keep-current-pixels call as DROP_ZONE_BROWSE_BOX_CLASS's border).
+  thumb: 'absolute bg-white rounded-full transition-all duration-200 ease-in-out',
   thumbSm: 'w-2.5 h-2.5',   // 10x10px
   thumbMd: 'w-3.5 h-3.5',   // 14x14px
   thumbLg: 'w-4.5 h-4.5',   // 18x18px

@@ -500,9 +500,10 @@ legend {
 .top-3 { top: 0.75rem; }
 .top-4 { top: 1rem; }
 .top-6 { top: 1.5rem; }
-/* top-full/bottom-full anchor a popover to the edge of its positioned parent.
-   Both were referenced but undefined, so the profile dropdown/selector menus and
-   the drop-zone hover cards fell back to their static (in-flow) position. */
+/* top-full (here) and bottom-full (in the bottom-* group below) anchor a popover
+   to the edge of its positioned parent. Both were referenced but undefined, so the
+   profile dropdown/selector menus and the drop-zone hover cards fell back to their
+   static (in-flow) position. */
 .top-full { top: 100%; }
 .right-1 { right: 0.25rem; }
 .right-2 { right: 0.5rem; }
@@ -519,7 +520,7 @@ legend {
 .bottom-3 { bottom: 0.75rem; }
 .bottom-4 { bottom: 1rem; }
 .bottom-6 { bottom: 1.5rem; }
-.bottom-full { bottom: 100%; }
+.bottom-full { bottom: 100%; } /* pairs with .top-full above — see its comment */
 .left-1 { left: 0.25rem; }
 .left-2 { left: 0.5rem; }
 .left-3 { left: 0.75rem; }
