@@ -481,7 +481,7 @@ describe('ImageDetailModal view-model helpers', () => {
     })).toEqual({
       label: '← Prev',
       disabled: false,
-      className: 'flex-1 px-2 flex items-center justify-center rounded-md text-xs bg-ds-hover text-ds-primary',
+      className: 'flex-1 px-2 flex items-center justify-center rounded-md text-xs bg-ds-hover text-ds-primary relative touch-hit-44',
     });
 
     expect(getImageDetailNavigationButtonState({
@@ -491,7 +491,7 @@ describe('ImageDetailModal view-model helpers', () => {
     })).toEqual({
       label: 'Next →',
       disabled: true,
-      className: 'flex-1 px-2 flex items-center justify-center rounded-md text-xs bg-ds-secondary text-ds-muted',
+      className: 'flex-1 px-2 flex items-center justify-center rounded-md text-xs bg-ds-secondary text-ds-muted relative touch-hit-44',
     });
 
     const desktopPrevious = getImageDetailNavigationButtonState({

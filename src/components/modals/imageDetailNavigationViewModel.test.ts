@@ -22,12 +22,12 @@ describe('imageDetailNavigationViewModel', () => {
       previousButton: {
         label: '\u2190 Prev',
         disabled: true,
-        className: 'flex-1 px-2 flex items-center justify-center rounded-md text-xs bg-ds-secondary text-ds-muted',
+        className: 'flex-1 px-2 flex items-center justify-center rounded-md text-xs bg-ds-secondary text-ds-muted relative touch-hit-44',
       },
       nextButton: {
         label: 'Next \u2192',
         disabled: false,
-        className: 'flex-1 px-2 flex items-center justify-center rounded-md text-xs bg-ds-hover text-ds-primary',
+        className: 'flex-1 px-2 flex items-center justify-center rounded-md text-xs bg-ds-hover text-ds-primary relative touch-hit-44',
       },
       label: '2 / 3',
       labelClassName: 'text-ds-primary text-xs px-1',

@@ -1828,3 +1828,17 @@ legend {
   width: 1rem;
   height: 1rem;
 }
+
+/* Invisible 44px tap-target expansion (TOUCH.minTapTarget) for compact touch
+   controls. Visual size unchanged; tooltips own ::after, so ::before is free.
+   Requires position:relative on the element (control buttons already have it). */
+.touch-control-panel .control-button-responsive::before,
+.touch-hit-44::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
