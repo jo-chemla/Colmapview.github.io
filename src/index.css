@@ -1661,14 +1661,17 @@ legend {
    Auto-hide overlays after idle
    ============================================ */
 
-/* Elements marked as idle-hideable fade out when the scene is idle */
+/* Elements marked as idle-hideable fade out when the scene is idle.
+   visibility:hidden removes them from tab order and hit-testing while hidden;
+   it flips at the end of the opacity fade. */
 .idle-hideable {
-  transition: opacity 0.25s ease;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
 .scene-3d-container[data-idle="true"] .idle-hideable,
 .scene-3d-container[data-autohide-preview="true"] .idle-hideable {
   opacity: 0;
+  visibility: hidden;
 }
 
 /* During pointer lock (fly mode), fully block hover/click on overlays */
