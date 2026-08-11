@@ -1830,10 +1830,18 @@ legend {
 }
 
 /* Invisible 44px tap-target expansion (TOUCH.minTapTarget) for compact touch
-   controls. Visual size unchanged; tooltips own ::after, so ::before is free.
-   Requires position:relative on the element (control buttons already have it). */
-.touch-control-panel .control-button-responsive::before,
-.touch-hit-44::before {
+   controls. Visual size unchanged (the pseudo paints nothing); tooltips own
+   ::after, so ::before is free. Requires position:relative on the element. */
+
+/* Control panel: 28px buttons on a 30px pitch, so 44px boxes overlap their
+   neighbours. z-index:-1 keeps each box beneath every sibling button, so it can
+   only claim empty gap/margin, never a neighbour's painted surface. Verified
+   safe: the nearest stacking context is controlPanelStyles.container (absolute
+   + z-tooltip, no background) and the only element between it and the buttons
+   is the transparent, button-sized wrapper div — so the box still paints above
+   the canvas (negative z cannot escape its stacking context) and still wins the
+   hit test in the gaps, where nothing else is painted. */
+.touch-control-panel .control-button-responsive::before {
   content: '';
   position: absolute;
   left: 50%;
@@ -1841,4 +1849,28 @@ legend {
   width: 44px;
   height: 44px;
   transform: translate(-50%, -50%);
+  z-index: -1;
+}
+
+/* A disabled control button carries opacity-40, i.e. its own stacking context
+   that the -1 cannot escape; its box would then repaint above the button before
+   it and swallow taps there. A disabled button needs no tap target: drop it. */
+.touch-control-panel .control-button-responsive:disabled::before {
+  content: none;
+}
+
+/* Touch nav buttons (image detail modal) are flex-1, far wider than 44px, so
+   only the 36px height is short: expand full width, 4px up/down into the row's
+   own padding — no sibling is ever covered, the 6px inter-button gap included.
+   No negative z-index here; it would be inert. Their nearest stacking context is
+   the fixed modal frame, and the in-flow .bg-ds-tertiary controls bar between
+   the two paints above negative-z descendants, so it would eat every tap. */
+.touch-hit-44::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 44px;
+  transform: translateY(-50%);
 }
