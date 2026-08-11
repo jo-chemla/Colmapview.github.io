@@ -106,21 +106,14 @@ for (const [path, source] of Object.entries(SOURCES)) {
 
 // Known debt — burned down by the design-system-integrity plan.
 const ALLOWLIST = new Set<string>([
-  // Task 6 (geometry)
-  'px-2.5', 'py-0.5', 'pb-1.5', 'rounded-t-2xl',
-  'min-w-[120px]', 'min-w-[300px]', 'min-w-[420px]',
-  'max-w-[400px]', 'max-w-[200px]', 'max-h-[80vh]',
-  'min-h-[44px]', 'min-h-[48px]', 'text-[10px]', 'text-[8px]', 'text-6xl',
-  'w-4.5', 'h-4.5',
   // Task 7 (text tones / status colors)
   'text-ds-tertiary', 'text-orange-400',
   // discovered on first run — assign to a task
   'active:bg-ds-hover', 'bg-ds-muted/30', 'bg-ds-secondary/20',
   'bg-ds-tertiary/95', 'bg-ds-void/60', 'border-ds-muted', 'bottom-4',
-  'bottom-full', 'cursor-help', 'gap-x-5', 'max-w-[520px]', 'max-w-[80px]',
-  'min-w-[400px]', 'pl-0.5', 'right-4', 'rounded-l-lg', 'rounded-r-none',
-  'shadow-ds', 'shadow-lg', 'shadow-sm', 'text-ds-muted/80', 'top-full',
-  'tracking-tight',
+  'bottom-full', 'cursor-help', 'gap-x-5', 'pl-0.5', 'right-4',
+  'rounded-l-lg', 'rounded-r-none', 'shadow-ds', 'shadow-lg', 'shadow-sm',
+  'text-ds-muted/80', 'top-full', 'tracking-tight',
 ]);
 // Note: 'info-line' is also an undefined class, but its prefix is outside the
 // scanner's candidate list so it cannot be allowlisted here (the stale-check
