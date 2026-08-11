@@ -22,6 +22,7 @@ export const DROP_ZONE_BROWSE_BOX_CLASS =
 export const DROP_ZONE_DESKTOP_ACTION_BUTTON_ICON_CLASS = 'w-3.5 h-3.5';
 export const DROP_ZONE_TOUCH_ACTION_ICON_CLASS = 'w-5 h-5 mr-2';
 
+export const DROP_ZONE_BROWSE_LABEL = 'Browse for a COLMAP dataset folder';
 export const DROP_ZONE_UPLOAD_CONFIG_TOOLTIP = 'Upload configuration file (.yaml)';
 export const DROP_ZONE_RESET_CONFIG_TOOLTIP = 'Reset all settings to defaults';
 export const DROP_ZONE_DISMISS_TOOLTIP = 'Dismiss this panel';

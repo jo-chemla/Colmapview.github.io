@@ -36,6 +36,7 @@ import {
 import { copyBytesToArrayBuffer } from '../test/builders/fileFakes';
 import { filterReconstructionByImageIds } from '../store/actions/deletionActions';
 import {
+  FIXTURE_SUITE_TIMEOUT_MS,
   getBicycleFixtureDir,
   hasSparseBinaryFixture,
 } from '../../tests/colmapFixturePaths';
@@ -43,7 +44,6 @@ import {
 const BIN = getBicycleFixtureDir();
 const WASM_JS = resolve(process.cwd(), 'public/wasm/colmap_wasm.js');
 const WASM_BIN = resolve(process.cwd(), 'public/wasm/colmap_wasm.wasm');
-const INTEGRITY_TEST_TIMEOUT_MS = 15000;
 
 async function makeWrapperInNode(): Promise<WasmReconstructionWrapper> {
   const factory = resolveColmapWasmFactory(await import(pathToFileURL(WASM_JS).href));
@@ -121,7 +121,7 @@ describe.skipIf(missingFixture)('exported binary integrity (bicycle, WASM-mode)'
     expect(reImages.size).toBe(images.size);
     expect(rePoints.size).toBeGreaterThan(0);
     assertIntegrity(reImages, rePoints);
-  }, INTEGRITY_TEST_TIMEOUT_MS);
+  }, FIXTURE_SUITE_TIMEOUT_MS);
 
   it('survives applyTransformToData-style bake (realizes 2D points before dropping WASM)', async () => {
     const wasm = await makeWrapperInNode();
@@ -169,7 +169,7 @@ describe.skipIf(missingFixture)('exported binary integrity (bicycle, WASM-mode)'
     let totalPoints2D = 0;
     for (const img of reImages.values()) totalPoints2D += img.points2D.length;
     expect(totalPoints2D).toBeGreaterThan(0);
-  }, INTEGRITY_TEST_TIMEOUT_MS);
+  }, FIXTURE_SUITE_TIMEOUT_MS);
 
   it('survives applyDeletionsToData in WASM mode (realizes points3D, filters tracks)', async () => {
     const wasm = await makeWrapperInNode();
@@ -223,7 +223,7 @@ describe.skipIf(missingFixture)('exported binary integrity (bicycle, WASM-mode)'
 
     // Full pycolmap-style integrity
     assertIntegrity(reImages, rePoints);
-  }, INTEGRITY_TEST_TIMEOUT_MS);
+  }, FIXTURE_SUITE_TIMEOUT_MS);
 
   it('regression: WITHOUT the applyTransformToData fix, integrity is violated', async () => {
     // This test documents the bug the fix targets. We intentionally skip
@@ -243,5 +243,5 @@ describe.skipIf(missingFixture)('exported binary integrity (bicycle, WASM-mode)'
     const rePoints = parsePoints3DBinary(ptBuf);
 
     expect(() => assertIntegrity(reImages, rePoints)).toThrow(/out of range/);
-  }, INTEGRITY_TEST_TIMEOUT_MS);
+  }, FIXTURE_SUITE_TIMEOUT_MS);
 });

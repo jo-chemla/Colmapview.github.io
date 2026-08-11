@@ -14,6 +14,7 @@ import { LoadJsonHoverCard, LoadUrlHoverCard, ToyHoverCard } from './DropZoneHov
 import {
   DROP_ZONE_ACTION_LABELS,
   DROP_ZONE_BROWSE_BOX_CLASS,
+  DROP_ZONE_BROWSE_LABEL,
   DROP_ZONE_DESKTOP_ACTION_BUTTON_ICON_CLASS,
   DROP_ZONE_DESKTOP_MESSAGE,
   DROP_ZONE_DESKTOP_OVERLAY_CLASS,
@@ -114,7 +115,7 @@ export function DesktopDropZonePanel({
             type="button"
             className={DROP_ZONE_BROWSE_BOX_CLASS}
             onClick={onBrowse}
-            aria-label="Browse for a COLMAP dataset folder"
+            aria-label={DROP_ZONE_BROWSE_LABEL}
           >
             <span className="text-ds-muted font-light leading-none" style={getDropZoneBrowseIconStyle()}>+</span>
           </button>

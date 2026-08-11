@@ -474,25 +474,27 @@ describe('ImageDetailModal view-model helpers', () => {
   });
 
   it('derives image navigation button state for touch and desktop controls', () => {
-    expect(getImageDetailNavigationButtonState({
+    // The exact touch class strings are pinned in imageDetailNavigationViewModel.test.ts;
+    // here only the discriminating parts matter.
+    const touchPrevious = getImageDetailNavigationButtonState({
       direction: 'previous',
       variant: 'touch',
       hasTarget: true,
-    })).toEqual({
-      label: '← Prev',
-      disabled: false,
-      className: 'flex-1 px-2 flex items-center justify-center rounded-md text-xs bg-ds-hover text-ds-primary relative touch-hit-44',
     });
+    expect(touchPrevious.label).toBe('← Prev');
+    expect(touchPrevious.disabled).toBe(false);
+    expect(touchPrevious.className).toContain('touch-hit-44');
+    expect(touchPrevious.className).toContain('bg-ds-hover text-ds-primary');
 
-    expect(getImageDetailNavigationButtonState({
+    const touchNext = getImageDetailNavigationButtonState({
       direction: 'next',
       variant: 'touch',
       hasTarget: false,
-    })).toEqual({
-      label: 'Next →',
-      disabled: true,
-      className: 'flex-1 px-2 flex items-center justify-center rounded-md text-xs bg-ds-secondary text-ds-muted relative touch-hit-44',
     });
+    expect(touchNext.label).toBe('Next →');
+    expect(touchNext.disabled).toBe(true);
+    expect(touchNext.className).toContain('touch-hit-44');
+    expect(touchNext.className).toContain('bg-ds-secondary text-ds-muted');
 
     const desktopPrevious = getImageDetailNavigationButtonState({
       direction: 'previous',

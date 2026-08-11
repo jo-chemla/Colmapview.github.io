@@ -109,6 +109,7 @@
   --scrollbar-width: 12px;
   --control-btn-size: 2.5rem;
   --control-panel-gap: 0.5rem;
+  --tap-target-min: 44px; /* mirrors TOUCH.minTapTarget (src/theme/sizing.ts) */
 
   /* Range Slider */
   --slider-thumb-size: 12px;
@@ -120,6 +121,8 @@
   --z-dropdown: 100;
   --z-sticky: 200;
   --z-overlay: 500;
+  --z-touch-drawer-backdrop: 997;
+  --z-touch-drawer: 998;
   --z-fab: 999;
   --z-modal: 1000;
   --z-contextMenu: 2100;
@@ -548,9 +551,8 @@ legend {
 .z-contextMenu { z-index: var(--z-contextMenu); }
 .z-toast { z-index: var(--z-toast); }
 .z-tooltip { z-index: var(--z-tooltip); }
-.z-touch-sheet { z-index: 996; }
-.z-touch-drawer-backdrop { z-index: 997; }
-.z-touch-drawer { z-index: 998; }
+.z-touch-drawer-backdrop { z-index: var(--z-touch-drawer-backdrop); }
+.z-touch-drawer { z-index: var(--z-touch-drawer); }
 
 /* Fixed positioning */
 .fixed { position: fixed; }
@@ -863,15 +865,8 @@ legend {
 .min-h-full { min-height: 100%; }
 .min-h-screen { min-height: 100vh; }
 
-/* Arbitrary min-heights (touch targets) */
-.min-h-\[44px\] { min-height: 44px; }
-.min-h-\[48px\] { min-height: 48px; }
-
 .max-h-full { max-height: 100%; }
 .max-h-screen { max-height: 100vh; }
-
-/* Arbitrary max-heights */
-.max-h-\[80vh\] { max-height: 80vh; }
 
 /* ============================================
    TYPOGRAPHY UTILITIES
@@ -979,11 +974,14 @@ legend {
 .bg-ds-tertiary\/50 { background-color: rgba(30, 30, 30, 0.5); }
 .bg-ds-tertiary\/75 { background-color: rgba(30, 30, 30, 0.75); }
 .bg-ds-tertiary\/90 { background-color: rgba(30, 30, 30, 0.9); }
-.bg-ds-tertiary\/95 { background-color: rgba(30, 30, 30, 0.95); }
 .bg-ds-secondary\/20 { background-color: rgba(22, 22, 22, 0.2); }  /* --bg-secondary @ 20% */
 .bg-ds-secondary\/50 { background-color: rgba(22, 22, 22, 0.5); }  /* --bg-secondary @ 50% */
-.bg-ds-success\/20 { background-color: rgba(107, 155, 107, 0.2); } /* --success @ 20% */
-.bg-ds-error\/20 { background-color: rgba(184, 107, 107, 0.2); }   /* --error @ 20% */
+/* 20% tints of --success #6b9b6b / --error #b86b6b. The static and :hover forms
+   share one rule each so the two literals have a single home. */
+.bg-ds-success\/20,
+.hover-bg-ds-success-20:hover { background-color: rgba(107, 155, 107, 0.2); }
+.bg-ds-error\/20,
+.hover-bg-ds-error-20:hover { background-color: rgba(184, 107, 107, 0.2); }
 /* Hairline dividers borrow the --text-muted ramp (#5a5a5a) as a fill; there is
    no opaque .bg-ds-muted because nothing wants the flat colour. */
 .bg-ds-muted\/30 { background-color: rgba(90, 90, 90, 0.3); }      /* --text-muted @ 30% */
@@ -1123,7 +1121,6 @@ legend {
 .rounded-l { border-top-left-radius: 0.25rem; border-bottom-left-radius: 0.25rem; }
 .rounded-l-lg { border-top-left-radius: 0.5rem; border-bottom-left-radius: 0.5rem; }
 .rounded-t-lg { border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; }
-.rounded-t-2xl { border-top-left-radius: 1rem; border-top-right-radius: 1rem; }
 .rounded-b-lg { border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem; }
 
 /* ============================================
@@ -1136,12 +1133,6 @@ legend {
 .shadow-ds-sm { box-shadow: var(--shadow-sm); }
 .shadow-ds-md { box-shadow: var(--shadow-md); }
 .shadow-ds-lg { box-shadow: var(--shadow-lg); }
-/* Un-suffixed .shadow-ds is the default elevation, i.e. the middle of the ramp —
-   the same tier the built-in [data-tooltip] rule below hard-codes (--shadow-md). */
-.shadow-ds { box-shadow: var(--shadow-md); }
-/* Tier-named aliases for call sites written in Tailwind's vocabulary. */
-.shadow-sm { box-shadow: var(--shadow-sm); }
-.shadow-lg { box-shadow: var(--shadow-lg); }
 
 /* Opacity */
 .opacity-0 { opacity: 0; }
@@ -1339,9 +1330,8 @@ legend {
 .hover-bg-ds-accent-90:hover { background-color: rgba(184, 184, 184, 0.9); }
 .hover-bg-white-10:hover { background-color: rgba(255, 255, 255, 0.1); }
 .hover-bg-ds-secondary:hover { background-color: var(--bg-secondary); }
-/* 20% tints of --success #6b9b6b / --error #b86b6b (pattern: hover-ds-tertiary-50 above) */
-.hover-bg-ds-success-20:hover { background-color: rgba(107, 155, 107, 0.2); }
-.hover-bg-ds-error-20:hover { background-color: rgba(184, 107, 107, 0.2); }
+/* .hover-bg-ds-success-20 / .hover-bg-ds-error-20 live with their static twins in
+   the background-tint block above (one literal per tint). */
 
 /* Text hover */
 .hover-ds-text-primary:hover { color: var(--text-primary); }
@@ -1380,7 +1370,6 @@ legend {
 
 .active-scale-95:active { transform: scale(0.95); }
 .active-scale-98:active { transform: scale(0.98); }
-.active-bg-ds-hover:active { background-color: var(--bg-hover); }
 
 /* ============================================
    FOCUS STATE UTILITIES
@@ -1889,11 +1878,12 @@ legend {
   height: 1rem;
 }
 
-/* Invisible 44px tap-target expansion (TOUCH.minTapTarget) for compact touch
-   controls. Visual size unchanged (the pseudo paints nothing); tooltips own
-   ::after, so ::before is free. Requires position:relative on the element. */
+/* Invisible tap-target expansion (--tap-target-min, mirroring TOUCH.minTapTarget)
+   for compact touch controls. Visual size unchanged (the pseudo paints nothing);
+   tooltips own ::after, so ::before is free. Requires position:relative on the
+   element. */
 
-/* Control panel: 28px buttons on a 30px pitch, so 44px boxes overlap their
+/* Control panel: 28px buttons on a 30px pitch, so the boxes overlap their
    neighbours. z-index:-1 keeps each box beneath every sibling button, so it can
    only claim empty gap/margin, never a neighbour's painted surface. Verified
    safe: the nearest stacking context is controlPanelStyles.container (absolute
@@ -1902,15 +1892,15 @@ legend {
    the canvas (negative z cannot escape its stacking context) and still wins the
    hit test in the gaps, where nothing else is painted. Scoped to `button` because
    that wrapper div (ControlComponents.tsx) also carries control-button-responsive:
-   unscoped, it grew a second, identical 44px pseudo that is not a click target,
+   unscoped, it grew a second, identical pseudo that is not a click target,
    claiming gap taps to no effect and shadowing the real button's box. */
 .touch-control-panel button.control-button-responsive::before {
   content: '';
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 44px;
-  height: 44px;
+  width: var(--tap-target-min);
+  height: var(--tap-target-min);
   transform: translate(-50%, -50%);
   z-index: -1;
 }
@@ -1922,8 +1912,8 @@ legend {
   content: none;
 }
 
-/* Touch nav buttons (image detail modal) are flex-1, far wider than 44px, so
-   only the 36px height is short: expand full width, 4px up/down into the row's
+/* Touch nav buttons (image detail modal) are flex-1, far wider than the minimum,
+   so only the 36px height is short: expand full width, 4px up/down into the row's
    own padding — no sibling is ever covered, the 6px inter-button gap included.
    No negative z-index here; it would be inert. Their nearest stacking context is
    the fixed modal frame, and the in-flow .bg-ds-tertiary controls bar between
@@ -1937,6 +1927,6 @@ legend {
   left: 0;
   right: 0;
   top: 50%;
-  height: 44px;
+  height: var(--tap-target-min);
   transform: translateY(-50%);
 }

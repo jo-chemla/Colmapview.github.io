@@ -1,6 +1,6 @@
 import {
+  useCallback,
   useId,
-  useMemo,
   useRef,
   type CSSProperties,
   type MouseEventHandler,
@@ -11,7 +11,17 @@ import {
 import { createPortal } from 'react-dom';
 import { modalStyles } from '../../theme';
 import { CloseIcon } from '../../icons';
-import { mergeFloatingPanelRefs, useFloatingDialogFocus } from './useFloatingDialogFocus';
+import { useFloatingDialogFocus } from './useFloatingDialogFocus';
+
+// Module scope on purpose: react-hooks/immutability forbids writing to a prop's
+// `.current` inside the component body.
+function assignForwardedRef(ref: Ref<HTMLDivElement> | undefined, node: HTMLDivElement | null): void {
+  if (typeof ref === 'function') {
+    ref(node);
+  } else if (ref) {
+    ref.current = node;
+  }
+}
 
 interface FloatingWindowShellProps {
   isOpen: boolean;
@@ -68,12 +78,15 @@ export function FloatingWindowShell({
 }: FloatingWindowShellProps) {
   const titleId = useId();
   const internalPanelRef = useRef<HTMLDivElement | null>(null);
-  // Memoized so a re-render does not detach/re-attach (null, then node) the
-  // caller-supplied ref, which a plain object ref never did before.
-  const setPanelRef = useMemo(
-    () => mergeFloatingPanelRefs(internalPanelRef, panelRef),
-    [panelRef]
-  );
+  // The node has to reach both refs: the internal one drives focus management,
+  // the forwarded one drives caller-owned behavior (drag bounds, outside-click
+  // checks). Memoized on panelRef so a re-render does not detach/re-attach
+  // (null, then node) the caller-supplied ref, which a plain object ref never
+  // did before.
+  const setPanelRef = useCallback((node: HTMLDivElement | null) => {
+    internalPanelRef.current = node;
+    assignForwardedRef(panelRef, node);
+  }, [panelRef]);
   useFloatingDialogFocus(isOpen, internalPanelRef);
 
   if (!isOpen) return null;

@@ -1,34 +1,20 @@
-import { useEffect, useRef, type Ref, type RefCallback, type RefObject } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 import { getModalDialogFocusableElements } from './modalDialogShellPolicy';
 
 /**
- * Merge the shell's internal panel ref with the caller-supplied one so the same
- * node reaches both: the internal ref drives focus management, the forwarded ref
- * drives caller-owned behavior (drag bounds, outside-click checks).
- */
-export function mergeFloatingPanelRefs<T extends HTMLElement>(
-  internalRef: RefObject<T | null>,
-  forwardedRef: Ref<T> | undefined
-): RefCallback<T> {
-  return (node) => {
-    internalRef.current = node;
-    if (typeof forwardedRef === 'function') {
-      forwardedRef(node);
-    } else if (forwardedRef) {
-      forwardedRef.current = node;
-    }
-  };
-}
-
-/**
- * Focus behavior for NON-modal floating tool windows: move focus to the first
- * focusable element when the window opens, return focus to the opener when it
- * closes. No Tab trap and no Escape handling — tool windows are non-modal
- * (see ModalDialogShell for the modal variant).
+ * Save/move/restore focus for a dialog that mounts on `isOpen`: focus moves into
+ * the panel on open and returns to the opener on close. Shared by the non-modal
+ * tool windows (FloatingWindowShell) and the modal ones (ModalDialogShell) —
+ * only the Tab trap and Escape handling are modal-specific, and those stay in
+ * ModalDialogShell.
+ *
+ * `initialFocusRef` overrides the default target (the panel's first focusable
+ * element, or the panel itself when it holds none).
  */
 export function useFloatingDialogFocus(
   isOpen: boolean,
-  panelRef: RefObject<HTMLDivElement | null>
+  panelRef: RefObject<HTMLDivElement | null>,
+  initialFocusRef?: RefObject<HTMLElement | null>
 ): void {
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -40,7 +26,7 @@ export function useFloatingDialogFocus(
     }
 
     const focusable = getModalDialogFocusableElements(panelRef.current);
-    (focusable[0] ?? panelRef.current)?.focus();
+    (initialFocusRef?.current ?? focusable[0] ?? panelRef.current)?.focus();
 
     return () => {
       const previousFocus = previousFocusRef.current;
@@ -49,5 +35,5 @@ export function useFloatingDialogFocus(
         previousFocus.focus();
       }
     };
-  }, [isOpen, panelRef]);
+  }, [isOpen, panelRef, initialFocusRef]);
 }

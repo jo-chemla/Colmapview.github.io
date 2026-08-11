@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { getModalDialogFocusableElements } from './modalDialogShellPolicy';
+import { useFloatingDialogFocus } from './useFloatingDialogFocus';
 
 interface ModalDialogShellProps {
   isOpen: boolean;
@@ -45,27 +46,8 @@ export function ModalDialogShell({
   backdropClassName,
 }: ModalDialogShellProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    if (document.activeElement instanceof HTMLElement) {
-      previousFocusRef.current = document.activeElement;
-    }
-
-    const focusable = getModalDialogFocusableElements(dialogRef.current);
-    const initialFocusTarget = initialFocusRef?.current ?? focusable[0] ?? dialogRef.current;
-    initialFocusTarget?.focus();
-
-    return () => {
-      const previousFocus = previousFocusRef.current;
-      previousFocusRef.current = null;
-      if (previousFocus?.isConnected) {
-        previousFocus.focus();
-      }
-    };
-  }, [isOpen, initialFocusRef]);
+  useFloatingDialogFocus(isOpen, dialogRef, initialFocusRef);
 
   useEffect(() => {
     if (!isOpen) return;

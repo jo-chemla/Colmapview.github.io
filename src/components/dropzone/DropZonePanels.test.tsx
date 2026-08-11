@@ -1,6 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { DesktopDropZonePanel, TouchDropZonePanel } from './DropZonePanels';
+import {
+  DROP_ZONE_BROWSE_LABEL,
+  DROP_ZONE_DISMISS_TOOLTIP,
+  DROP_ZONE_RESET_CONFIG_TOOLTIP,
+  DROP_ZONE_UPLOAD_CONFIG_TOOLTIP,
+} from './dropZonePanelViewModel';
 
 vi.mock('./ProfileDropdown', () => ({
   ProfileDropdown: () => <div data-testid="profile-dropdown" />,
@@ -26,11 +32,11 @@ describe('DropZone panels', () => {
     const props = createDesktopProps();
     render(<DesktopDropZonePanel {...props} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Browse for a COLMAP dataset folder/i }));
+    fireEvent.click(screen.getByRole('button', { name: DROP_ZONE_BROWSE_LABEL }));
     fireEvent.click(screen.getByRole('button', { name: /Load URL/i }));
     fireEvent.click(screen.getByRole('button', { name: /Load JSON/i }));
     fireEvent.click(screen.getByRole('button', { name: /Try a Toy!/i }));
-    fireEvent.click(screen.getByRole('button', { name: 'Dismiss this panel' }));
+    fireEvent.click(screen.getByRole('button', { name: DROP_ZONE_DISMISS_TOOLTIP }));
 
     expect(props.onBrowse).toHaveBeenCalledTimes(1);
     expect(props.onOpenUrlModal).toHaveBeenCalledTimes(1);
@@ -43,8 +49,8 @@ describe('DropZone panels', () => {
     const props = createDesktopProps();
     render(<DesktopDropZonePanel {...props} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Upload configuration file (.yaml)' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Reset all settings to defaults' }));
+    fireEvent.click(screen.getByRole('button', { name: DROP_ZONE_UPLOAD_CONFIG_TOOLTIP }));
+    fireEvent.click(screen.getByRole('button', { name: DROP_ZONE_RESET_CONFIG_TOOLTIP }));
 
     expect(props.onUploadConfig).toHaveBeenCalledTimes(1);
     expect(props.onResetConfig).toHaveBeenCalledTimes(1);

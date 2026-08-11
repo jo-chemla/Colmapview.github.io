@@ -3,9 +3,7 @@ import { Z_INDEX } from '../../theme';
 
 export const PROFILE_DROPDOWN_FALLBACK_LABEL = 'Profile';
 export const PROFILE_DROPDOWN_TOOLTIP = 'Select settings profile';
-// Deliberately flat: `shadow-lg` was listed here but undefined in index.css, so this
-// menu has always rendered without a drop shadow. The rule exists now; keep-current-pixels
-// (same call as toggleSwitchStyles.thumb's shadow-sm) says do not switch it on.
+// Deliberately flat, no shadow class: keep-current-pixels (see toggleSwitchStyles.thumb).
 export const PROFILE_DROPDOWN_MENU_CLASS =
   'absolute top-full right-0 mt-1 bg-ds-tertiary border border-ds rounded min-w-[120px] py-1';
 

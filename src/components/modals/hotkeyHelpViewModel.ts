@@ -123,10 +123,9 @@ export function getHotkeyHelpOverlayStyle(zIndex = Z_INDEX.modalOverlay): CSSPro
  * Panel sizing for the help modal. maxHeight caps the panel so it scrolls
  * internally (overflow-auto) instead of overflowing the top and bottom of the
  * viewport; horizontal/vertical centering and the width bound come from the
- * overlay's flexbox and the max-w-lg/w-full layout class. Applied inline so the
- * cap travels with this view model: this project has no Tailwind, so every
- * arbitrary-value utility is a hand-written rule in src/index.css that has to be
- * added before it can be used (an undefined one is a silent no-op).
+ * overlay's flexbox and the max-w-lg/w-full layout class. Applied inline because
+ * this project has no Tailwind, so arbitrary viewport-unit utilities (e.g.
+ * max-h-[80vh]) are not generated in src/index.css.
  */
 export function getHotkeyHelpPanelStyle(): CSSProperties {
   return { maxHeight: '80vh' };

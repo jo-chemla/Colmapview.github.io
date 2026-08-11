@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buttonStyles, Z_INDEX } from '../../theme';
 import {
   DROP_ZONE_ACTION_LABELS,
+  DROP_ZONE_BROWSE_LABEL,
   DROP_ZONE_DESKTOP_MESSAGE,
   DROP_ZONE_DESKTOP_OVERLAY_CLASS,
   DROP_ZONE_DESKTOP_TITLE,
@@ -46,6 +47,7 @@ describe('drop zone panel view model', () => {
       tryToy: 'Try a Toy!',
       dismiss: 'Dismiss',
     });
+    expect(DROP_ZONE_BROWSE_LABEL).toBe('Browse for a COLMAP dataset folder');
     expect(DROP_ZONE_UPLOAD_CONFIG_TOOLTIP).toBe('Upload configuration file (.yaml)');
     expect(DROP_ZONE_RESET_CONFIG_TOOLTIP).toBe('Reset all settings to defaults');
   });

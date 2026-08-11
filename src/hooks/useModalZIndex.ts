@@ -18,8 +18,8 @@ export function nextModalZIndex(counter: number): number {
 // literal type 1000 and would not widen on its own.
 let globalZIndexCounter: number = Z_INDEX.modal;
 
-// Single place that advances the shared counter, so the open edge and the
-// click path cannot drift apart.
+// Takes the setter as a parameter rather than reading state: react-hooks forbids
+// setting state in an effect body from a value this module owns.
 function assignTopZIndex(setZIndex: (zIndex: number) => void): void {
   globalZIndexCounter = nextModalZIndex(globalZIndexCounter);
   setZIndex(globalZIndexCounter);
@@ -32,7 +32,9 @@ function assignTopZIndex(setZIndex: (zIndex: number) => void): void {
 export function useModalZIndex(isOpen: boolean) {
   const [zIndex, setZIndex] = useState<number>(Z_INDEX.modal);
 
-  // When modal opens, bring it to front
+  // When modal opens, bring it to front. Unguarded on purpose: before any window
+  // has opened, several can share the initial Z_INDEX.modal value, so an
+  // already-on-top check here would let a newly opened window fail to claim top.
   useEffect(() => {
     if (isOpen) {
       assignTopZIndex(setZIndex);
@@ -40,8 +42,10 @@ export function useModalZIndex(isOpen: boolean) {
   }, [isOpen]);
 
   const bringToFront = useCallback(() => {
+    // Already the top window: advancing would only burn counter headroom.
+    if (zIndex === globalZIndexCounter) return;
     assignTopZIndex(setZIndex);
-  }, []);
+  }, [zIndex]);
 
   return { zIndex, bringToFront };
 }

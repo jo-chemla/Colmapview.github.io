@@ -80,7 +80,7 @@ export const POPUP_LAYER_INVENTORY: PopupSurfaceInventoryItem[] = [
     id: 'image-detail-modal',
     kind: 'media-detail-modal',
     ownerPath: 'src/components/modals/ImageDetailModal.tsx',
-    layerSource: 'z-modal class (Z_INDEX.modal)',
+    layerSource: 'Z_INDEX.modal (.z-modal class)',
     firstPassMigration: false,
   },
   {
@@ -101,7 +101,7 @@ export const POPUP_LAYER_INVENTORY: PopupSurfaceInventoryItem[] = [
     id: 'touch-gallery-drawer',
     kind: 'drawer',
     ownerPath: 'src/components/layout/TouchGalleryDrawer.tsx',
-    layerSource: 'z-touch-drawer-backdrop and z-touch-drawer classes',
+    layerSource: 'Z_INDEX.touchDrawerBackdrop / Z_INDEX.touchDrawer (.z-touch-* classes)',
     firstPassMigration: false,
   },
   {

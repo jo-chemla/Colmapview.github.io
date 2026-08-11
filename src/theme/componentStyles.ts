@@ -461,9 +461,10 @@ export const toggleSwitchStyles = {
 
   // Inner circle (thumb) - base styles only, position via inline style.
   // Deliberately flat: `shadow-sm` was listed here but never defined in index.css,
-  // so every toggle in the app has always rendered without a drop shadow. The rule
-  // exists now, but adding it back would change live pixels app-wide for no reason
-  // (same keep-current-pixels call as DROP_ZONE_BROWSE_BOX_CLASS's border).
+  // so every toggle in the app has always rendered without a drop shadow. The ramp
+  // does offer `shadow-ds-sm`, but switching it on would change live pixels app-wide
+  // for no reason (same keep-current-pixels call as DROP_ZONE_BROWSE_BOX_CLASS's
+  // border). This is the canonical note; the profile menus point back here.
   thumb: 'absolute bg-white rounded-full transition-all duration-200 ease-in-out',
   thumbSm: 'w-2.5 h-2.5',   // 10x10px
   thumbMd: 'w-3.5 h-3.5',   // 14x14px
@@ -639,49 +640,6 @@ export const histogramStyles = {
   count: 'w-16 text-ds-muted text-xs',
   // Footer with mean and total
   footer: 'text-ds-secondary text-xs mt-3 pt-2 border-t border-ds',
-} as const;
-
-// ============================================
-// TOUCH MODE STYLES
-// ============================================
-
-/**
- * Touch-specific UI styles for tablets and touch devices.
- * Used when touchMode is active.
- */
-export const touchStyles = {
-  // FAB (Floating Action Button)
-  fab: 'fixed rounded-full shadow-lg flex items-center justify-center transition-all duration-200 active-scale-95',
-  fabPrimary: 'bg-ds-accent text-ds-void hover-bg-ds-accent-90',
-  fabSecondary: 'bg-ds-tertiary text-ds-primary border border-ds hover-ds-hover',
-
-  // Bottom sheet
-  bottomSheet: 'fixed inset-x-0 bottom-0 bg-ds-tertiary rounded-t-2xl shadow-ds-lg z-touch-sheet',
-  bottomSheetHandle: 'w-12 h-1 bg-ds-secondary rounded-full mx-auto my-3',
-  bottomSheetContent: 'max-h-[80vh] overflow-y-auto overscroll-contain px-4 pb-6',
-  bottomSheetSection: 'py-3 border-b border-ds last:border-0',
-  bottomSheetSectionTitle: 'text-ds-muted text-xs uppercase tracking-wide mb-2',
-
-  // Drawer (slide-out panel)
-  drawer: 'fixed inset-y-0 right-0 bg-ds-secondary shadow-ds-lg z-touch-drawer',
-  drawerBackdrop: 'fixed inset-0 bg-ds-void/50 backdrop-blur-sm z-touch-drawer-backdrop',
-  drawerHeader: 'h-12 flex items-center justify-between px-4 border-b border-ds bg-ds-tertiary',
-  drawerTitle: 'text-ds-primary text-base font-medium',
-
-  // Touch rows (for control panels)
-  touchRow: 'min-h-[48px] flex items-center gap-3 px-4 active-bg-ds-hover',
-  touchRowLabel: 'flex-1 text-ds-primary text-sm',
-  touchRowValue: 'text-ds-secondary text-sm',
-
-  // Touch buttons (larger tap targets)
-  touchButton: 'min-h-[44px] px-4 flex items-center justify-center gap-2 rounded-lg',
-
-  // Selection toast (brief feedback)
-  selectionToast: 'fixed top-4 left-1/2 -translate-x-1/2 bg-ds-tertiary/95 px-4 py-2 rounded-lg shadow-ds z-fab',
-  selectionToastText: 'text-ds-primary text-sm whitespace-nowrap',
-
-  // Touch status bar
-  touchStatusBar: 'h-6 border-t border-ds bg-ds-tertiary text-ds-secondary text-xs px-3 flex items-center justify-between',
 } as const;
 
 // ============================================

@@ -15,15 +15,13 @@ import {
 } from '../utils/sim3dTransforms';
 import { copyBytesToArrayBuffer } from '../test/builders/fileFakes';
 import type { Reconstruction } from '../types/colmap';
-import { getBicycleFixtureDir, hasSparseBinaryFixture } from '../../tests/colmapFixturePaths';
+import {
+  FIXTURE_SUITE_TIMEOUT_MS,
+  getBicycleFixtureDir,
+  hasSparseBinaryFixture,
+} from '../../tests/colmapFixturePaths';
 
 const BIN = getBicycleFixtureDir();
-
-// Parses, transforms and re-serializes the whole bicycle reconstruction (~1.5s
-// idle). The 5s default leaves no headroom once the rest of the suite is running
-// in parallel, so this flaked as a timeout. Same budget as the sibling fixture
-// suite's INTEGRITY_TEST_TIMEOUT_MS in integrity.test.ts.
-const TRANSFORM_EXPORT_TIMEOUT_MS = 15000;
 
 describe.skipIf(!hasSparseBinaryFixture(BIN))('transform flows through export', () => {
   it('45° Y rotation changes exported qvecs and point xyz', () => {
@@ -77,5 +75,5 @@ describe.skipIf(!hasSparseBinaryFixture(BIN))('transform flows through export', 
     const reparsePts = parsePoints3DBinary(pointsBuf);
     const rePt = reparsePts.get(origFirstPoint.point3DId)!;
     expect(rePt.xyz).toEqual(newFirstPoint.xyz);
-  }, TRANSFORM_EXPORT_TIMEOUT_MS);
+  }, FIXTURE_SUITE_TIMEOUT_MS);
 });

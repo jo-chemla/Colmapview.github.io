@@ -8,7 +8,6 @@ export const Z_INDEX = {
   dropdown: 100,      // Dropdown menus
   sticky: 200,        // Sticky headers
   overlay: 500,       // Drag overlay, loading states
-  touchSheet: 996,          // Touch bottom sheet (below FABs)
   touchDrawerBackdrop: 997, // Touch gallery drawer backdrop
   touchDrawer: 998,         // Touch gallery drawer panel
   fab: 999,           // Touch FABs, selection toasts

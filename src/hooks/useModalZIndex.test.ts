@@ -17,19 +17,20 @@ describe('nextModalZIndex', () => {
 
 describe('useModalZIndex', () => {
   it('keeps the hook-assigned z-index inside the tool-window band', () => {
-    const first = renderHook(() => useModalZIndex(true));
-    expect(first.result.current.zIndex).toBeGreaterThan(Z_INDEX.modal);
-    expect(first.result.current.zIndex).toBeLessThan(Z_INDEX.modalOverlay);
+    const { result } = renderHook(() => useModalZIndex(true));
+    const onOpen = result.current.zIndex;
+    expect(onOpen).toBeGreaterThan(Z_INDEX.modal);
+    expect(onOpen).toBeLessThan(Z_INDEX.modalOverlay);
 
-    // The counter is module-global, so a long session is simulated by
-    // repeatedly bringing windows to front across instances.
-    act(() => {
-      for (let i = 0; i < 500; i++) first.result.current.bringToFront();
-    });
-    expect(first.result.current.zIndex).toBeLessThan(Z_INDEX.modalOverlay);
+    // Already the top window: bringToFront burns no counter headroom.
+    act(() => result.current.bringToFront());
+    expect(result.current.zIndex).toBe(onOpen);
 
-    const later = renderHook(() => useModalZIndex(true));
-    expect(later.result.current.zIndex).toBeLessThan(Z_INDEX.modalOverlay);
-    expect(later.result.current.zIndex).toBeGreaterThanOrEqual(Z_INDEX.modal);
+    // A second window opens above it; clicking the first raises it back to top.
+    renderHook(() => useModalZIndex(true));
+    act(() => result.current.bringToFront());
+
+    expect(result.current.zIndex).toBeGreaterThan(onOpen);
+    expect(result.current.zIndex).toBeLessThan(Z_INDEX.modalOverlay);
   });
 });
