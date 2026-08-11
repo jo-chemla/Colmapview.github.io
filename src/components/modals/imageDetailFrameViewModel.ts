@@ -11,8 +11,8 @@ interface ImageDetailMaskInteractionOptions {
   showMatchesInModal: boolean;
 }
 
-export const DESKTOP_IMAGE_DETAIL_FRAME_CLASS = 'fixed inset-0 z-[1000] pointer-events-none';
-export const TOUCH_IMAGE_DETAIL_FRAME_CLASS = 'fixed inset-0 z-[1000] bg-ds-primary flex flex-col';
+export const DESKTOP_IMAGE_DETAIL_FRAME_CLASS = 'fixed inset-0 z-modal pointer-events-none';
+export const TOUCH_IMAGE_DETAIL_FRAME_CLASS = 'fixed inset-0 z-modal bg-ds-primary flex flex-col';
 
 export function getDesktopImageDetailPanelStyle({
   position,

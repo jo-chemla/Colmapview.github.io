@@ -314,8 +314,8 @@ export const hoverCardStyles = {
 // ============================================
 
 export const toastStyles = {
-  container: 'absolute top-4 left-1/2 -translate-x-1/2 z-[500] bg-ds-tertiary rounded-lg shadow-ds-lg',
-  containerWithLayout: 'absolute top-4 left-1/2 -translate-x-1/2 z-[500] bg-ds-tertiary rounded-lg shadow-ds-lg max-w-md flex items-start gap-3',
+  container: 'absolute top-4 left-1/2 -translate-x-1/2 z-overlay bg-ds-tertiary rounded-lg shadow-ds-lg',
+  containerWithLayout: 'absolute top-4 left-1/2 -translate-x-1/2 z-overlay bg-ds-tertiary rounded-lg shadow-ds-lg max-w-md flex items-start gap-3',
   error: 'border border-ds-error',
   success: 'border border-ds-success',
   content: 'px-6 py-3 text-ds-primary',
@@ -362,7 +362,7 @@ export const notificationStyles = {
 // ============================================
 
 export const loadingStyles = {
-  overlay: 'absolute inset-0 bg-black/50 backdrop-blur-sm z-[500] flex items-center justify-center',
+  overlay: 'absolute inset-0 bg-black/50 backdrop-blur-sm z-overlay flex items-center justify-center',
   container: 'flex flex-col items-center text-center',
   dots: 'flex justify-center mb-4 space-x-2',
   dot: 'w-3 h-3 rounded-full bg-white animate-bounce',
@@ -566,7 +566,7 @@ export const toolbarStyles = {
 // ============================================
 
 export const statusBarStyles = {
-  container: 'absolute inset-x-0 bottom-0 z-[200] h-10 border-t border-ds bg-ds-tertiary text-ds-secondary text-base px-4 flex items-center justify-between status-bar-responsive overflow-visible',
+  container: 'absolute inset-x-0 bottom-0 z-sticky h-10 border-t border-ds bg-ds-tertiary text-ds-secondary text-base px-4 flex items-center justify-between status-bar-responsive overflow-visible',
   group: 'flex items-center gap-6 status-bar-group overflow-visible',
 } as const;
 
@@ -652,15 +652,15 @@ export const touchStyles = {
   fabSecondary: 'bg-ds-tertiary text-ds-primary border border-ds hover:bg-ds-hover',
 
   // Bottom sheet
-  bottomSheet: 'fixed inset-x-0 bottom-0 bg-ds-tertiary rounded-t-2xl shadow-ds-lg z-[996]',
+  bottomSheet: 'fixed inset-x-0 bottom-0 bg-ds-tertiary rounded-t-2xl shadow-ds-lg z-touch-sheet',
   bottomSheetHandle: 'w-12 h-1 bg-ds-secondary rounded-full mx-auto my-3',
   bottomSheetContent: 'max-h-[80vh] overflow-y-auto overscroll-contain px-4 pb-6',
   bottomSheetSection: 'py-3 border-b border-ds last:border-0',
   bottomSheetSectionTitle: 'text-ds-muted text-xs uppercase tracking-wide mb-2',
 
   // Drawer (slide-out panel)
-  drawer: 'fixed inset-y-0 right-0 bg-ds-secondary shadow-ds-lg z-[998]',
-  drawerBackdrop: 'fixed inset-0 bg-ds-void/50 backdrop-blur-sm z-[997]',
+  drawer: 'fixed inset-y-0 right-0 bg-ds-secondary shadow-ds-lg z-touch-drawer',
+  drawerBackdrop: 'fixed inset-0 bg-ds-void/50 backdrop-blur-sm z-touch-drawer-backdrop',
   drawerHeader: 'h-12 flex items-center justify-between px-4 border-b border-ds bg-ds-tertiary',
   drawerTitle: 'text-ds-primary text-base font-medium',
 

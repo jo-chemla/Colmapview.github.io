@@ -59,8 +59,8 @@ describe('touch gallery drawer policy', () => {
   });
 
   it('derives drawer render constants and width style', () => {
-    expect(TOUCH_GALLERY_DRAWER_BACKDROP_CLASS).toContain('z-[997]');
-    expect(TOUCH_GALLERY_DRAWER_PANEL_CLASS).toContain('z-[998]');
+    expect(TOUCH_GALLERY_DRAWER_BACKDROP_CLASS).toContain('z-touch-drawer-backdrop');
+    expect(TOUCH_GALLERY_DRAWER_PANEL_CLASS).toContain('z-touch-drawer');
     expect(TOUCH_GALLERY_DRAWER_BODY_OPEN_OVERFLOW).toBe('hidden');
     expect(TOUCH_GALLERY_DRAWER_BODY_RESET_OVERFLOW).toBe('');
     expect(TOUCH_GALLERY_DRAWER_MAX_VIEWPORT_WIDTH).toBe('85vw');

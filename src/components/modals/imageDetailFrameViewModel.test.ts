@@ -8,8 +8,8 @@ import {
 
 describe('imageDetailFrameViewModel', () => {
   it('keeps image detail modal layer classes stable', () => {
-    expect(DESKTOP_IMAGE_DETAIL_FRAME_CLASS).toBe('fixed inset-0 z-[1000] pointer-events-none');
-    expect(TOUCH_IMAGE_DETAIL_FRAME_CLASS).toBe('fixed inset-0 z-[1000] bg-ds-primary flex flex-col');
+    expect(DESKTOP_IMAGE_DETAIL_FRAME_CLASS).toBe('fixed inset-0 z-modal pointer-events-none');
+    expect(TOUCH_IMAGE_DETAIL_FRAME_CLASS).toBe('fixed inset-0 z-modal bg-ds-primary flex flex-col');
   });
 
   it('derives desktop panel bounds as a React style object', () => {

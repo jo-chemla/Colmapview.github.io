@@ -66,7 +66,7 @@ function isCandidate(token: string): boolean {
   if (!base) return false;
   // A slash only ever introduces an opacity modifier (`bg-ds-error/20`) or a
   // fraction (`left-1/2`), so the trailing segment must be numeric/arbitrary.
-  // Rejects prose like the 'z-[997]/z-[998]' layer note in popupLayerInventory.
+  // Rejects slash-joined prose such as layer notes in popupLayerInventory.
   if (base.includes('/')) {
     const modifier = base.slice(base.lastIndexOf('/') + 1);
     if (!/^\d+$/.test(modifier) && !/^\[[^\]]*\]$/.test(modifier)) return false;
@@ -106,8 +106,6 @@ for (const [path, source] of Object.entries(SOURCES)) {
 
 // Known debt — burned down by the design-system-integrity plan.
 const ALLOWLIST = new Set<string>([
-  // Task 2 (z-index)
-  'z-[200]', 'z-[500]', 'z-[996]', 'z-[997]', 'z-[998]', 'z-[1000]',
   // Task 4 (hover/press restoration)
   'hover:opacity-90', 'hover:text-ds-primary', 'hover:bg-ds-tertiary',
   'hover:bg-ds-accent/90', 'hover:bg-ds-hover', 'hover:bg-ds-secondary',

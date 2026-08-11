@@ -55,11 +55,11 @@ describe('popup layer contract', () => {
     expect(getPointerEnabledHtmlStyle()).not.toHaveProperty('zIndex');
   });
 
-  it('keeps current hard-coded class layers intact', () => {
-    expect(TOUCH_GALLERY_DRAWER_BACKDROP_CLASS).toContain('z-[997]');
-    expect(TOUCH_GALLERY_DRAWER_PANEL_CLASS).toContain('z-[998]');
-    expect(DESKTOP_IMAGE_DETAIL_FRAME_CLASS).toContain('z-[1000]');
-    expect(TOUCH_IMAGE_DETAIL_FRAME_CLASS).toContain('z-[1000]');
+  it('keeps class-based popup layers on the shared scale', () => {
+    expect(TOUCH_GALLERY_DRAWER_BACKDROP_CLASS).toContain('z-touch-drawer-backdrop');
+    expect(TOUCH_GALLERY_DRAWER_PANEL_CLASS).toContain('z-touch-drawer');
+    expect(DESKTOP_IMAGE_DETAIL_FRAME_CLASS).toContain('z-modal');
+    expect(TOUCH_IMAGE_DETAIL_FRAME_CLASS).toContain('z-modal');
     expect(notificationStyles.container).toContain('z-toast');
   });
 });
