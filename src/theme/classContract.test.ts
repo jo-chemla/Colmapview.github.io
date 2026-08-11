@@ -106,8 +106,6 @@ for (const [path, source] of Object.entries(SOURCES)) {
 
 // Known debt — burned down by the design-system-integrity plan.
 const ALLOWLIST = new Set<string>([
-  // Task 7 (text tones / status colors)
-  'text-ds-tertiary', 'text-orange-400',
   // discovered on first run — assign to a task
   'active:bg-ds-hover', 'bg-ds-muted/30', 'bg-ds-secondary/20',
   'bg-ds-tertiary/95', 'bg-ds-void/60', 'border-ds-muted', 'bottom-4',

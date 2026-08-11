@@ -105,7 +105,7 @@ export function StatusBar() {
       data-idle-pause="true"
     >
       <div className={statusBarStyles.group}>
-        <span className="text-ds-tertiary">{formatStatusBarFps(fps)}</span>
+        <span className="text-ds-secondary">{formatStatusBarFps(fps)}</span>
         <CacheStatsIndicator />
         {showHistograms && reconstruction && globalStats && (
           <>

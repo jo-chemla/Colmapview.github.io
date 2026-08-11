@@ -48,7 +48,7 @@ export const ExportReconstructionSection = memo(function ExportReconstructionSec
         onChange={onExportFormatChange}
         options={EXPORT_FORMAT_OPTIONS}
       />
-      <div className="text-ds-tertiary text-xs mb-2">
+      <div className="text-ds-secondary text-xs mb-2">
         {EXPORT_FORMAT_DESCRIPTIONS[exportFormat]}
       </div>
       <div className="flex flex-col gap-2">
@@ -151,7 +151,7 @@ export const ExportMediaSection = memo(function ExportMediaSection({
           </div>
         </>
       ) : (
-        <div className="text-ds-tertiary text-xs">
+        <div className="text-ds-secondary text-xs">
           No images available
         </div>
       )}

@@ -33,7 +33,7 @@ export function TouchStatusBar() {
 
   return (
     <footer className="h-6 border-t border-ds bg-ds-tertiary text-ds-secondary text-xs px-3 flex items-center justify-between">
-      <span className="text-ds-tertiary">{formatStatusBarFps(fps)}</span>
+      <span className="text-ds-secondary">{formatStatusBarFps(fps)}</span>
       {emptyStatusText !== null && (
         <span className="text-ds-muted">
           {emptyStatusText}
