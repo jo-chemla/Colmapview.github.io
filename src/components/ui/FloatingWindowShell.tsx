@@ -1,13 +1,17 @@
-import type {
-  CSSProperties,
-  MouseEventHandler,
-  PointerEventHandler,
-  ReactNode,
-  Ref,
+import {
+  useId,
+  useMemo,
+  useRef,
+  type CSSProperties,
+  type MouseEventHandler,
+  type PointerEventHandler,
+  type ReactNode,
+  type Ref,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { modalStyles } from '../../theme';
 import { CloseIcon } from '../../icons';
+import { mergeFloatingPanelRefs, useFloatingDialogFocus } from './useFloatingDialogFocus';
 
 interface FloatingWindowShellProps {
   isOpen: boolean;
@@ -62,6 +66,16 @@ export function FloatingWindowShell({
   renderCloseIcon,
   portal = false,
 }: FloatingWindowShellProps) {
+  const titleId = useId();
+  const internalPanelRef = useRef<HTMLDivElement | null>(null);
+  // Memoized so a re-render does not detach/re-attach (null, then node) the
+  // caller-supplied ref, which a plain object ref never did before.
+  const setPanelRef = useMemo(
+    () => mergeFloatingPanelRefs(internalPanelRef, panelRef),
+    [panelRef]
+  );
+  useFloatingDialogFocus(isOpen, internalPanelRef);
+
   if (!isOpen) return null;
 
   const shell = (
@@ -73,7 +87,10 @@ export function FloatingWindowShell({
         />
       )}
       <div
-        ref={panelRef}
+        ref={setPanelRef}
+        role="dialog"
+        aria-labelledby={titleId}
+        tabIndex={-1}
         data-idle-pause="true"
         data-testid={panelTestId}
         className={panelClassName}
@@ -89,7 +106,7 @@ export function FloatingWindowShell({
           onMouseDown={onHeaderMouseDown}
           onContextMenu={onHeaderContextMenu}
         >
-          <span className={modalStyles.toolHeaderTitle}>{title}</span>
+          <span id={titleId} className={modalStyles.toolHeaderTitle}>{title}</span>
           <button
             type="button"
             onClick={onClose}
