@@ -100,12 +100,12 @@ const SUPERSCRIPT_DIGITS: Record<string, string> = {
 
 export const POINT_CLOUD_MODE_CONTROL = {
   defaultMode: 'rgb',
-  offButton: { icon: 'pointsOff', label: 'OFF', tooltip: 'Point Cloud: Off (P)', isActive: false },
+  offButton: { icon: 'pointsOff', label: 'Off', tooltip: 'Point Cloud: Off (P)', isActive: false },
   activeButtons: [
     { mode: 'rgb', icon: 'pointsRgb', label: 'RGB', tooltip: 'Point Cloud: RGB (P)' },
-    { mode: 'error', icon: 'pointsError', label: 'ERR', tooltip: 'Point Cloud: Error (P)' },
-    { mode: 'trackLength', icon: 'pointsTrack', label: 'TRK', tooltip: 'Point Cloud: Track (P)' },
-    { mode: 'splats', icon: 'pointsSplats', label: 'SPL', tooltip: 'Point Cloud: Splats (P)' },
+    { mode: 'error', icon: 'pointsError', label: 'Error', tooltip: 'Point Cloud: Error (P)' },
+    { mode: 'trackLength', icon: 'pointsTrack', label: 'Track', tooltip: 'Point Cloud: Track (P)' },
+    { mode: 'splats', icon: 'pointsSplats', label: 'Splat', tooltip: 'Point Cloud: Splats (P)' },
     { mode: 'splatPoints', icon: 'pointsSplatPoints', label: 'S+P', tooltip: 'Point Cloud: Splats + Blinking Points (P)' },
     { mode: 'splatRainbowPoints', icon: 'pointsSplatRainbow', label: 'RNB', tooltip: 'Point Cloud: Splats + Rainbow Points (P)' },
   ],
@@ -113,11 +113,11 @@ export const POINT_CLOUD_MODE_CONTROL = {
 
 export const CAMERA_DISPLAY_MODE_CONTROL = {
   defaultMode: 'frustum',
-  offButton: { icon: 'cameraOff', label: 'OFF', tooltip: 'Cameras hidden (F)', isActive: false },
+  offButton: { icon: 'cameraOff', label: 'Off', tooltip: 'Cameras hidden (F)', isActive: false },
   activeButtons: [
-    { mode: 'frustum', icon: 'frustum', label: 'FRM', tooltip: 'Frustum mode (F)' },
-    { mode: 'arrow', icon: 'arrow', label: 'ARW', tooltip: 'Arrow mode (F)' },
-    { mode: 'imageplane', icon: 'imageplane', label: 'IMG', tooltip: 'Image plane mode (F)' },
+    { mode: 'frustum', icon: 'frustum', label: 'Frust', tooltip: 'Frustum mode (F)' },
+    { mode: 'arrow', icon: 'arrow', label: 'Arrow', tooltip: 'Arrow mode (F)' },
+    { mode: 'imageplane', icon: 'imageplane', label: 'Image', tooltip: 'Image plane mode (F)' },
   ],
 } satisfies VisibleModeControlConfig<CameraDisplayMode, CameraDisplayButtonIcon>;
 
@@ -142,10 +142,10 @@ export const SELECTION_COLOR_MODE_CONTROL = {
 
 export const RIG_DISPLAY_MODE_CONTROL = {
   defaultMode: 'static',
-  offButton: { icon: 'rigOff', label: 'OFF', tooltip: 'Rig connections off', isActive: false, disabled: false },
+  offButton: { icon: 'rigOff', label: 'Off', tooltip: 'Rig connections off', isActive: false, disabled: false },
   activeButtons: [
-    { mode: 'static', icon: 'rigStatic', label: 'RIG', tooltip: 'Rig static' },
-    { mode: 'blink', icon: 'rigBlink', label: 'BLK', tooltip: 'Rig blink' },
+    { mode: 'static', icon: 'rigStatic', label: 'Rig', tooltip: 'Rig static' },
+    { mode: 'blink', icon: 'rigBlink', label: 'Blink', tooltip: 'Rig blink' },
   ],
 } satisfies VisibleModeControlConfig<RigDisplayMode, RigButtonIcon>;
 
@@ -325,23 +325,23 @@ export function getAxesGridButtonState(
   showGrid: boolean
 ): ViewerControlButtonState<AxesGridButtonIcon> {
   if (showAxes && showGrid) {
-    return { icon: 'axesGrid', label: 'A+G', tooltip: 'Axes & Grid (G)', isActive: true };
+    return { icon: 'axesGrid', label: 'Both', tooltip: 'Axes & Grid (G)', isActive: true };
   }
   if (showAxes) {
-    return { icon: 'axes', label: 'AXS', tooltip: 'Axes & Grid (G)', isActive: true };
+    return { icon: 'axes', label: 'Axes', tooltip: 'Axes & Grid (G)', isActive: true };
   }
   if (showGrid) {
-    return { icon: 'grid', label: 'GRD', tooltip: 'Axes & Grid (G)', isActive: true };
+    return { icon: 'grid', label: 'Grid', tooltip: 'Axes & Grid (G)', isActive: true };
   }
-  return { icon: 'axesOff', label: 'OFF', tooltip: 'Axes & Grid (G)', isActive: false };
+  return { icon: 'axesOff', label: 'Off', tooltip: 'Axes & Grid (G)', isActive: false };
 }
 
 export function getCameraModeButtonState(
   mode: CameraMode
 ): ViewerControlButtonState<CameraModeButtonIcon> {
   return mode === 'orbit'
-    ? { icon: 'orbit', label: 'ORB', tooltip: 'Orbit mode (C)' }
-    : { icon: 'fly', label: 'FLY', tooltip: 'Fly mode (C)' };
+    ? { icon: 'orbit', label: 'Orbit', tooltip: 'Orbit mode (C)' }
+    : { icon: 'fly', label: 'Fly', tooltip: 'Fly mode (C)' };
 }
 
 export function getPointCloudButtonState(
@@ -380,7 +380,7 @@ export function getRigButtonState(
   if (!hasRigData) {
     return {
       icon: 'rigOff',
-      label: 'N/A',
+      label: 'Rig',
       tooltip: 'Rig not available',
       isActive: false,
       disabled: true,

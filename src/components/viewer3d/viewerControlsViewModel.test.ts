@@ -216,30 +216,40 @@ describe('viewer controls view-model helpers', () => {
   it('derives compact toolbar button state', () => {
     expect(getAxesGridButtonState(true, true)).toMatchObject({
       icon: 'axesGrid',
-      label: 'A+G',
+      label: 'Both',
       tooltip: 'Axes & Grid (G)',
+      isActive: true,
+    });
+    expect(getAxesGridButtonState(true, false)).toMatchObject({
+      icon: 'axes',
+      label: 'Axes',
+      isActive: true,
+    });
+    expect(getAxesGridButtonState(false, true)).toMatchObject({
+      icon: 'grid',
+      label: 'Grid',
       isActive: true,
     });
     expect(getAxesGridButtonState(false, false)).toMatchObject({
       icon: 'axesOff',
-      label: 'OFF',
+      label: 'Off',
       isActive: false,
     });
 
     expect(getCameraModeButtonState('orbit')).toEqual({
       icon: 'orbit',
-      label: 'ORB',
+      label: 'Orbit',
       tooltip: 'Orbit mode (C)',
     });
     expect(getCameraModeButtonState('fly')).toEqual({
       icon: 'fly',
-      label: 'FLY',
+      label: 'Fly',
       tooltip: 'Fly mode (C)',
     });
 
     expect(getPointCloudButtonState(false, 'trackLength')).toMatchObject({
       icon: 'pointsOff',
-      label: 'OFF',
+      label: 'Off',
       tooltip: 'Point Cloud: Off (P)',
       isActive: false,
     });
@@ -251,17 +261,17 @@ describe('viewer controls view-model helpers', () => {
     });
     expect(getPointCloudButtonState(true, 'error')).toMatchObject({
       icon: 'pointsError',
-      label: 'ERR',
+      label: 'Error',
       tooltip: 'Point Cloud: Error (P)',
     });
     expect(getPointCloudButtonState(true, 'trackLength')).toMatchObject({
       icon: 'pointsTrack',
-      label: 'TRK',
+      label: 'Track',
       tooltip: 'Point Cloud: Track (P)',
     });
     expect(getPointCloudButtonState(true, 'splats')).toMatchObject({
       icon: 'pointsSplats',
-      label: 'SPL',
+      label: 'Splat',
       tooltip: 'Point Cloud: Splats (P)',
     });
     expect(getPointCloudButtonState(true, 'splatPoints')).toMatchObject({
@@ -277,23 +287,23 @@ describe('viewer controls view-model helpers', () => {
 
     expect(getCameraDisplayButtonState(false, 'imageplane')).toMatchObject({
       icon: 'cameraOff',
-      label: 'OFF',
+      label: 'Off',
       tooltip: 'Cameras hidden (F)',
       isActive: false,
     });
     expect(getCameraDisplayButtonState(true, 'frustum')).toMatchObject({
       icon: 'frustum',
-      label: 'FRM',
+      label: 'Frust',
       tooltip: 'Frustum mode (F)',
     });
     expect(getCameraDisplayButtonState(true, 'arrow')).toMatchObject({
       icon: 'arrow',
-      label: 'ARW',
+      label: 'Arrow',
       tooltip: 'Arrow mode (F)',
     });
     expect(getCameraDisplayButtonState(true, 'imageplane')).toMatchObject({
       icon: 'imageplane',
-      label: 'IMG',
+      label: 'Image',
       tooltip: 'Image plane mode (F)',
     });
 
@@ -329,27 +339,28 @@ describe('viewer controls view-model helpers', () => {
       tooltip: 'Rainbow',
     });
 
+    // No-rig-data state keeps its disabled affordance + tooltip; only the chip text softens.
     expect(getRigButtonState(false, true, 'blink')).toMatchObject({
       icon: 'rigOff',
-      label: 'N/A',
+      label: 'Rig',
       tooltip: 'Rig not available',
       disabled: true,
       isActive: false,
     });
     expect(getRigButtonState(true, false, 'blink')).toMatchObject({
       icon: 'rigOff',
-      label: 'OFF',
+      label: 'Off',
       tooltip: 'Rig connections off',
       disabled: false,
     });
     expect(getRigButtonState(true, true, 'static')).toMatchObject({
       icon: 'rigStatic',
-      label: 'RIG',
+      label: 'Rig',
       tooltip: 'Rig static',
     });
     expect(getRigButtonState(true, true, 'blink')).toMatchObject({
       icon: 'rigBlink',
-      label: 'BLK',
+      label: 'Blink',
       tooltip: 'Rig blink',
     });
   });
