@@ -218,7 +218,7 @@ export function DropZone({ children }: DropZoneProps) {
           onUploadConfig={handleConfigUpload}
           onResetConfig={handleResetConfig}
           onDismiss={() => setIsPanelDismissed(true)}
-          onOpenExampleDataset={() => window.open('https://huggingface.co/datasets/OpsiClear/NGS', '_blank')}
+          onOpenExampleDataset={() => window.open('https://huggingface.co/datasets/OpsiClear/NGS', '_blank', 'noopener,noreferrer')}
           onDownloadExampleManifest={handleDownloadExampleJson}
         />
       )}

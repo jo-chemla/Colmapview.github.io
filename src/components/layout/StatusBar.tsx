@@ -134,6 +134,10 @@ export function StatusBar() {
           onClick={() => setShowHotkeyHelp(true)}
           className={STATUS_BAR_SHORTCUTS_BUTTON_CLASS}
           title={STATUS_BAR_SHORTCUTS_TITLE}
+          // The footer is aria-hidden when the chrome fades out; without this the
+          // button stays tabbable inside a hidden subtree (same pattern as the
+          // ⓘ button in HotkeyHelpModal).
+          tabIndex={hideWithButtons ? -1 : undefined}
         >
           {STATUS_BAR_SHORTCUTS_LABEL}
         </button>
