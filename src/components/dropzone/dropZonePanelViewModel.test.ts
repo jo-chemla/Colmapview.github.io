@@ -6,6 +6,9 @@ import {
   DROP_ZONE_DESKTOP_MESSAGE,
   DROP_ZONE_DESKTOP_OVERLAY_CLASS,
   DROP_ZONE_DESKTOP_TITLE,
+  DROP_ZONE_EXAMPLE_LINK_CLASS,
+  DROP_ZONE_EXAMPLE_LINK_LABELS,
+  DROP_ZONE_EXAMPLE_LINKS_ROW_CLASS,
   DROP_ZONE_INFO_LINES,
   DROP_ZONE_RESET_CONFIG_TOOLTIP,
   DROP_ZONE_TOUCH_FOOTER,
@@ -14,6 +17,7 @@ import {
   DROP_ZONE_TOUCH_TITLE,
   DROP_ZONE_UPLOAD_CONFIG_TOOLTIP,
   getDesktopDropZoneActionButtonClass,
+  getDesktopDropZonePrimaryButtonClass,
   getDropZoneBrowseIconStyle,
   getDropZoneInfoLineClass,
   getDropZonePanelOverlayStyle,
@@ -42,7 +46,7 @@ describe('drop zone panel view model', () => {
   it('keeps action labels and tooltips centralized', () => {
     expect(DROP_ZONE_ACTION_LABELS).toEqual({
       loadUrl: 'Load URL',
-      loadJson: 'Load JSON',
+      loadJson: 'Load manifest',
       loadFromUrl: 'Load from URL',
       tryToy: 'Try a Toy!',
       dismiss: 'Dismiss',
@@ -50,6 +54,15 @@ describe('drop zone panel view model', () => {
     expect(DROP_ZONE_BROWSE_LABEL).toBe('Browse for a COLMAP dataset folder');
     expect(DROP_ZONE_UPLOAD_CONFIG_TOOLTIP).toBe('Upload configuration file (.yaml)');
     expect(DROP_ZONE_RESET_CONFIG_TOOLTIP).toBe('Reset all settings to defaults');
+  });
+
+  it('names the visible example links and keeps them quiet', () => {
+    expect(DROP_ZONE_EXAMPLE_LINK_LABELS).toEqual({
+      openExampleDataset: 'Open example dataset',
+      downloadExampleManifest: 'Download example manifest',
+    });
+    expect(DROP_ZONE_EXAMPLE_LINKS_ROW_CLASS).toBe('mt-3 flex gap-4 justify-center');
+    expect(DROP_ZONE_EXAMPLE_LINK_CLASS).toBe('text-ds-muted text-xs hover-ds-text-primary cursor-pointer');
   });
 
   it('describes desktop info lines in display order', () => {
@@ -78,8 +91,16 @@ describe('drop zone panel view model', () => {
   });
 
   it('builds desktop action button classes by loading state', () => {
+    expect(getDesktopDropZoneActionButtonClass(false)).toContain(buttonStyles.variants.secondary);
     expect(getDesktopDropZoneActionButtonClass(false)).not.toContain(buttonStyles.disabled);
     expect(getDesktopDropZoneActionButtonClass(true)).toContain(buttonStyles.disabled);
+  });
+
+  it('gives the desktop primary action the accent variant at the same size', () => {
+    expect(getDesktopDropZonePrimaryButtonClass(false)).toContain(buttonStyles.variants.primary);
+    expect(getDesktopDropZonePrimaryButtonClass(false)).toContain(buttonStyles.sizes.action);
+    expect(getDesktopDropZonePrimaryButtonClass(false)).not.toContain(buttonStyles.disabled);
+    expect(getDesktopDropZonePrimaryButtonClass(true)).toContain(buttonStyles.disabled);
   });
 
   it('builds touch action button classes by action and loading state', () => {

@@ -10,9 +10,9 @@ test.describe('DropZone', () => {
     expect(await dropZone.isEmptyStateVisible()).toBe(true);
   });
 
-  test('should show Load URL, Load JSON, and Try a Toy buttons', async ({ page }) => {
+  test('should show Load URL, Load manifest, and Try a Toy buttons', async ({ page }) => {
     await expect(page.locator('button:has-text("Load URL")')).toBeVisible();
-    await expect(page.locator('button:has-text("Load JSON")')).toBeVisible();
+    await expect(page.locator('button:has-text("Load manifest")')).toBeVisible();
     await expect(page.locator('button:has-text("Try a Toy!")')).toBeVisible();
   });
 

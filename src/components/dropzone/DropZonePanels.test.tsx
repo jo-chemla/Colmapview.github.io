@@ -4,6 +4,7 @@ import { DesktopDropZonePanel, TouchDropZonePanel } from './DropZonePanels';
 import {
   DROP_ZONE_BROWSE_LABEL,
   DROP_ZONE_DISMISS_TOOLTIP,
+  DROP_ZONE_EXAMPLE_LINK_LABELS,
   DROP_ZONE_RESET_CONFIG_TOOLTIP,
   DROP_ZONE_UPLOAD_CONFIG_TOOLTIP,
 } from './dropZonePanelViewModel';
@@ -34,7 +35,7 @@ describe('DropZone panels', () => {
 
     fireEvent.click(screen.getByRole('button', { name: DROP_ZONE_BROWSE_LABEL }));
     fireEvent.click(screen.getByRole('button', { name: /Load URL/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Load JSON/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Load manifest/i }));
     fireEvent.click(screen.getByRole('button', { name: /Try a Toy!/i }));
     fireEvent.click(screen.getByRole('button', { name: DROP_ZONE_DISMISS_TOOLTIP }));
 
@@ -61,7 +62,18 @@ describe('DropZone panels', () => {
     render(<DesktopDropZonePanel {...props} />);
 
     fireEvent.contextMenu(screen.getByRole('button', { name: /Load URL/i }));
-    fireEvent.contextMenu(screen.getByRole('button', { name: /Load JSON/i }));
+    fireEvent.contextMenu(screen.getByRole('button', { name: /Load manifest/i }));
+
+    expect(props.onOpenExampleDataset).toHaveBeenCalledTimes(1);
+    expect(props.onDownloadExampleManifest).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes the visible example links to the same handlers as the context menus', () => {
+    const props = createDesktopProps();
+    render(<DesktopDropZonePanel {...props} />);
+
+    fireEvent.click(screen.getByRole('button', { name: DROP_ZONE_EXAMPLE_LINK_LABELS.openExampleDataset }));
+    fireEvent.click(screen.getByRole('button', { name: DROP_ZONE_EXAMPLE_LINK_LABELS.downloadExampleManifest }));
 
     expect(props.onOpenExampleDataset).toHaveBeenCalledTimes(1);
     expect(props.onDownloadExampleManifest).toHaveBeenCalledTimes(1);

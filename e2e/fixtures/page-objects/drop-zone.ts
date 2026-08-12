@@ -19,7 +19,7 @@ export class DropZonePageObject {
     this.container = page.locator('[data-testid="drop-zone"]');
     this.emptyStatePanel = page.locator('text="Load COLMAP Data"').locator('..').locator('..');
     this.loadUrlButton = page.locator('button:has-text("Load URL")');
-    this.loadJsonButton = page.locator('button:has-text("Load JSON")');
+    this.loadJsonButton = page.locator('button:has-text("Load manifest")');
     this.tryToyButton = page.locator('button:has-text("Try a Toy!")');
     this.urlModal = page.locator('[data-testid="url-modal"]');
     this.loadingOverlay = page.locator('[class*="loadingStyles"]');
@@ -48,7 +48,7 @@ export class DropZonePageObject {
   }
 
   /**
-   * Click the "Load JSON" button
+   * Click the "Load manifest" button
    */
   async clickLoadJson(): Promise<void> {
     await this.loadJsonButton.click();

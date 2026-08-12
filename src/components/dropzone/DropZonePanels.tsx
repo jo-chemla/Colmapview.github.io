@@ -20,6 +20,9 @@ import {
   DROP_ZONE_DESKTOP_OVERLAY_CLASS,
   DROP_ZONE_DESKTOP_TITLE,
   DROP_ZONE_DISMISS_TOOLTIP,
+  DROP_ZONE_EXAMPLE_LINK_CLASS,
+  DROP_ZONE_EXAMPLE_LINK_LABELS,
+  DROP_ZONE_EXAMPLE_LINKS_ROW_CLASS,
   DROP_ZONE_ICON_BUTTON_CLASS,
   DROP_ZONE_INFO_LINES,
   DROP_ZONE_RESET_CONFIG_TOOLTIP,
@@ -31,6 +34,7 @@ import {
   DROP_ZONE_TOUCH_TITLE,
   DROP_ZONE_UPLOAD_CONFIG_TOOLTIP,
   getDesktopDropZoneActionButtonClass,
+  getDesktopDropZonePrimaryButtonClass,
   getDropZoneBrowseIconStyle,
   getDropZoneInfoLineClass,
   getDropZonePanelOverlayStyle,
@@ -183,13 +187,30 @@ export function DesktopDropZonePanel({
                 onMouseEnter={() => setHoveredButton('toy')}
                 onMouseLeave={() => setHoveredButton(null)}
                 disabled={urlLoading}
-                className={getDesktopDropZoneActionButtonClass(urlLoading)}
+                className={getDesktopDropZonePrimaryButtonClass(urlLoading)}
               >
                 <img src={publicAsset('LOGO.png')} alt="" className={DROP_ZONE_DESKTOP_ACTION_BUTTON_ICON_CLASS} />
                 {DROP_ZONE_ACTION_LABELS.tryToy}
               </button>
               {hoveredButton === 'toy' && <ToyHoverCard />}
             </div>
+          </div>
+
+          <div className={DROP_ZONE_EXAMPLE_LINKS_ROW_CLASS}>
+            <button
+              type="button"
+              className={DROP_ZONE_EXAMPLE_LINK_CLASS}
+              onClick={onOpenExampleDataset}
+            >
+              {DROP_ZONE_EXAMPLE_LINK_LABELS.openExampleDataset}
+            </button>
+            <button
+              type="button"
+              className={DROP_ZONE_EXAMPLE_LINK_CLASS}
+              onClick={onDownloadExampleManifest}
+            >
+              {DROP_ZONE_EXAMPLE_LINK_LABELS.downloadExampleManifest}
+            </button>
           </div>
         </div>
       </div>
