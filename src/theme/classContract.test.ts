@@ -158,12 +158,12 @@ describe('utility class contract', () => {
   });
 
   it('defines every escaped token verbatim (no Tailwind JIT to expand variants)', () => {
-    // The contract above strips the variant prefix before looking a token up, so
-    // `hover:text-ds-primary` passes on the strength of `.text-ds-primary`
-    // alone — yet with no Tailwind the hover rule is never generated and the
-    // reference is inert. Same for arbitrary-value brackets. Those tokens must
-    // therefore exist in index.css under their OWN name (escaped there as
-    // `.hover\:…` / `.w-\[3px\]`), which collectDefinedClasses unescapes.
+    // The main assertion above already looks tokens up by their FULL name, so
+    // today this subset check cannot fail independently. It exists to pin that
+    // guarantee explicitly: with no Tailwind, a colon-variant or bracket token
+    // (`hover:text-ds-primary`, `w-[3px]`) is only real if index.css defines it
+    // under its own escaped name (`.hover\:…` / `.w-\[3px\]`) — if the main
+    // lookup is ever loosened (e.g. variant-stripped), this guard must survive.
     const escaped = [...found].filter((t) => t.includes(':') || t.includes('['));
     const missing = escaped.filter((t) => !defined.has(t)).sort();
     expect(missing).toEqual([]);
