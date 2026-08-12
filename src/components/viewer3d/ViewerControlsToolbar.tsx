@@ -25,6 +25,15 @@ export interface ViewerControlsToolbarProps {
   controller: ViewerControlsController;
 }
 
+/**
+ * Hairline separator between toolbar clusters (view / data / capture / app).
+ * Purely decorative grouping, so it stays out of the accessibility tree — the
+ * panels themselves already carry their own labels.
+ */
+function ToolbarDivider() {
+  return <div aria-hidden="true" className="w-6 h-px bg-ds-hover mx-auto" />;
+}
+
 export function ViewerControlsToolbar({ controller }: ViewerControlsToolbarProps) {
   const {
     className,
@@ -52,6 +61,9 @@ export function ViewerControlsToolbar({ controller }: ViewerControlsToolbarProps
       <CameraModePanel {...cameraModePanel} />
       <BackgroundPanel {...backgroundPanel} />
       <TransformPanel {...transformPanel} />
+
+      <ToolbarDivider />
+
       <PointCloudPanel {...pointCloudPanel} />
       <CameraDisplayPanel {...cameraDisplayPanel} />
 
@@ -66,9 +78,15 @@ export function ViewerControlsToolbar({ controller }: ViewerControlsToolbarProps
       )}
 
       <RigPanel {...rigPanel} />
+
+      <ToolbarDivider />
+
       <ScreenshotPanel {...screenshotPanel} />
       <SharePanel {...sharePanel} />
       <ExportPanel {...exportPanel} />
+
+      <ToolbarDivider />
+
       <SettingsPanel {...settingsPanel} />
       <GalleryToggleButton {...galleryToggleButton} />
     </div>
