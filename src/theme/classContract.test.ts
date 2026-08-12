@@ -101,7 +101,7 @@ const NON_CLASS_TOKENS = new Set(['hover-card']);
 
 // Positional utilities take numeric, fractional, arbitrary or keyword values —
 // never direction words. This keeps `bottom-4` / `top-full` in scope while
-// rejecting enum strings like the TouchFabPosition 'top-left'.
+// rejecting corner-enum strings like 'top-left' / 'bottom-right'.
 const POSITIONAL = new Set(['top', 'right', 'bottom', 'left']);
 const POSITIONAL_VALUE_RE = /^\d|^\[|^(?:full|auto|px)$/;
 

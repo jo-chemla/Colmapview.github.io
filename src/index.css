@@ -1376,7 +1376,6 @@ legend {
    ============================================ */
 
 .focus-ds:focus { border-color: var(--accent); outline: none; }
-.focus-outline-none:focus { outline: none; }
 
 /* Hotkey help tabs: <button> has no outline reset in the base rule (unlike inputs/
    selects above), so a focused tab falls through to the global :focus-visible accent

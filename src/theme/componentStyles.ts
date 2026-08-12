@@ -632,8 +632,6 @@ export const histogramStyles = {
   row: 'flex items-center gap-2 h-5',
   // Label (left side, right-aligned)
   label: 'w-12 text-right text-ds-secondary text-xs',
-  // Bar background
-  barBg: 'flex-1 bg-ds-secondary/20 rounded-sm h-3 overflow-hidden',
   // Bar fill (actual histogram bar)
   barFill: 'h-full bg-ds-accent rounded-sm transition-all',
   // Count text (right side)
