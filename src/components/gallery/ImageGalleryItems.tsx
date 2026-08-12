@@ -130,7 +130,7 @@ export const GalleryItem = memo(function GalleryItem({
             className={galleryStyles.placeholder}
             style={getDeletionPlaceholderStyle(isMarkedForDeletion)}
           >
-            {isScrolling ? '...' : img.name}
+            ...
           </div>
         )}
         {showMaskOverlay && (

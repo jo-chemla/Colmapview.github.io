@@ -22,7 +22,7 @@ vi.mock('./useImageGalleryItemStoreFacade', () => ({
   useImageGalleryItemStoreFacade: () => ({ multiCamera: true }),
 }));
 
-import { ListItem } from './ImageGalleryItems';
+import { GalleryItem, ListItem } from './ImageGalleryItems';
 
 function createImage(overrides: Partial<ImageData> = {}): ImageData {
   return {
@@ -40,11 +40,11 @@ function createImage(overrides: Partial<ImageData> = {}): ImageData {
   };
 }
 
-function renderListItem(
+function createItemProps(
   img: ImageData,
   overrides: Partial<ComponentProps<typeof ListItem>> = {}
-) {
-  const props: ComponentProps<typeof ListItem> = {
+): ComponentProps<typeof ListItem> {
+  return {
     img,
     borderColorMode: 'none',
     isSelected: false,
@@ -65,10 +65,26 @@ function renderListItem(
     touchMode: true,
     ...overrides,
   };
+}
 
+function renderListItem(
+  img: ImageData,
+  overrides: Partial<ComponentProps<typeof ListItem>> = {}
+) {
   return render(
     <ListItem
-      {...props}
+      {...createItemProps(img, overrides)}
+    />
+  );
+}
+
+function renderGalleryItem(
+  img: ImageData,
+  overrides: Partial<ComponentProps<typeof GalleryItem>> = {}
+) {
+  return render(
+    <GalleryItem
+      {...createItemProps(img, overrides)}
     />
   );
 }
@@ -77,6 +93,28 @@ afterEach(() => {
   cleanup();
   useThumbnailMock.mockReset();
   useMaskedThumbnailMock.mockReset();
+});
+
+describe('ImageGallery grid item', () => {
+  it('shows the filename only once while the thumbnail is loading', () => {
+    renderGalleryItem(createImage());
+
+    expect(screen.getAllByText('frame.jpg')).toHaveLength(1);
+    expect(screen.getByText('...')).toBeInTheDocument();
+  });
+
+  it('keeps a single caption filename once the thumbnail is loaded', () => {
+    const imageFile = buildFile('frame.jpg');
+    useThumbnailMock.mockImplementation((_file: File | undefined, key: string) =>
+      key === 'frame.jpg' ? 'image-url' : undefined
+    );
+
+    renderGalleryItem(createImage({ file: imageFile }));
+
+    expect(screen.getByAltText('frame.jpg')).toHaveAttribute('src', 'image-url');
+    expect(screen.getAllByText('frame.jpg')).toHaveLength(1);
+    expect(screen.queryByText('...')).toBeNull();
+  });
 });
 
 describe('ImageGallery list item', () => {
