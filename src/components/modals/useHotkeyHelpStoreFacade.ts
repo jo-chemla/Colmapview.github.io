@@ -10,6 +10,8 @@ export interface HotkeyHelpStoreFacade {
   /** Panel open state; store-owned so the status bar can open it too. */
   showHotkeyHelp: boolean;
   setShowHotkeyHelp: (show: boolean) => void;
+  /** Flips the panel open/closed (info button, ? / I hotkey). */
+  toggleHotkeyHelp: () => void;
 }
 
 /**
@@ -26,6 +28,7 @@ export function useHotkeyHelpStoreFacade(): HotkeyHelpStoreFacade {
   const showAutoHideEditor = useUIStore((s) => s.showAutoHideEditor);
   const showHotkeyHelp = useUIStore((s) => s.showHotkeyHelp);
   const setShowHotkeyHelp = useUIStore((s) => s.setShowHotkeyHelp);
+  const toggleHotkeyHelp = useUIStore((s) => s.toggleHotkeyHelp);
 
   return {
     touchMode,
@@ -35,5 +38,6 @@ export function useHotkeyHelpStoreFacade(): HotkeyHelpStoreFacade {
     showAutoHideEditor,
     showHotkeyHelp,
     setShowHotkeyHelp,
+    toggleHotkeyHelp,
   };
 }

@@ -93,7 +93,7 @@ export const CANVAS_COLORS = {
   white: '#ffffff',
 } as const;
 
-// Status bar link hover colors (brand-specific)
+// Per-link hover colors for the help panel's About tab (brand-specific)
 export const LINK_COLORS = {
   github: '#facc15',
   bugs: '#ef4444',

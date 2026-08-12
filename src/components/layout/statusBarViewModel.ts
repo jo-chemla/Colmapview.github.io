@@ -1,11 +1,10 @@
+import { HOTKEY_INFO_BUTTON_TITLE } from '../modals/hotkeyHelpViewModel';
+
 export const STATUS_BAR_HIDDEN_CLASS_NAME = 'opacity-0';
 
-// The status bar carries status only (2026-08-12): the brand/legal/project-link
-// cluster moved to the help panel's About tab, and its slot is now a visible
-// entry point to that panel — the keyboard shortcuts were previously reachable
-// only via the top-left ⓘ button or the I / ? hotkeys.
 export const STATUS_BAR_SHORTCUTS_LABEL = '⌨ Shortcuts';
-export const STATUS_BAR_SHORTCUTS_TITLE = 'Keyboard shortcuts (I)';
+// Same target, same tooltip as the top-left ⓘ button: one string, one home.
+export const STATUS_BAR_SHORTCUTS_TITLE = HOTKEY_INFO_BUTTON_TITLE;
 // Plain text button: the global `button` reset in index.css already clears the
 // background, border, padding, and font-size, so the class only has to state
 // the muted-to-bright text behavior the rest of the bar uses.

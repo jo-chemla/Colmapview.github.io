@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useReconstructionStore } from '../../store/reconstructionStore';
 import { useImageMetricsStore } from '../../store/stores/imageMetricsStore';
@@ -60,15 +60,5 @@ describe('useStatusBarStoreFacade', () => {
       showAutoHideEditor: false,
       setShowHotkeyHelp: useUIStore.getState().setShowHotkeyHelp,
     });
-  });
-
-  it('exposes the UI store opener for the shared shortcuts/About panel', () => {
-    const { result } = renderHook(() => useStatusBarStoreFacade());
-
-    expect(useUIStore.getState().showHotkeyHelp).toBe(false);
-    act(() => {
-      result.current.setShowHotkeyHelp(true);
-    });
-    expect(useUIStore.getState().showHotkeyHelp).toBe(true);
   });
 });

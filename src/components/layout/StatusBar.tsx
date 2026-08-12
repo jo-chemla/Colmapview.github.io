@@ -11,7 +11,7 @@ import {
   getStatusBarContainerClassName,
   shouldShowStatusHistograms,
 } from './statusBarViewModel';
-import { shouldHideChromeWithButtons } from './autoHideChromePolicy';
+import { getAutoHiddenChromeProps, shouldHideChromeWithButtons } from './autoHideChromePolicy';
 import { useStatusBarStoreFacade } from './useStatusBarStoreFacade';
 import {
   computeMeanPsnrFromMetrics,
@@ -125,19 +125,13 @@ export function StatusBar() {
         )}
         {emptyStatusText !== null && <span>{emptyStatusText}</span>}
       </div>
-      {/* Right group carries status-adjacent affordances only: the brand,
-          project links, license, and COLMAP credit moved to the help panel's
-          About tab (2026-08-12). */}
       <div className="flex items-center gap-2 text-ds-secondary">
         <button
           type="button"
           onClick={() => setShowHotkeyHelp(true)}
           className={STATUS_BAR_SHORTCUTS_BUTTON_CLASS}
           title={STATUS_BAR_SHORTCUTS_TITLE}
-          // The footer is aria-hidden when the chrome fades out; without this the
-          // button stays tabbable inside a hidden subtree (same pattern as the
-          // ⓘ button in HotkeyHelpModal).
-          tabIndex={hideWithButtons ? -1 : undefined}
+          {...getAutoHiddenChromeProps(hideWithButtons)}
         >
           {STATUS_BAR_SHORTCUTS_LABEL}
         </button>

@@ -222,6 +222,7 @@ export interface UIState {
   setShowConversionModal: (show: boolean) => void;
   setShowAutoHideEditor: (show: boolean) => void;
   setShowHotkeyHelp: (show: boolean) => void;
+  toggleHotkeyHelp: () => void;
 
   // Context menu actions
   openContextMenu: (x: number, y: number) => void;
@@ -358,6 +359,7 @@ export const useUIStore = create<UIState>()(
       setShowConversionModal: (show) => set({ showConversionModal: show }),
       setShowAutoHideEditor: (show) => set({ showAutoHideEditor: show }),
       setShowHotkeyHelp: (show) => set({ showHotkeyHelp: show }),
+      toggleHotkeyHelp: () => set((state) => ({ showHotkeyHelp: !state.showHotkeyHelp })),
 
       // Context menu actions
       openContextMenu: (x, y) => set({ contextMenuPosition: { x, y } }),

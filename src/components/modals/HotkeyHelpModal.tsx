@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useId, useRef, useState } from 'react';
+import { Fragment, useId, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { HOTKEYS } from '../../config/hotkeys';
 import { modalStyles } from '../../theme';
@@ -10,6 +10,7 @@ import {
   ABOUT_COLMAP_LINK,
   ABOUT_LICENSE_LABEL,
   ABOUT_LINK_CLASS_NAME,
+  ABOUT_LINK_REST_COLOR,
   ABOUT_PANEL_CLASS,
   ABOUT_PRODUCT_LINE,
   ABOUT_PRODUCT_LINE_CLASS,
@@ -35,9 +36,6 @@ import {
   HOTKEY_INFO_BUTTON_ICON_CLASS,
   HOTKEY_INFO_BUTTON_TITLE,
   getAboutLinkHoverColor,
-  getAboutLinkRestColor,
-  getAboutLinkStyle,
-  getAboutVersionLabel,
   getHotkeyHelpOverlayStyle,
   getHotkeyHelpPanelStyle,
   getHotkeyHelpTabs,
@@ -48,7 +46,10 @@ import {
   type AboutLink,
   type HotkeyHelpTabId,
 } from './hotkeyHelpViewModel';
-import { shouldHideChromeWithButtons } from '../layout/autoHideChromePolicy';
+import {
+  getAutoHiddenChromeProps,
+  shouldHideChromeWithButtons,
+} from '../layout/autoHideChromePolicy';
 
 /** Project link with its per-link hover color, as the status bar rendered it. */
 function AboutLinkAnchor({ link }: { link: AboutLink }) {
@@ -58,10 +59,10 @@ function AboutLinkAnchor({ link }: { link: AboutLink }) {
       target="_blank"
       rel="noopener noreferrer"
       className={ABOUT_LINK_CLASS_NAME}
-      style={getAboutLinkStyle()}
+      style={{ color: ABOUT_LINK_REST_COLOR }}
       title={link.title}
       onMouseEnter={(e) => { e.currentTarget.style.color = getAboutLinkHoverColor(link); }}
-      onMouseLeave={(e) => { e.currentTarget.style.color = getAboutLinkRestColor(); }}
+      onMouseLeave={(e) => { e.currentTarget.style.color = ABOUT_LINK_REST_COLOR; }}
     >
       {link.label}
     </a>
@@ -83,7 +84,7 @@ function HotkeyHelpAboutPanel() {
         <span>{ABOUT_COLMAP_CREDIT_PREFIX}{' '}
           <AboutLinkAnchor link={ABOUT_COLMAP_LINK} />
         </span>
-        <span>{getAboutVersionLabel(__APP_VERSION__)}</span>
+        <span>v{__APP_VERSION__}</span>
       </div>
     </div>
   );
@@ -149,52 +150,48 @@ function HotkeyHelpTabs() {
  * Modal that displays all available keyboard shortcuts, split into tabs so the
  * long list no longer floods the page (revision 2026-07-10). The first tab,
  * Essentials, curates the most-used shortcuts and is re-selected every time the
- * panel opens; About (last) carries the brand/legal block the status bar used
- * to crowd (2026-08-12). Toggle with Shift+? (question mark) or I; also opened
- * by the desktop top-left info button and the status bar's Shortcuts entry.
+ * panel opens. Toggle with Shift+? (question mark) or I; also opened by the
+ * desktop top-left info button and the status bar's Shortcuts entry.
  */
 export function HotkeyHelpModal() {
   const titleId = useId();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const mode = useHotkeyHelpStoreFacade();
-  const { showHotkeyHelp: isOpen, setShowHotkeyHelp } = mode;
+  const {
+    autoHideButtons,
+    isIdle,
+    showAutoHideEditor,
+    showHotkeyHelp: isOpen,
+    setShowHotkeyHelp,
+    toggleHotkeyHelp,
+  } = mode;
   const hideWithButtons = shouldHideChromeWithButtons({
-    autoHideButtons: mode.autoHideButtons,
-    isIdle: mode.isIdle,
-    showAutoHideEditor: mode.showAutoHideEditor,
+    autoHideButtons,
+    isIdle,
+    showAutoHideEditor,
   });
-
-  // Open state lives in the UI store so the status bar's Shortcuts entry opens
-  // this exact panel. The active tab resets to Essentials on every open because
-  // HotkeyHelpTabs is unmounted while the panel is closed.
-  const togglePanel = useCallback(() => {
-    setShowHotkeyHelp(!isOpen);
-  }, [isOpen, setShowHotkeyHelp]);
 
   // Toggle help panel with ? or I (global scope, always available)
   useHotkeys(
     HOTKEYS.showHelp.keys,
-    togglePanel,
+    toggleHotkeyHelp,
     {
       scopes: HOTKEYS.showHelp.scopes,
       preventDefault: HOTKEYS.showHelp.preventDefault,
     },
-    [togglePanel]
+    [toggleHotkeyHelp]
   );
 
   return (
     <>
       {shouldShowHotkeyInfoButton(mode) && (
         <button
-          onClick={togglePanel}
-          // Fades with the auto-hide button chrome (user request 2026-07-12);
-          // hidden also means click-through and out of the tab order.
+          onClick={toggleHotkeyHelp}
           className={getHotkeyInfoButtonClassName(hideWithButtons)}
           style={getHotkeyInfoButtonStyle()}
           title={HOTKEY_INFO_BUTTON_TITLE}
           aria-label={HOTKEY_INFO_BUTTON_ARIA_LABEL}
-          aria-hidden={hideWithButtons || undefined}
-          tabIndex={hideWithButtons ? -1 : undefined}
+          {...getAutoHiddenChromeProps(hideWithButtons)}
           data-testid="hotkey-info-button"
         >
           <InfoIcon className={HOTKEY_INFO_BUTTON_ICON_CLASS} />

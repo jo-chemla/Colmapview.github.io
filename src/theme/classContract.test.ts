@@ -157,6 +157,18 @@ describe('utility class contract', () => {
     expect(missing).toEqual([]);
   });
 
+  it('defines every escaped token verbatim (no Tailwind JIT to expand variants)', () => {
+    // The contract above strips the variant prefix before looking a token up, so
+    // `hover:text-ds-primary` passes on the strength of `.text-ds-primary`
+    // alone — yet with no Tailwind the hover rule is never generated and the
+    // reference is inert. Same for arbitrary-value brackets. Those tokens must
+    // therefore exist in index.css under their OWN name (escaped there as
+    // `.hover\:…` / `.w-\[3px\]`), which collectDefinedClasses unescapes.
+    const escaped = [...found].filter((t) => t.includes(':') || t.includes('['));
+    const missing = escaped.filter((t) => !defined.has(t)).sort();
+    expect(missing).toEqual([]);
+  });
+
   it('keeps .rounded-r-none after the .rounded shorthand', () => {
     // Equal specificity: the override only wins on source order (see index.css).
     const css = readFileSync(CSS_PATH, 'utf8');

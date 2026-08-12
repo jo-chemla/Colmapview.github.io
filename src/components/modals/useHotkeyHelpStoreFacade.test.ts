@@ -11,9 +11,10 @@ const DEFAULT_FACADE = {
   isIdle: false,
   showAutoHideEditor: false,
   // Panel open state is store-owned so the status bar's Shortcuts entry can
-  // open this exact panel (2026-08-12).
+  // open this exact panel.
   showHotkeyHelp: false,
   setShowHotkeyHelp: expect.any(Function),
+  toggleHotkeyHelp: expect.any(Function),
 };
 
 describe('useHotkeyHelpStoreFacade', () => {
@@ -71,5 +72,22 @@ describe('useHotkeyHelpStoreFacade', () => {
 
     expect(useUIStore.getState().showHotkeyHelp).toBe(true);
     expect(result.current).toEqual({ ...DEFAULT_FACADE, showHotkeyHelp: true });
+  });
+
+  it('flips the panel open state through the store toggle, identity-stable', () => {
+    const { result } = renderHook(() => useHotkeyHelpStoreFacade());
+    const toggle = result.current.toggleHotkeyHelp;
+
+    act(() => {
+      toggle();
+    });
+    expect(useUIStore.getState().showHotkeyHelp).toBe(true);
+
+    act(() => {
+      toggle();
+    });
+    expect(useUIStore.getState().showHotkeyHelp).toBe(false);
+    // The action never changes identity, so consumers need no memoization.
+    expect(result.current.toggleHotkeyHelp).toBe(toggle);
   });
 });

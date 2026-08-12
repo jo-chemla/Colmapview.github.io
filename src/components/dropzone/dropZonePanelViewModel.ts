@@ -25,7 +25,7 @@ export const DROP_ZONE_TOUCH_ACTION_ICON_CLASS = 'w-5 h-5 mr-2';
 // actions the right-click affordances hide, so they stay visually subordinate
 // to the buttons above them.
 export const DROP_ZONE_EXAMPLE_LINKS_ROW_CLASS = 'mt-3 flex gap-4 justify-center';
-export const DROP_ZONE_EXAMPLE_LINK_CLASS = 'text-ds-muted text-xs hover-ds-text-primary cursor-pointer';
+export const DROP_ZONE_EXAMPLE_LINK_CLASS = 'text-ds-muted text-xs hover-ds-text-primary cursor-pointer transition-colors';
 
 export const DROP_ZONE_BROWSE_LABEL = 'Browse for a COLMAP dataset folder';
 export const DROP_ZONE_UPLOAD_CONFIG_TOOLTIP = 'Upload configuration file (.yaml)';

@@ -30,6 +30,9 @@ import type {
   ImageData,
 } from './useImageGalleryViewModel';
 
+/** Stand-in shown in a grid tile until its thumbnail resolves. */
+export const GALLERY_THUMBNAIL_PLACEHOLDER = '...';
+
 export interface GalleryItemProps {
   img: ImageData;
   borderColorMode: GalleryBorderColorMode;
@@ -130,7 +133,7 @@ export const GalleryItem = memo(function GalleryItem({
             className={galleryStyles.placeholder}
             style={getDeletionPlaceholderStyle(isMarkedForDeletion)}
           >
-            ...
+            {GALLERY_THUMBNAIL_PLACEHOLDER}
           </div>
         )}
         {showMaskOverlay && (

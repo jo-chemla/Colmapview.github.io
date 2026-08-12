@@ -10,7 +10,7 @@ export const Z_INDEX = {
   overlay: 500,       // Drag overlay, loading states
   touchDrawerBackdrop: 997, // Touch gallery drawer backdrop
   touchDrawer: 998,         // Touch gallery drawer panel
-  fab: 999,           // Touch FABs, selection toasts
+  fab: 999,           // Reserved floating-action layer (no current consumer)
   modal: 1000,        // Modal dialogs
   contextMenu: 2100,  // Context menus must sit above hover panels and native select popups.
   modalOverlay: 1100, // Blocking dialogs — tool windows are clamped below this layer (see useModalZIndex)

@@ -116,8 +116,8 @@ export const TOUCH = {
 
   // UI component sizes
   statusBarHeight: 24,      // Simplified status bar height
-  fabSize: 44,              // Primary FAB diameter (min tap target)
-  fabSecondarySize: 40,     // Secondary FAB diameter (matches desktop controls)
+  fabSize: 44,              // Reserved primary floating-action diameter, = minTapTarget (no current consumer)
+  fabSecondarySize: 40,     // Reserved secondary floating-action diameter, matches desktop controls (no current consumer)
 
   // Panel dimensions
   drawerWidth: 320,         // Gallery drawer width (max)

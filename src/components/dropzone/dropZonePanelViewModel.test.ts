@@ -62,7 +62,7 @@ describe('drop zone panel view model', () => {
       downloadExampleManifest: 'Download example manifest',
     });
     expect(DROP_ZONE_EXAMPLE_LINKS_ROW_CLASS).toBe('mt-3 flex gap-4 justify-center');
-    expect(DROP_ZONE_EXAMPLE_LINK_CLASS).toBe('text-ds-muted text-xs hover-ds-text-primary cursor-pointer');
+    expect(DROP_ZONE_EXAMPLE_LINK_CLASS).toBe('text-ds-muted text-xs hover-ds-text-primary cursor-pointer transition-colors');
   });
 
   it('describes desktop info lines in display order', () => {

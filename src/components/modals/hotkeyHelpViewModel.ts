@@ -39,8 +39,8 @@ export const ESSENTIALS_TAB_TITLE = 'Essentials';
 
 /**
  * Id of the About tab (always last). It carries no hotkey rows — the panel
- * renders the brand/legal/project-link block that used to crowd the status bar
- * (2026-08-12) — so its `rows` array is deliberately empty.
+ * renders the brand/legal/project-link block instead — so its `rows` array is
+ * deliberately empty.
  */
 export const ABOUT_TAB_ID = 'about' as const;
 export const ABOUT_TAB_TITLE = 'About';
@@ -128,11 +128,11 @@ export const HOTKEY_HELP_FOOTER_PREFIX = 'Press';
 export const HOTKEY_HELP_FOOTER_SUFFIX = 'to toggle this panel';
 
 // ---- About tab -------------------------------------------------------------
-// Verbatim relocation of the status bar's right cluster (2026-08-12): the same
-// product line, project links (href/title/label unchanged), license, COLMAP
-// credit, and version string, now with room to breathe.
+// Verbatim relocation of the status bar's right cluster: the same product line,
+// project links (href/title/label unchanged), license, COLMAP credit, and
+// version string, now with room to breathe.
 
-export type AboutLinkColor = keyof typeof LINK_COLORS;
+type AboutLinkColor = keyof typeof LINK_COLORS;
 
 export interface AboutLink {
   label: string;
@@ -142,7 +142,8 @@ export interface AboutLink {
 }
 
 export const ABOUT_LINK_CLASS_NAME = 'no-underline transition-colors';
-export const ABOUT_LINK_DEFAULT_COLOR = 'inherit';
+/** Rest color of every About link: inherit the panel's text color. */
+export const ABOUT_LINK_REST_COLOR = 'inherit';
 
 export const ABOUT_PROJECT_LINKS: AboutLink[] = [
   {
@@ -177,21 +178,8 @@ export const ABOUT_PANEL_CLASS = 'flex flex-col gap-2 px-4 py-1 text-sm text-ds-
 export const ABOUT_PRODUCT_LINE_CLASS = 'text-ds-primary font-medium';
 export const ABOUT_ROW_CLASS = 'flex items-center gap-4';
 
-export function getAboutLinkStyle(color = ABOUT_LINK_DEFAULT_COLOR): CSSProperties {
-  return { color };
-}
-
 export function getAboutLinkHoverColor(link: AboutLink): string {
   return LINK_COLORS[link.color];
-}
-
-export function getAboutLinkRestColor(): string {
-  return ABOUT_LINK_DEFAULT_COLOR;
-}
-
-/** Version string as the status bar rendered it (`v0.9.5`). */
-export function getAboutVersionLabel(version: string): string {
-  return `v${version}`;
 }
 
 export function getHotkeyHelpOverlayStyle(zIndex = Z_INDEX.modalOverlay): CSSProperties {
@@ -340,7 +328,7 @@ function collapseWasdRows(rows: HotkeyHelpRow[], hotkeys: HotkeyRegistry): Hotke
  * in HOTKEY_CATEGORIES order. The category tabs reuse getHotkeyHelpSections, so
  * they keep their FULL row set — Essentials is a curated overlay that may repeat
  * rows, not a move that removes them from their category tab. About comes last
- * and carries no rows: the modal renders its brand/legal block instead.
+ * (see ABOUT_TAB_ID).
  */
 export function getHotkeyHelpTabs(
   hotkeys: HotkeyRegistry = HOTKEYS,

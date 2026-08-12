@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { statusBarStyles } from '../../theme';
+import { HOTKEY_INFO_BUTTON_TITLE } from '../modals/hotkeyHelpViewModel';
 import {
   STATUS_BAR_HIDDEN_CLASS_NAME,
   STATUS_BAR_SHORTCUTS_BUTTON_CLASS,
@@ -73,18 +74,13 @@ describe('status bar view model', () => {
     expect(shouldShowTouchStatusBar(false)).toBe(false);
   });
 
-  it('offers a visible Shortcuts entry point in place of the brand/legal cluster', () => {
-    // The status bar carries status only (2026-08-12): brand, project links,
-    // license, and the COLMAP credit live on the help panel's About tab, and
-    // this button is the only non-hotkey way in besides the top-left ⓘ.
+  it('offers a visible Shortcuts entry point', () => {
     expect(STATUS_BAR_SHORTCUTS_LABEL).toBe('⌨ Shortcuts');
-    expect(STATUS_BAR_SHORTCUTS_TITLE).toBe('Keyboard shortcuts (I)');
+    // One tooltip string for both entry points into the same panel.
+    expect(STATUS_BAR_SHORTCUTS_TITLE).toBe(HOTKEY_INFO_BUTTON_TITLE);
     expect(STATUS_BAR_SHORTCUTS_BUTTON_CLASS).toBe(
       'text-ds-secondary hover-ds-text-primary cursor-pointer transition-colors'
     );
-    // No Tailwind-only escapes: JIT hover variants or arbitrary bracket utilities.
-    expect(STATUS_BAR_SHORTCUTS_BUTTON_CLASS).not.toContain('hover:');
-    expect(STATUS_BAR_SHORTCUTS_BUTTON_CLASS).not.toContain('[');
   });
 
   it('visually hides the desktop status bar while preserving its hover target', () => {

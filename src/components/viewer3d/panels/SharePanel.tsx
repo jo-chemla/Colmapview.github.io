@@ -96,7 +96,7 @@ export const SharePanel = memo(function SharePanel({
     }
 
     // Open X share dialog
-    window.open(buildXShareUrl(sharePayload), '_blank', 'width=700,height=600');
+    window.open(buildXShareUrl(sharePayload), '_blank', 'width=700,height=600,noopener,noreferrer');
   }, [shareSource, currentViewState, reconstruction, handleCopyScreenshotToClipboard, includeShareLink, includeScreenshot]);
 
   // Handle share to LinkedIn
@@ -130,7 +130,7 @@ export const SharePanel = memo(function SharePanel({
     }
 
     // Open LinkedIn - go to feed to create new post
-    window.open('https://www.linkedin.com/feed/', '_blank', 'width=700,height=600');
+    window.open('https://www.linkedin.com/feed/', '_blank', 'width=700,height=600,noopener,noreferrer');
   }, [shareSource, currentViewState, reconstruction, getScreenshotBlob, includeShareLink, includeScreenshot, addNotification]);
 
   return (

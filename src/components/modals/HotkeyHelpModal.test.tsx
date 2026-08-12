@@ -4,6 +4,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { useUIStore } from '../../store';
 import { HotkeyHelpModal } from './HotkeyHelpModal';
+import { ABOUT_COLMAP_LINK, ABOUT_PROJECT_LINKS } from './hotkeyHelpViewModel';
 
 function Wrapper({ children }: { children: ReactNode }) {
   return <HotkeysProvider initiallyActiveScopes={['global', 'viewer']}>{children}</HotkeysProvider>;
@@ -241,26 +242,10 @@ describe('HotkeyHelpModal', () => {
     expect(screen.getByText(/Based on/)).toBeInTheDocument();
     expect(screen.getByText(`v${__APP_VERSION__}`)).toBeInTheDocument();
 
-    // Each link keeps its href/title and opens safely in a new tab.
-    const expectedLinks = [
-      {
-        name: '★ Star on GitHub',
-        href: 'https://github.com/ColmapView/colmapview.github.io',
-        title: 'Star on GitHub',
-      },
-      {
-        name: 'Report Bugs',
-        href: 'https://github.com/ColmapView/colmapview.github.io/issues',
-        title: 'Report Bugs',
-      },
-      {
-        name: 'COLMAP',
-        href: 'https://github.com/colmap/colmap',
-        title: 'COLMAP - Structure-from-Motion and Multi-View Stereo',
-      },
-    ];
-    for (const expected of expectedLinks) {
-      const link = screen.getByRole('link', { name: expected.name });
+    // Every About link renders from its view-model entry with the href/title it
+    // declares, and opens safely in a new tab.
+    for (const expected of [...ABOUT_PROJECT_LINKS, ABOUT_COLMAP_LINK]) {
+      const link = screen.getByRole('link', { name: expected.label });
       expect(link).toHaveAttribute('href', expected.href);
       expect(link).toHaveAttribute('title', expected.title);
       expect(link).toHaveAttribute('target', '_blank');
