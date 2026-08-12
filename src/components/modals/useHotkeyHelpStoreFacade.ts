@@ -7,12 +7,16 @@ export interface HotkeyHelpStoreFacade {
   autoHideButtons: boolean;
   isIdle: boolean;
   showAutoHideEditor: boolean;
+  /** Panel open state; store-owned so the status bar can open it too. */
+  showHotkeyHelp: boolean;
+  setShowHotkeyHelp: (show: boolean) => void;
 }
 
 /**
  * Store facade for HotkeyHelpModal (componentStoreBoundary: components never
- * call use*Store directly). Exposes the flags that gate the info button and
- * the auto-hide chrome state that fades it when the viewer goes idle.
+ * call use*Store directly). Exposes the flags that gate the info button, the
+ * auto-hide chrome state that fades it when the viewer goes idle, and the
+ * shared open state for the panel itself.
  */
 export function useHotkeyHelpStoreFacade(): HotkeyHelpStoreFacade {
   const touchMode = useUIStore((s) => s.touchMode);
@@ -20,6 +24,16 @@ export function useHotkeyHelpStoreFacade(): HotkeyHelpStoreFacade {
   const autoHideButtons = useUIStore((s) => s.autoHideElements.buttons);
   const isIdle = useUIStore((s) => s.isIdle);
   const showAutoHideEditor = useUIStore((s) => s.showAutoHideEditor);
+  const showHotkeyHelp = useUIStore((s) => s.showHotkeyHelp);
+  const setShowHotkeyHelp = useUIStore((s) => s.setShowHotkeyHelp);
 
-  return { touchMode, embedMode, autoHideButtons, isIdle, showAutoHideEditor };
+  return {
+    touchMode,
+    embedMode,
+    autoHideButtons,
+    isIdle,
+    showAutoHideEditor,
+    showHotkeyHelp,
+    setShowHotkeyHelp,
+  };
 }

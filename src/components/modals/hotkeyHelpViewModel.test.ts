@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ABOUT_COLMAP_CREDIT_PREFIX,
+  ABOUT_COLMAP_LINK,
+  ABOUT_LICENSE_LABEL,
+  ABOUT_LINK_CLASS_NAME,
+  ABOUT_PANEL_CLASS,
+  ABOUT_PRODUCT_LINE,
+  ABOUT_PRODUCT_LINE_CLASS,
+  ABOUT_PROJECT_LINKS,
+  ABOUT_ROW_CLASS,
+  ABOUT_TAB_ID,
+  ABOUT_TAB_TITLE,
   ESSENTIALS_TAB_ID,
   ESSENTIALS_TAB_TITLE,
   HOTKEY_HELP_FOOTER_CLASS,
@@ -27,6 +38,10 @@ import {
   getHotkeyHelpSections,
   getHotkeyHelpTabs,
   getHotkeyHelpToggleKeyLabels,
+  getAboutLinkHoverColor,
+  getAboutLinkRestColor,
+  getAboutLinkStyle,
+  getAboutVersionLabel,
   getHotkeyInfoButtonClassName,
   getHotkeyInfoButtonStyle,
   shouldShowHotkeyInfoButton,
@@ -255,7 +270,7 @@ describe('hotkey info button view model', () => {
 });
 
 describe('hotkey help tabs view model', () => {
-  it('puts Essentials first, then one tab per non-empty category in registry order', () => {
+  it('puts Essentials first, then one tab per non-empty category, then About', () => {
     const tabs = getHotkeyHelpTabs();
 
     expect(tabs[0].id).toBe(ESSENTIALS_TAB_ID);
@@ -266,7 +281,16 @@ describe('hotkey help tabs view model', () => {
     // General is deliberately absent (user feedback 2026-07-10): it held easter
     // eggs and the help toggle, which the footer already documents. Image Modal
     // is absent too — its rows were merged into Essentials.
-    expect(tabs.map((tab) => tab.id)).toEqual(['essentials', 'camera']);
+    // About closes the list (2026-08-12): it is the new home of the status bar's
+    // brand/legal cluster and carries no hotkey rows.
+    expect(tabs.map((tab) => tab.id)).toEqual(['essentials', 'camera', 'about']);
+    expect(tabs[tabs.length - 1]).toEqual({
+      id: ABOUT_TAB_ID,
+      title: ABOUT_TAB_TITLE,
+      rows: [],
+    });
+    expect(ABOUT_TAB_ID).toBe('about');
+    expect(ABOUT_TAB_TITLE).toBe('About');
     expect(tabs.some((tab) => tab.id === 'general')).toBe(false);
     expect(tabs.some((tab) => tab.id === 'modal')).toBe(false);
     // navigation has no rows in the registry, so it is not surfaced as a tab.
@@ -414,6 +438,68 @@ describe('hotkey help tabs view model', () => {
       HOTKEY_HELP_TAB_CLASS,
       HOTKEY_HELP_TAB_ACTIVE_CLASS,
       HOTKEY_HELP_TAB_PANEL_CLASS,
+    ]) {
+      expect(cls).not.toContain('[');
+      expect(cls).not.toContain('hover:');
+    }
+  });
+});
+
+// Moved here from statusBarViewModel.test.ts (2026-08-12) together with the
+// constants themselves: the brand/legal cluster now lives on the About tab.
+describe('about tab view model', () => {
+  it('keeps the project links exactly as the status bar published them', () => {
+    expect(ABOUT_PROJECT_LINKS).toEqual([
+      {
+        label: '★ Star on GitHub',
+        href: 'https://github.com/ColmapView/colmapview.github.io',
+        title: 'Star on GitHub',
+        color: 'github',
+      },
+      {
+        label: 'Report Bugs',
+        href: 'https://github.com/ColmapView/colmapview.github.io/issues',
+        title: 'Report Bugs',
+        color: 'bugs',
+      },
+    ]);
+
+    expect(ABOUT_COLMAP_LINK).toEqual({
+      label: 'COLMAP',
+      href: 'https://github.com/colmap/colmap',
+      title: 'COLMAP - Structure-from-Motion and Multi-View Stereo',
+      color: 'colmap',
+    });
+  });
+
+  it('keeps the brand, license, credit, and version strings verbatim', () => {
+    expect(ABOUT_PRODUCT_LINE).toBe('ColmapView by OpsiClear');
+    expect(ABOUT_LICENSE_LABEL).toBe('AGPL 3.0');
+    expect(ABOUT_COLMAP_CREDIT_PREFIX).toBe('Based on');
+    expect(getAboutVersionLabel('0.9.5')).toBe('v0.9.5');
+  });
+
+  it('carries the per-link hover colors the status bar used', () => {
+    expect(ABOUT_LINK_CLASS_NAME).toBe('no-underline transition-colors');
+    expect(getAboutLinkStyle()).toEqual({ color: 'inherit' });
+    expect(getAboutLinkStyle('#123456')).toEqual({ color: '#123456' });
+    expect(getAboutLinkHoverColor(ABOUT_PROJECT_LINKS[0])).toBe('#facc15');
+    expect(getAboutLinkHoverColor(ABOUT_PROJECT_LINKS[1])).toBe('#ef4444');
+    expect(getAboutLinkHoverColor(ABOUT_COLMAP_LINK)).toBe('#60a5fa');
+    expect(getAboutLinkRestColor()).toBe('inherit');
+  });
+
+  it('pins the About layout classes to real (non-Tailwind) utilities', () => {
+    // text-ds-secondary keeps the links' rest color (inherit) identical to the
+    // status bar; px-4 lines the block up with the hotkey rows' inset.
+    expect(ABOUT_PANEL_CLASS).toBe('flex flex-col gap-2 px-4 py-1 text-sm text-ds-secondary');
+    expect(ABOUT_PRODUCT_LINE_CLASS).toBe('text-ds-primary font-medium');
+    expect(ABOUT_ROW_CLASS).toBe('flex items-center gap-4');
+    for (const cls of [
+      ABOUT_PANEL_CLASS,
+      ABOUT_PRODUCT_LINE_CLASS,
+      ABOUT_ROW_CLASS,
+      ABOUT_LINK_CLASS_NAME,
     ]) {
       expect(cls).not.toContain('[');
       expect(cls).not.toContain('hover:');

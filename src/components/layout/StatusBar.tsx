@@ -1,19 +1,15 @@
-import { Fragment, useMemo } from 'react';
+import { useMemo } from 'react';
 import { statusBarStyles } from '../../theme';
 import { StatWithHistogram } from './StatWithHistogram';
 import { CacheStatsIndicator } from './CacheStatsIndicator';
 import {
-  STATUS_BAR_COLMAP_LINK,
-  STATUS_BAR_LINK_CLASS_NAME,
-  STATUS_BAR_PROJECT_LINKS,
+  STATUS_BAR_SHORTCUTS_BUTTON_CLASS,
+  STATUS_BAR_SHORTCUTS_LABEL,
+  STATUS_BAR_SHORTCUTS_TITLE,
   formatStatusBarFps,
   getDesktopEmptyStatusText,
   getStatusBarContainerClassName,
-  getStatusBarLinkHoverColor,
-  getStatusBarLinkRestColor,
-  getStatusBarLinkStyle,
   shouldShowStatusHistograms,
-  type StatusBarLink,
 } from './statusBarViewModel';
 import { shouldHideChromeWithButtons } from './autoHideChromePolicy';
 import { useStatusBarStoreFacade } from './useStatusBarStoreFacade';
@@ -23,23 +19,6 @@ import {
   formatMeanPsnrValue,
   formatMeanSsimValue,
 } from './statHistogramViewModel';
-
-function StatusBarLinkAnchor({ link }: { link: StatusBarLink }) {
-  return (
-    <a
-      href={link.href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={STATUS_BAR_LINK_CLASS_NAME}
-      style={getStatusBarLinkStyle()}
-      title={link.title}
-      onMouseEnter={(e) => { e.currentTarget.style.color = getStatusBarLinkHoverColor(link); }}
-      onMouseLeave={(e) => { e.currentTarget.style.color = getStatusBarLinkRestColor(); }}
-    >
-      {link.label}
-    </a>
-  );
-}
 
 export function StatusBar() {
   const {
@@ -53,6 +32,7 @@ export function StatusBar() {
     autoHideButtons,
     isIdle,
     showAutoHideEditor,
+    setShowHotkeyHelp,
   } = useStatusBarStoreFacade();
   const hideWithButtons = shouldHideChromeWithButtons({
     autoHideButtons,
@@ -145,21 +125,18 @@ export function StatusBar() {
         )}
         {emptyStatusText !== null && <span>{emptyStatusText}</span>}
       </div>
+      {/* Right group carries status-adjacent affordances only: the brand,
+          project links, license, and COLMAP credit moved to the help panel's
+          About tab (2026-08-12). */}
       <div className="flex items-center gap-2 text-ds-secondary">
-        <span>ColmapView by OpsiClear</span>
-        {STATUS_BAR_PROJECT_LINKS.map((link) => (
-          <Fragment key={link.href}>
-            <span>|</span>
-            <StatusBarLinkAnchor link={link} />
-          </Fragment>
-        ))}
-        <span>|</span>
-        <span>AGPL 3.0</span>
-        <span>|</span>
-        <span>Based on{' '}
-          <StatusBarLinkAnchor link={STATUS_BAR_COLMAP_LINK} />
-        </span>
-        <span>|</span>
+        <button
+          type="button"
+          onClick={() => setShowHotkeyHelp(true)}
+          className={STATUS_BAR_SHORTCUTS_BUTTON_CLASS}
+          title={STATUS_BAR_SHORTCUTS_TITLE}
+        >
+          {STATUS_BAR_SHORTCUTS_LABEL}
+        </button>
         <span>v{__APP_VERSION__}</span>
       </div>
     </footer>

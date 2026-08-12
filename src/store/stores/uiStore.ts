@@ -152,6 +152,10 @@ export interface UIState {
   showFloorModal: boolean;
   showConversionModal: boolean;
   showAutoHideEditor: boolean;
+  // Keyboard-shortcuts / About panel. Store-owned (not HotkeyHelpModal-local)
+  // because two widely separated trees open it: the top-left info button in the
+  // modal itself and the status bar's Shortcuts entry.
+  showHotkeyHelp: boolean;
 
   // Context menu (persisted config + transient state)
   contextMenuActions: ContextMenuAction[];
@@ -217,6 +221,7 @@ export interface UIState {
   setShowFloorModal: (show: boolean) => void;
   setShowConversionModal: (show: boolean) => void;
   setShowAutoHideEditor: (show: boolean) => void;
+  setShowHotkeyHelp: (show: boolean) => void;
 
   // Context menu actions
   openContextMenu: (x: number, y: number) => void;
@@ -282,6 +287,7 @@ export const useUIStore = create<UIState>()(
       showFloorModal: false,
       showConversionModal: false,
       showAutoHideEditor: false,
+      showHotkeyHelp: false,
       contextMenuActions: DEFAULT_CONTEXT_MENU_ACTIONS,
       contextMenuPosition: null,
       showContextMenuEditor: false,
@@ -351,6 +357,7 @@ export const useUIStore = create<UIState>()(
       setShowFloorModal: (show) => set({ showFloorModal: show }),
       setShowConversionModal: (show) => set({ showConversionModal: show }),
       setShowAutoHideEditor: (show) => set({ showAutoHideEditor: show }),
+      setShowHotkeyHelp: (show) => set({ showHotkeyHelp: show }),
 
       // Context menu actions
       openContextMenu: (x, y) => set({ contextMenuPosition: { x, y } }),

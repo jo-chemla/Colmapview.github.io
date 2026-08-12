@@ -6,6 +6,16 @@ import { CloseIcon, InfoIcon } from '../../icons';
 import { ModalDialogShell } from '../ui/ModalDialogShell';
 import { useHotkeyHelpStoreFacade } from './useHotkeyHelpStoreFacade';
 import {
+  ABOUT_COLMAP_CREDIT_PREFIX,
+  ABOUT_COLMAP_LINK,
+  ABOUT_LICENSE_LABEL,
+  ABOUT_LINK_CLASS_NAME,
+  ABOUT_PANEL_CLASS,
+  ABOUT_PRODUCT_LINE,
+  ABOUT_PRODUCT_LINE_CLASS,
+  ABOUT_PROJECT_LINKS,
+  ABOUT_ROW_CLASS,
+  ABOUT_TAB_ID,
   ESSENTIALS_TAB_ID,
   HOTKEY_HELP_FOOTER_CLASS,
   HOTKEY_HELP_FOOTER_KEY_CLASS,
@@ -24,6 +34,10 @@ import {
   HOTKEY_INFO_BUTTON_ARIA_LABEL,
   HOTKEY_INFO_BUTTON_ICON_CLASS,
   HOTKEY_INFO_BUTTON_TITLE,
+  getAboutLinkHoverColor,
+  getAboutLinkRestColor,
+  getAboutLinkStyle,
+  getAboutVersionLabel,
   getHotkeyHelpOverlayStyle,
   getHotkeyHelpPanelStyle,
   getHotkeyHelpTabs,
@@ -31,37 +45,131 @@ import {
   getHotkeyInfoButtonClassName,
   getHotkeyInfoButtonStyle,
   shouldShowHotkeyInfoButton,
+  type AboutLink,
   type HotkeyHelpTabId,
 } from './hotkeyHelpViewModel';
 import { shouldHideChromeWithButtons } from '../layout/autoHideChromePolicy';
+
+/** Project link with its per-link hover color, as the status bar rendered it. */
+function AboutLinkAnchor({ link }: { link: AboutLink }) {
+  return (
+    <a
+      href={link.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={ABOUT_LINK_CLASS_NAME}
+      style={getAboutLinkStyle()}
+      title={link.title}
+      onMouseEnter={(e) => { e.currentTarget.style.color = getAboutLinkHoverColor(link); }}
+      onMouseLeave={(e) => { e.currentTarget.style.color = getAboutLinkRestColor(); }}
+    >
+      {link.label}
+    </a>
+  );
+}
+
+/** About tab body: brand, project links, license, credit, version. */
+function HotkeyHelpAboutPanel() {
+  return (
+    <div className={ABOUT_PANEL_CLASS}>
+      <span className={ABOUT_PRODUCT_LINE_CLASS}>{ABOUT_PRODUCT_LINE}</span>
+      <div className={ABOUT_ROW_CLASS}>
+        {ABOUT_PROJECT_LINKS.map((link) => (
+          <AboutLinkAnchor key={link.href} link={link} />
+        ))}
+      </div>
+      <div className={ABOUT_ROW_CLASS}>
+        <span>{ABOUT_LICENSE_LABEL}</span>
+        <span>{ABOUT_COLMAP_CREDIT_PREFIX}{' '}
+          <AboutLinkAnchor link={ABOUT_COLMAP_LINK} />
+        </span>
+        <span>{getAboutVersionLabel(__APP_VERSION__)}</span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Tab bar plus the active tab's body. Mounted only while the panel is open
+ * (ModalDialogShell renders nothing when closed), so the selected tab resets to
+ * Essentials on every open — from the info button, the hotkey, or the status
+ * bar's Shortcuts entry alike — with no cross-component state.
+ */
+function HotkeyHelpTabs() {
+  const [activeTabId, setActiveTabId] = useState<HotkeyHelpTabId>(ESSENTIALS_TAB_ID);
+  const tabs = getHotkeyHelpTabs();
+  const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0];
+
+  return (
+    <>
+      {/* Tab bar */}
+      <div className={HOTKEY_HELP_TAB_LIST_CLASS} role="tablist" aria-label={HOTKEY_HELP_TITLE}>
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            id={`hotkey-help-tab-${tab.id}`}
+            aria-selected={tab.id === activeTab.id}
+            aria-controls="hotkey-help-tabpanel"
+            className={tab.id === activeTab.id ? HOTKEY_HELP_TAB_ACTIVE_CLASS : HOTKEY_HELP_TAB_CLASS}
+            onClick={() => setActiveTabId(tab.id)}
+          >
+            {tab.title}
+          </button>
+        ))}
+      </div>
+
+      {/* Active tab body (scrolls independently so the shell stays fixed).
+          Hotkey tabs use flat context-menu-style rows: a description that grows and
+          a right-aligned mono key combo — no table, no boxed <kbd>, and not
+          clickable. About has no rows and renders its own block. */}
+      <div
+        className={HOTKEY_HELP_TAB_PANEL_CLASS}
+        role="tabpanel"
+        id="hotkey-help-tabpanel"
+        aria-labelledby={`hotkey-help-tab-${activeTab.id}`}
+      >
+        {activeTab.id === ABOUT_TAB_ID ? (
+          <HotkeyHelpAboutPanel />
+        ) : (
+          activeTab.rows.map((row) => (
+            <div key={row.id} className={HOTKEY_HELP_ROW_CLASS}>
+              <span className={HOTKEY_HELP_ROW_DESCRIPTION_CLASS}>{row.description}</span>
+              <span className={HOTKEY_HELP_ROW_KEY_CLASS}>{row.keyCombo}</span>
+            </div>
+          ))
+        )}
+      </div>
+    </>
+  );
+}
 
 /**
  * Modal that displays all available keyboard shortcuts, split into tabs so the
  * long list no longer floods the page (revision 2026-07-10). The first tab,
  * Essentials, curates the most-used shortcuts and is re-selected every time the
- * panel opens. Toggle with Shift+? (question mark) or I; also opened by the
- * desktop top-left info button.
+ * panel opens; About (last) carries the brand/legal block the status bar used
+ * to crowd (2026-08-12). Toggle with Shift+? (question mark) or I; also opened
+ * by the desktop top-left info button and the status bar's Shortcuts entry.
  */
 export function HotkeyHelpModal() {
   const titleId = useId();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const [activeTabId, setActiveTabId] = useState<HotkeyHelpTabId>(ESSENTIALS_TAB_ID);
   const mode = useHotkeyHelpStoreFacade();
+  const { showHotkeyHelp: isOpen, setShowHotkeyHelp } = mode;
   const hideWithButtons = shouldHideChromeWithButtons({
     autoHideButtons: mode.autoHideButtons,
     isIdle: mode.isIdle,
     showAutoHideEditor: mode.showAutoHideEditor,
   });
 
-  // Toggle the panel and keep the important shortcuts up front by re-selecting
-  // Essentials. Done here in the event handler (not a useEffect) to satisfy
-  // react-hooks/set-state-in-effect; resetting on the closing edge too is a
-  // harmless no-op since the panel content is unmounted while closed.
+  // Open state lives in the UI store so the status bar's Shortcuts entry opens
+  // this exact panel. The active tab resets to Essentials on every open because
+  // HotkeyHelpTabs is unmounted while the panel is closed.
   const togglePanel = useCallback(() => {
-    setIsOpen((prev) => !prev);
-    setActiveTabId(ESSENTIALS_TAB_ID);
-  }, []);
+    setShowHotkeyHelp(!isOpen);
+  }, [isOpen, setShowHotkeyHelp]);
 
   // Toggle help panel with ? or I (global scope, always available)
   useHotkeys(
@@ -73,9 +181,6 @@ export function HotkeyHelpModal() {
     },
     [togglePanel]
   );
-
-  const tabs = getHotkeyHelpTabs();
-  const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0];
 
   return (
     <>
@@ -97,7 +202,7 @@ export function HotkeyHelpModal() {
       )}
       <ModalDialogShell
         isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
+        onClose={() => setShowHotkeyHelp(false)}
         ariaLabelledBy={titleId}
         // Flex-center the panel and bake the tint into the overlay (mirrors
         // SplatPickerModal). The overlay captures pointer events, so clicking
@@ -117,7 +222,7 @@ export function HotkeyHelpModal() {
           <h2 id={titleId} className={modalStyles.toolHeaderTitle}>{HOTKEY_HELP_TITLE}</h2>
           <button
             ref={closeButtonRef}
-            onClick={() => setIsOpen(false)}
+            onClick={() => setShowHotkeyHelp(false)}
             className={modalStyles.toolHeaderClose}
             title="Close"
           >
@@ -125,40 +230,7 @@ export function HotkeyHelpModal() {
           </button>
         </div>
 
-        {/* Tab bar */}
-        <div className={HOTKEY_HELP_TAB_LIST_CLASS} role="tablist" aria-label={HOTKEY_HELP_TITLE}>
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              id={`hotkey-help-tab-${tab.id}`}
-              aria-selected={tab.id === activeTab.id}
-              aria-controls="hotkey-help-tabpanel"
-              className={tab.id === activeTab.id ? HOTKEY_HELP_TAB_ACTIVE_CLASS : HOTKEY_HELP_TAB_CLASS}
-              onClick={() => setActiveTabId(tab.id)}
-            >
-              {tab.title}
-            </button>
-          ))}
-        </div>
-
-        {/* Active tab rows (scrolls independently so the shell stays fixed).
-            Flat context-menu-style rows: a description that grows and a right-aligned
-            mono key combo — no table, no boxed <kbd>, and not clickable. */}
-        <div
-          className={HOTKEY_HELP_TAB_PANEL_CLASS}
-          role="tabpanel"
-          id="hotkey-help-tabpanel"
-          aria-labelledby={`hotkey-help-tab-${activeTab.id}`}
-        >
-          {activeTab.rows.map((row) => (
-            <div key={row.id} className={HOTKEY_HELP_ROW_CLASS}>
-              <span className={HOTKEY_HELP_ROW_DESCRIPTION_CLASS}>{row.description}</span>
-              <span className={HOTKEY_HELP_ROW_KEY_CLASS}>{row.keyCombo}</span>
-            </div>
-          ))}
-        </div>
+        <HotkeyHelpTabs />
 
         {/* Footer hint */}
         <div className={HOTKEY_HELP_FOOTER_CLASS}>

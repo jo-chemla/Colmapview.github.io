@@ -10,11 +10,17 @@ const DEFAULT_FACADE = {
   autoHideButtons: true,
   isIdle: false,
   showAutoHideEditor: false,
+  // Panel open state is store-owned so the status bar's Shortcuts entry can
+  // open this exact panel (2026-08-12).
+  showHotkeyHelp: false,
+  setShowHotkeyHelp: expect.any(Function),
 };
 
 describe('useHotkeyHelpStoreFacade', () => {
   afterEach(() => {
-    useUIStore.setState(useUIStore.getInitialState(), true);
+    act(() => {
+      useUIStore.setState(useUIStore.getInitialState(), true);
+    });
   });
 
   it('mirrors touch/embed mode and auto-hide chrome state from the UI store', () => {
@@ -54,5 +60,16 @@ describe('useHotkeyHelpStoreFacade', () => {
     });
 
     expect(result.current).toEqual({ ...DEFAULT_FACADE, isIdle: true, autoHideButtons: false });
+  });
+
+  it('reflects and writes the shared panel open state', () => {
+    const { result } = renderHook(() => useHotkeyHelpStoreFacade());
+
+    act(() => {
+      result.current.setShowHotkeyHelp(true);
+    });
+
+    expect(useUIStore.getState().showHotkeyHelp).toBe(true);
+    expect(result.current).toEqual({ ...DEFAULT_FACADE, showHotkeyHelp: true });
   });
 });

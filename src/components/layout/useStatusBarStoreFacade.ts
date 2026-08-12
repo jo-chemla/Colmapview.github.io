@@ -13,6 +13,8 @@ export interface StatusBarStoreFacade {
   autoHideButtons: ReturnType<typeof useUIStore.getState>['autoHideElements']['buttons'];
   isIdle: ReturnType<typeof useUIStore.getState>['isIdle'];
   showAutoHideEditor: ReturnType<typeof useUIStore.getState>['showAutoHideEditor'];
+  /** Opens the shared keyboard-shortcuts / About panel (HotkeyHelpModal). */
+  setShowHotkeyHelp: ReturnType<typeof useUIStore.getState>['setShowHotkeyHelp'];
 }
 
 export function useStatusBarStoreFacade(): StatusBarStoreFacade {
@@ -26,6 +28,7 @@ export function useStatusBarStoreFacade(): StatusBarStoreFacade {
   const autoHideButtons = useUIStore((s) => s.autoHideElements.buttons);
   const isIdle = useUIStore((s) => s.isIdle);
   const showAutoHideEditor = useUIStore((s) => s.showAutoHideEditor);
+  const setShowHotkeyHelp = useUIStore((s) => s.setShowHotkeyHelp);
 
   return {
     urlLoading,
@@ -38,5 +41,6 @@ export function useStatusBarStoreFacade(): StatusBarStoreFacade {
     autoHideButtons,
     isIdle,
     showAutoHideEditor,
+    setShowHotkeyHelp,
   };
 }

@@ -19,6 +19,7 @@ import {
   type HotkeyRegistry,
 } from '../../config/hotkeys';
 import { Z_INDEX, modalStyles } from '../../theme';
+import { LINK_COLORS } from '../../theme/colors';
 
 export interface HotkeyHelpRow {
   id: string;
@@ -36,8 +37,19 @@ export interface HotkeyHelpSection {
 export const ESSENTIALS_TAB_ID = 'essentials' as const;
 export const ESSENTIALS_TAB_TITLE = 'Essentials';
 
-/** A tab in the help panel: the Essentials overlay plus one per non-empty category. */
-export type HotkeyHelpTabId = typeof ESSENTIALS_TAB_ID | HotkeyCategory;
+/**
+ * Id of the About tab (always last). It carries no hotkey rows — the panel
+ * renders the brand/legal/project-link block that used to crowd the status bar
+ * (2026-08-12) — so its `rows` array is deliberately empty.
+ */
+export const ABOUT_TAB_ID = 'about' as const;
+export const ABOUT_TAB_TITLE = 'About';
+
+/** A tab in the help panel: the Essentials overlay, one per non-empty category, then About. */
+export type HotkeyHelpTabId =
+  | typeof ESSENTIALS_TAB_ID
+  | HotkeyCategory
+  | typeof ABOUT_TAB_ID;
 
 export interface HotkeyHelpTab {
   id: HotkeyHelpTabId;
@@ -114,6 +126,73 @@ export const HOTKEY_HELP_TAB_PANEL_CLASS = 'flex-1 min-h-0 overflow-auto py-2';
 export const HOTKEY_HELP_FOOTER_KEY_CLASS = 'font-mono uppercase tracking-wide text-gray-500';
 export const HOTKEY_HELP_FOOTER_PREFIX = 'Press';
 export const HOTKEY_HELP_FOOTER_SUFFIX = 'to toggle this panel';
+
+// ---- About tab -------------------------------------------------------------
+// Verbatim relocation of the status bar's right cluster (2026-08-12): the same
+// product line, project links (href/title/label unchanged), license, COLMAP
+// credit, and version string, now with room to breathe.
+
+export type AboutLinkColor = keyof typeof LINK_COLORS;
+
+export interface AboutLink {
+  label: string;
+  href: string;
+  title: string;
+  color: AboutLinkColor;
+}
+
+export const ABOUT_LINK_CLASS_NAME = 'no-underline transition-colors';
+export const ABOUT_LINK_DEFAULT_COLOR = 'inherit';
+
+export const ABOUT_PROJECT_LINKS: AboutLink[] = [
+  {
+    label: '★ Star on GitHub',
+    href: 'https://github.com/ColmapView/colmapview.github.io',
+    title: 'Star on GitHub',
+    color: 'github',
+  },
+  {
+    label: 'Report Bugs',
+    href: 'https://github.com/ColmapView/colmapview.github.io/issues',
+    title: 'Report Bugs',
+    color: 'bugs',
+  },
+];
+
+export const ABOUT_COLMAP_LINK: AboutLink = {
+  label: 'COLMAP',
+  href: 'https://github.com/colmap/colmap',
+  title: 'COLMAP - Structure-from-Motion and Multi-View Stereo',
+  color: 'colmap',
+};
+
+export const ABOUT_PRODUCT_LINE = 'ColmapView by OpsiClear';
+export const ABOUT_LICENSE_LABEL = 'AGPL 3.0';
+export const ABOUT_COLMAP_CREDIT_PREFIX = 'Based on';
+
+// Plain stacked block on the panel surface. text-ds-secondary keeps the links'
+// rest color (inherit) identical to the status bar they came from; the rows
+// reuse the tab panel's px-4 inset so About lines up with the hotkey rows.
+export const ABOUT_PANEL_CLASS = 'flex flex-col gap-2 px-4 py-1 text-sm text-ds-secondary';
+export const ABOUT_PRODUCT_LINE_CLASS = 'text-ds-primary font-medium';
+export const ABOUT_ROW_CLASS = 'flex items-center gap-4';
+
+export function getAboutLinkStyle(color = ABOUT_LINK_DEFAULT_COLOR): CSSProperties {
+  return { color };
+}
+
+export function getAboutLinkHoverColor(link: AboutLink): string {
+  return LINK_COLORS[link.color];
+}
+
+export function getAboutLinkRestColor(): string {
+  return ABOUT_LINK_DEFAULT_COLOR;
+}
+
+/** Version string as the status bar rendered it (`v0.9.5`). */
+export function getAboutVersionLabel(version: string): string {
+  return `v${version}`;
+}
 
 export function getHotkeyHelpOverlayStyle(zIndex = Z_INDEX.modalOverlay): CSSProperties {
   return { zIndex };
@@ -260,7 +339,8 @@ function collapseWasdRows(rows: HotkeyHelpRow[], hotkeys: HotkeyRegistry): Hotke
  * kept up front per user feedback), followed by one tab per non-empty category
  * in HOTKEY_CATEGORIES order. The category tabs reuse getHotkeyHelpSections, so
  * they keep their FULL row set — Essentials is a curated overlay that may repeat
- * rows, not a move that removes them from their category tab.
+ * rows, not a move that removes them from their category tab. About comes last
+ * and carries no rows: the modal renders its brand/legal block instead.
  */
 export function getHotkeyHelpTabs(
   hotkeys: HotkeyRegistry = HOTKEYS,
@@ -285,7 +365,13 @@ export function getHotkeyHelpTabs(
       rows: collapseWasdRows(section.rows, hotkeys),
     }));
 
-  return [essentialsTab, ...categoryTabs];
+  const aboutTab: HotkeyHelpTab = {
+    id: ABOUT_TAB_ID,
+    title: ABOUT_TAB_TITLE,
+    rows: [],
+  };
+
+  return [essentialsTab, ...categoryTabs, aboutTab];
 }
 
 /**

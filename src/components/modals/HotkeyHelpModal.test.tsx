@@ -21,7 +21,11 @@ function pressI() {
 
 describe('HotkeyHelpModal', () => {
   afterEach(() => {
-    useUIStore.setState(useUIStore.getInitialState(), true);
+    // act(): the panel's open state is store-owned now, so resetting the store
+    // while the component is still mounted is a React update like any other.
+    act(() => {
+      useUIStore.setState(useUIStore.getInitialState(), true);
+    });
   });
 
   it('renders the desktop info button and toggles the panel on click', () => {
@@ -206,5 +210,64 @@ describe('HotkeyHelpModal', () => {
       'true'
     );
     expect(screen.getByText(/Toggle undistorted view/)).toBeInTheDocument();
+  });
+
+  it('opens when the shared store flag is set (the status bar Shortcuts entry)', () => {
+    useUIStore.setState({ touchMode: false, embedMode: false });
+    renderModal();
+
+    expect(screen.queryByText('Keyboard Shortcuts')).not.toBeInTheDocument();
+
+    act(() => {
+      useUIStore.getState().setShowHotkeyHelp(true);
+    });
+
+    expect(screen.getByText('Keyboard Shortcuts')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Essentials' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+  });
+
+  it('shows the brand, project links, license, credit, and version on the About tab', () => {
+    useUIStore.setState({ touchMode: false, embedMode: false });
+    renderModal();
+
+    fireEvent.click(screen.getByTestId('hotkey-info-button'));
+    fireEvent.click(screen.getByRole('tab', { name: 'About' }));
+
+    expect(screen.getByText('ColmapView by OpsiClear')).toBeInTheDocument();
+    expect(screen.getByText('AGPL 3.0')).toBeInTheDocument();
+    expect(screen.getByText(/Based on/)).toBeInTheDocument();
+    expect(screen.getByText(`v${__APP_VERSION__}`)).toBeInTheDocument();
+
+    // Each link keeps its href/title and opens safely in a new tab.
+    const expectedLinks = [
+      {
+        name: '★ Star on GitHub',
+        href: 'https://github.com/ColmapView/colmapview.github.io',
+        title: 'Star on GitHub',
+      },
+      {
+        name: 'Report Bugs',
+        href: 'https://github.com/ColmapView/colmapview.github.io/issues',
+        title: 'Report Bugs',
+      },
+      {
+        name: 'COLMAP',
+        href: 'https://github.com/colmap/colmap',
+        title: 'COLMAP - Structure-from-Motion and Multi-View Stereo',
+      },
+    ];
+    for (const expected of expectedLinks) {
+      const link = screen.getByRole('link', { name: expected.name });
+      expect(link).toHaveAttribute('href', expected.href);
+      expect(link).toHaveAttribute('title', expected.title);
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    }
+
+    // About carries no hotkey rows.
+    expect(screen.queryByText('Select camera')).not.toBeInTheDocument();
   });
 });

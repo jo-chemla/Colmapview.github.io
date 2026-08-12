@@ -1,49 +1,19 @@
-import type { CSSProperties } from 'react';
-import { LINK_COLORS } from '../../theme/colors';
-
-export type StatusBarLinkColor = keyof typeof LINK_COLORS;
-
-export interface StatusBarLink {
-  label: string;
-  href: string;
-  title: string;
-  color: StatusBarLinkColor;
-}
-
-export const STATUS_BAR_LINK_CLASS_NAME = 'no-underline transition-colors';
-export const STATUS_BAR_LINK_DEFAULT_COLOR = 'inherit';
 export const STATUS_BAR_HIDDEN_CLASS_NAME = 'opacity-0';
 
-export const STATUS_BAR_PROJECT_LINKS: StatusBarLink[] = [
-  {
-    label: '★ Star on GitHub',
-    href: 'https://github.com/ColmapView/colmapview.github.io',
-    title: 'Star on GitHub',
-    color: 'github',
-  },
-  {
-    label: 'Report Bugs',
-    href: 'https://github.com/ColmapView/colmapview.github.io/issues',
-    title: 'Report Bugs',
-    color: 'bugs',
-  },
-];
-
-export const STATUS_BAR_COLMAP_LINK: StatusBarLink = {
-  label: 'COLMAP',
-  href: 'https://github.com/colmap/colmap',
-  title: 'COLMAP - Structure-from-Motion and Multi-View Stereo',
-  color: 'colmap',
-};
+// The status bar carries status only (2026-08-12): the brand/legal/project-link
+// cluster moved to the help panel's About tab, and its slot is now a visible
+// entry point to that panel — the keyboard shortcuts were previously reachable
+// only via the top-left ⓘ button or the I / ? hotkeys.
+export const STATUS_BAR_SHORTCUTS_LABEL = '⌨ Shortcuts';
+export const STATUS_BAR_SHORTCUTS_TITLE = 'Keyboard shortcuts (I)';
+// Plain text button: the global `button` reset in index.css already clears the
+// background, border, padding, and font-size, so the class only has to state
+// the muted-to-bright text behavior the rest of the bar uses.
+export const STATUS_BAR_SHORTCUTS_BUTTON_CLASS =
+  'text-ds-secondary hover-ds-text-primary cursor-pointer transition-colors';
 
 export function formatStatusBarFps(fps: number): string {
   return `${fps} FPS`;
-}
-
-export function getStatusBarLinkStyle(
-  color = STATUS_BAR_LINK_DEFAULT_COLOR
-): CSSProperties {
-  return { color };
 }
 
 export function getStatusBarContainerClassName({
@@ -54,14 +24,6 @@ export function getStatusBarContainerClassName({
   hidden: boolean;
 }): string {
   return hidden ? `${baseClassName} ${STATUS_BAR_HIDDEN_CLASS_NAME}` : baseClassName;
-}
-
-export function getStatusBarLinkHoverColor(link: StatusBarLink): string {
-  return LINK_COLORS[link.color];
-}
-
-export function getStatusBarLinkRestColor(): string {
-  return STATUS_BAR_LINK_DEFAULT_COLOR;
 }
 
 export function getDesktopEmptyStatusText({
