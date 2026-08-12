@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-08-12
+
+### Added
+
+- An About tab in the keyboard-shortcuts panel, collecting the brand, project links, license, and COLMAP credit that used to crowd the status bar. The status bar now carries status plus a visible "⌨ Shortcuts" entry that opens the panel — the ⓘ button and the (I) hotkey still work as before.
+- Visible "Open example dataset" and "Download example manifest" links on the landing panel, for actions that were previously reachable only by right-clicking a button.
+- A contract test that fails the build when the code asks for a styling class the stylesheet doesn't define. This project has no Tailwind, so an undefined class was a silent no-op; auditing every one of them restored a batch of styling that had been declared but never painted (see Fixed).
+
+### Changed
+
+- The viewer toolbar is grouped into four clusters — view, data, capture, app — separated by hairlines, instead of one undifferentiated column of 15 buttons. Button order is unchanged.
+- Toolbar hover labels read as words instead of codes (Both, Axes, Grid, Orbit, Fly, Track, Frust, Arrow, Image, Rig, Blink, Error, Splat); true initialisms (RGB, RNB, S+P) are kept, and the disabled rig chip no longer shouts "N/A".
+- The landing panel's toy-dataset button is now styled as the primary action, and "Load JSON" is renamed "Load manifest" — a manifest is what it loads.
+- Loading gallery tiles show the image name once, in the caption strip, instead of repeating it in the placeholder.
+- New typography: IBM Plex Sans for the interface, JetBrains Mono for hex values, hotkey chips, and numeric readouts. The mono face was named in the stylesheet but never loaded, so those readouts silently fell back to a system font. Both faces ship with the app, so a page load makes no Google Fonts request — required for GitHub Pages and the offline-capable embed mode.
+- Removed the unused floating-action-button components and the style rules left orphaned by earlier cleanups. No visible change.
+
+### Fixed
+
+- Hover, press, and focus styling that the code declared but the stylesheet never defined now actually renders: highlight states across menus, toggles, and buttons; drop-zone hover cards sit above their trigger instead of dropping below it; the confirmation-dialog scrim dims the page behind it; the drop-zone header divider is a visible hairline; the image-detail jump input squares off against its button; caution-status text takes its intended amber.
+- Panels, menus, and dialogs stack in a real layer scale instead of arbitrary class names that set no z-index at all, so a floating tool window can no longer paint over a dialog that is blocking it.
+- Floating tool windows are proper dialogs for assistive tech: each carries a dialog role and an accessible name, takes focus when it opens, and returns focus to whatever opened it when it closes.
+- Compact controls in touch mode get an invisible 44px tap target, so small buttons are reliably hittable on a phone without looking any different — and the expansion sits beneath its neighbors, so it can't steal their taps.
+- The drop zone's controls are operable by keyboard and announced to screen readers.
+- Chrome that fades out while the viewer is idle now also leaves the tab order, so Tab no longer lands on invisible controls; it stays hover-revealable as before.
+- Focus rings on dropdowns and editable values appear for keyboard focus only, instead of boxing the control on a mouse click.
+- The example-dataset link opens its new tab without handing that tab a handle back to the app.
+
 ## [0.9.3] - 2026-07-04
 
 ### Changed
