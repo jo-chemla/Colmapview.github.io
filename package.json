@@ -23,6 +23,8 @@
     "test:pycolmap:regen": "node scripts/run-pycolmap-tests.mjs --regen"
   },
   "dependencies": {
+    "@fontsource-variable/ibm-plex-sans": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@sparkjsdev/spark": "^2.1.0",

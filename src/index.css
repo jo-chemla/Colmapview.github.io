@@ -43,8 +43,8 @@
   --match-line: #ff00ff;
 
   /* Typography */
-  --font-sans: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  --font-sans: 'IBM Plex Sans Variable', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 
   /* Spacing Scale */
   --sp-0: 0;

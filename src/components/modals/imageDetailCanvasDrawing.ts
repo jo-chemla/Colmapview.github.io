@@ -181,7 +181,7 @@ export function drawImagePlaceholder(
 
   ctx.setLineDash([]);
   const fontSize = Math.max(10, Math.min(16, width / 25));
-  ctx.font = `${fontSize}px "JetBrains Mono", "Fira Code", Consolas, monospace`;
+  ctx.font = `${fontSize}px "JetBrains Mono Variable", "JetBrains Mono", "Fira Code", Consolas, monospace`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 

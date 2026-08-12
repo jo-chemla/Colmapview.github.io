@@ -82,11 +82,14 @@ These are intentionally vivid for visibility against the dark viewport:
 ### Font Families
 
 ```css
---font-sans: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
---font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+--font-sans: 'IBM Plex Sans Variable', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+--font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 ```
 
-- **Body text**: `--font-sans` (Roboto)
+Both faces are self-hosted via `@fontsource-variable/*` (imported in `src/main.tsx`) — no runtime
+Google Fonts request, so the app renders correctly offline and in embed mode.
+
+- **Body text**: `--font-sans` (IBM Plex Sans)
 - **Code, values, stats**: `--font-mono`
 
 ### Font Sizes
