@@ -1,0 +1,66 @@
+name: E2E (chromium)
+
+# Gates the `chromium` Playwright project only — the 9 non-WebGPU spec files.
+# The other projects in playwright.config.ts stay local-only:
+#   - firefox: runs the same specs as chromium, so gating it too would roughly
+#     double the job for no extra signal.
+#   - chromium-webgpu-hardware / chromium-webgpu-bicycle: need a real GPU, and
+#     the bicycle spec also needs the 360_v2 fixture that lives outside the repo.
+#   - chromium-webgpu: software WebGPU via SwiftShader; not gated here to keep
+#     this job fast — revisit if WebGPU regressions start slipping through.
+# Playwright starts the dev server itself (webServer block in playwright.config.ts),
+# so there is no build/preview step: object-context-menu.spec.ts needs the DEV-only
+# scene probe that `import.meta.env.DEV` gates in Scene3D.tsx.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  # Per-ref queue so a new push supersedes the in-flight run for that branch/PR.
+  # Deliberately not the `pages-deploy` group — e2e must not serialize behind deploys.
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+  # vite.config.ts sets server.open: true; without this the dev server tries to
+  # shell out to a browser on the runner (non-fatal, but noisy in the log).
+  BROWSER: none
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Install Playwright chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run e2e tests
+        # No --workers/--retries flags: playwright.config.ts already switches to
+        # 1 worker and 2 retries when CI is set.
+        run: npx playwright test --project=chromium
+
+      # trace/video land in test-results/, the HTML report in playwright-report/.
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
