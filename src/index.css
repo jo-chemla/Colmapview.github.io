@@ -1859,6 +1859,67 @@ legend {
   }
 }
 
+/* ---------------------------------------------------------------------------
+   Short-viewport control column (height-only; complements the width query
+   above, which does nothing for a wide-but-short window).
+
+   The toolbar is a fixed-height stack whose bottom edge is
+   `top offset + N buttons + 3 hairline dividers + (N + 2) gaps`, and it cannot
+   be made to scroll: `overflow-y` on the column would force `overflow-x` to
+   `auto` as well, clipping the hover panels, which sit OUTSIDE its left edge
+   (`right-full`). So the fit is bought with size tiers instead.
+
+   Falling off the bottom is not a cosmetic clip. The last item is the gallery
+   toggle — the only mouse-reachable gallery control — and the status bar is
+   `absolute bottom-0 z-sticky` in the ROOT stacking context while the whole
+   toolbar is trapped inside Scene3D's `relative isolate` box, so z-tooltip
+   never beats it: the bottom 2.5rem of the column is painted over and eats no
+   clicks at all. Budget = viewport height − status-bar height.
+
+   With today's 16 buttons (src/components/viewer3d/toolbarColumnHeight.test.ts
+   recomputes this from the CSS + the toolbar source and fails if a new button
+   outgrows a tier):
+     40px / 8px gap  -> bottom edge 799px -> needs 839px of viewport
+     32px / 4px gap  -> bottom edge 599px -> needs 639px
+     28px / 2px gap  -> bottom edge 499px -> needs 539px
+   Each breakpoint sits one status-bar height (40px) above the tier's own
+   requirement so the crossover is never knife-edge. Touch mode keeps its own
+   28px sizing below (higher specificity, and later in the file for the gap).
+   --------------------------------------------------------------------------- */
+@media (max-height: 880px) {
+  .control-button-responsive {
+    width: 2rem !important;
+    height: 2rem !important;
+    border-radius: 0.375rem !important; /* 6px — balanced with 32px size */
+  }
+
+  .control-button-responsive svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .control-panel-responsive {
+    gap: 0.25rem !important;
+  }
+}
+
+@media (max-height: 680px) {
+  .control-button-responsive {
+    width: 1.75rem !important;   /* 28px — same tier touch mode uses */
+    height: 1.75rem !important;
+    border-radius: 0.3125rem !important; /* 5px — proportional to 28px */
+  }
+
+  .control-button-responsive svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .control-panel-responsive {
+    gap: 0.125rem !important;
+  }
+}
+
 /* Compact control buttons in touch mode */
 .touch-control-panel {
   top: 0.5rem !important;

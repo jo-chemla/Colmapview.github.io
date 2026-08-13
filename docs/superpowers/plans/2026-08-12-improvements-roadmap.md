@@ -115,6 +115,7 @@
 
 - [ ] Replace `transform: scale(0.85)` on `.tool-modal-responsive`/`.hover-panel-responsive` with real compact styles reproducing the same effective footprint: panel width 240px→204px equivalent (w-[204px]? define bracket class or use padding reduction), padding p-4→p-3, panel title/text one step down — derive the exact substitutions by measuring the current scaled result first (screenshot + getBoundingClientRect at 1400px viewport), then match within a few px. Text renders sharp instead of scaled-blurry; hover-panel transform-origin hacks go away.
 - [ ] Verify no overflow/clipped rows in the widest panels (Transform, Settings, Export) at 1400px; before/after screenshots.
+- [ ] Leave the `@media (max-height: 880px)` / `(max-height: 680px)` control-column tiers alone (index.css, added by the T4 review fix). They are a vertical-fit guard — the column has no overflow and cannot get one without clipping the hover panels — and are orthogonal to this width reflow; `src/components/viewer3d/toolbarColumnHeight.test.ts` fails if a tier is dropped or a 17th button outgrows one.
 - [ ] Full gate. Commit `style(design): reflow tool panels at compact breakpoint instead of scaling`.
 
 ---
