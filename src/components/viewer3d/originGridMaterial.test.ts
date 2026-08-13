@@ -34,6 +34,16 @@ describe('origin grid material helpers', () => {
     material.dispose();
   });
 
+  it('writes gl_FragColor without the colorspace chunk that GRID_COLORS compensates for', () => {
+    // GRID_COLORS.majorLines/minorLines are deliberately ~a gamma light because this
+    // shader never undoes THREE.Color's sRGB->linear conversion (see the comment on
+    // GRID_COLORS in src/theme/colors.ts). Adding <colorspace_fragment> here would make
+    // the grid glow on the dark canvas, and the failure is silent — no other test would
+    // catch it. If you add the chunk on purpose, re-measure both literals first.
+    expect(ORIGIN_GRID_FRAGMENT_SHADER).toContain('gl_FragColor = vec4(color, alpha);');
+    expect(ORIGIN_GRID_FRAGMENT_SHADER).not.toContain('colorspace_fragment');
+  });
+
   it('updates the existing scale uniform without replacing the material', () => {
     const material = createOriginGridMaterial(5);
 
