@@ -36,13 +36,13 @@ describe('HotkeyHelpModal', () => {
     const button = screen.getByTestId('hotkey-info-button');
     expect(button).toBeInTheDocument();
     expect(button).toHaveAttribute('aria-label', 'Show keyboard shortcuts');
-    expect(screen.queryByText('Keyboard Shortcuts')).not.toBeInTheDocument();
+    expect(screen.queryByText('Help')).not.toBeInTheDocument();
 
     fireEvent.click(button);
-    expect(screen.getByText('Keyboard Shortcuts')).toBeInTheDocument();
+    expect(screen.getByText('Help')).toBeInTheDocument();
 
     fireEvent.click(button);
-    expect(screen.queryByText('Keyboard Shortcuts')).not.toBeInTheDocument();
+    expect(screen.queryByText('Help')).not.toBeInTheDocument();
   });
 
   it('fades the info button with the auto-hide chrome when the viewer goes idle', () => {
@@ -83,13 +83,13 @@ describe('HotkeyHelpModal', () => {
     useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
-    expect(screen.queryByText('Keyboard Shortcuts')).not.toBeInTheDocument();
+    expect(screen.queryByText('Help')).not.toBeInTheDocument();
 
     pressI();
-    expect(screen.getByText('Keyboard Shortcuts')).toBeInTheDocument();
+    expect(screen.getByText('Help')).toBeInTheDocument();
 
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(screen.queryByText('Keyboard Shortcuts')).not.toBeInTheDocument();
+    expect(screen.queryByText('Help')).not.toBeInTheDocument();
   });
 
   it('hides the button in touch mode but keeps the i hotkey working', () => {
@@ -99,7 +99,7 @@ describe('HotkeyHelpModal', () => {
     expect(screen.queryByTestId('hotkey-info-button')).not.toBeInTheDocument();
 
     pressI();
-    expect(screen.getByText('Keyboard Shortcuts')).toBeInTheDocument();
+    expect(screen.getByText('Help')).toBeInTheDocument();
   });
 
   it('hides the button in embed mode but keeps the i hotkey working', () => {
@@ -109,7 +109,7 @@ describe('HotkeyHelpModal', () => {
     expect(screen.queryByTestId('hotkey-info-button')).not.toBeInTheDocument();
 
     pressI();
-    expect(screen.getByText('Keyboard Shortcuts')).toBeInTheDocument();
+    expect(screen.getByText('Help')).toBeInTheDocument();
   });
 
   it('shows both the ? and I toggle keys in the footer', () => {
@@ -203,7 +203,7 @@ describe('HotkeyHelpModal', () => {
     );
 
     fireEvent.click(button); // close
-    expect(screen.queryByText('Keyboard Shortcuts')).not.toBeInTheDocument();
+    expect(screen.queryByText('Help')).not.toBeInTheDocument();
 
     fireEvent.click(button); // reopen
     expect(screen.getByRole('tab', { name: 'Essentials' })).toHaveAttribute(
@@ -217,13 +217,13 @@ describe('HotkeyHelpModal', () => {
     useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
-    expect(screen.queryByText('Keyboard Shortcuts')).not.toBeInTheDocument();
+    expect(screen.queryByText('Help')).not.toBeInTheDocument();
 
     act(() => {
       useUIStore.getState().setShowHotkeyHelp(true);
     });
 
-    expect(screen.getByText('Keyboard Shortcuts')).toBeInTheDocument();
+    expect(screen.getByText('Help')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Essentials' })).toHaveAttribute(
       'aria-selected',
       'true'

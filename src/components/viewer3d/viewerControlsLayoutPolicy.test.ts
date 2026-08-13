@@ -1,11 +1,33 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
+  TOOLBAR_GROUP_CLASS,
+  TOOLBAR_GROUP_LABELS,
   getViewerControlsContainerClassName,
   shouldShowCameraDependentPanels,
   shouldShowMatchesPanel,
 } from './viewerControlsLayoutPolicy';
 
 describe('viewer controls layout policy', () => {
+  it('names the four toolbar clusters the dividers separate', () => {
+    expect(TOOLBAR_GROUP_LABELS).toEqual({
+      view: 'View',
+      data: 'Data',
+      capture: 'Capture',
+      app: 'App',
+    });
+  });
+
+  it('keeps the group wrappers box-less so the column gap still spaces buttons', () => {
+    // display:contents, not a nested flex column: index.css retunes the gap on
+    // the CONTAINER at <=1520px and in touch mode, and a wrapper that generated
+    // a box would keep its own gap-2 there.
+    expect(TOOLBAR_GROUP_CLASS).toBe('contents');
+    const css = readFileSync(resolve(__dirname, '../../index.css'), 'utf8');
+    expect(css).toContain(`.${TOOLBAR_GROUP_CLASS} { display: contents; }`);
+  });
+
   it('builds container classes from UI mode flags', () => {
     expect(getViewerControlsContainerClassName({
       baseClassName: 'controls',

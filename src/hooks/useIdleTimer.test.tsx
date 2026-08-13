@@ -133,6 +133,43 @@ describe('useIdleTimer', () => {
     expect(useUIStore.getState().isIdle).toBe(false);
   });
 
+  it('wakes hidden chrome when Tab reaches for it from outside the container', () => {
+    render(<IdleTimerHarness />);
+    const scene = screen.getByTestId('scene');
+
+    act(() => {
+      vi.advanceTimersByTime(1_100);
+    });
+    expect(scene).toHaveAttribute('data-idle', 'true');
+
+    // Hidden chrome is out of tab order (visibility:hidden), so the keypress
+    // lands on document.body — outside the container — and only the
+    // document-level listener can see it.
+    fireEvent.keyDown(document, { key: 'Tab' });
+
+    expect(scene).toHaveAttribute('data-idle', 'false');
+    expect(useUIStore.getState().isIdle).toBe(false);
+  });
+
+  it('keeps hidden chrome hidden for movement keys, which never target the container', () => {
+    render(<IdleTimerHarness />);
+    const scene = screen.getByTestId('scene');
+
+    act(() => {
+      vi.advanceTimersByTime(1_100);
+    });
+    expect(scene).toHaveAttribute('data-idle', 'true');
+
+    // Fly-mode keys are bound on window, so they reach document without ever
+    // touching the container: waking on them would un-hide the chrome for the
+    // whole flight.
+    fireEvent.keyDown(document, { key: 'w' });
+    fireEvent.keyDown(document, { key: 'Shift' });
+
+    expect(scene).toHaveAttribute('data-idle', 'true');
+    expect(useUIStore.getState().isIdle).toBe(true);
+  });
+
   it('does not postpone hiding during repeated scene movement outside functional UI', () => {
     render(<IdleTimerHarness />);
     const scene = screen.getByTestId('scene');

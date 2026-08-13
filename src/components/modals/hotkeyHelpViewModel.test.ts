@@ -57,7 +57,7 @@ describe('hotkey help view model', () => {
   it('builds ordered sections and omits empty categories', () => {
     const sections = getHotkeyHelpSections();
 
-    expect(HOTKEY_HELP_TITLE).toBe('Keyboard Shortcuts');
+    expect(HOTKEY_HELP_TITLE).toBe('Help');
     expect(sections.map((section) => section.category)).toEqual([
       'general',
       'modal',
@@ -249,7 +249,7 @@ describe('hotkey info button view model', () => {
 
   it('exposes stable icon size, title, and aria labels', () => {
     expect(HOTKEY_INFO_BUTTON_ICON_CLASS).toBe('w-5 h-5');
-    expect(HOTKEY_INFO_BUTTON_TITLE).toBe('Keyboard shortcuts (I)');
+    expect(HOTKEY_INFO_BUTTON_TITLE).toBe('Help & keyboard shortcuts (I)');
     expect(HOTKEY_INFO_BUTTON_ARIA_LABEL).toBe('Show keyboard shortcuts');
   });
 

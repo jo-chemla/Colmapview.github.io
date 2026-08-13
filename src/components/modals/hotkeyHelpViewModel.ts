@@ -57,7 +57,10 @@ export interface HotkeyHelpTab {
   rows: HotkeyHelpRow[];
 }
 
-export const HOTKEY_HELP_TITLE = 'Keyboard Shortcuts';
+// "Help", not "Keyboard Shortcuts": the panel also carries the Essentials
+// overlay and the About tab (brand, legal, project links), so the narrower name
+// undersold it. The tab titles are unchanged.
+export const HOTKEY_HELP_TITLE = 'Help';
 // Width bound and internal scroll for the help panel. Centering is handled by
 // the overlay's flexbox (see HotkeyHelpModal) and the viewport-height cap is
 // applied inline via getHotkeyHelpPanelStyle, so this class intentionally
@@ -398,7 +401,10 @@ export function getHotkeyInfoButtonClassName(hidden: boolean): string {
 }
 
 export const HOTKEY_INFO_BUTTON_ICON_CLASS = 'w-5 h-5';
-export const HOTKEY_INFO_BUTTON_TITLE = 'Keyboard shortcuts (I)';
+// Names the panel it opens (HOTKEY_HELP_TITLE) and what is inside it, so the
+// tooltip and the panel header agree. Shared with the status bar's ⌨ Shortcuts
+// button (statusBarViewModel) — one target, one tooltip.
+export const HOTKEY_INFO_BUTTON_TITLE = 'Help & keyboard shortcuts (I)';
 export const HOTKEY_INFO_BUTTON_ARIA_LABEL = 'Show keyboard shortcuts';
 
 export function getHotkeyInfoButtonStyle(zIndex = Z_INDEX.overlay): CSSProperties {

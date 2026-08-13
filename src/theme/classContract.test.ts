@@ -73,6 +73,11 @@ const SINGLE_WORD_UTILITIES = new Set([
   'flex', 'grid', 'hidden', 'block', 'inline', 'truncate', 'relative',
   'absolute', 'fixed', 'sticky', 'static', 'isolate', 'uppercase',
   'capitalize', 'underline', 'rounded', 'border', 'transition', 'sr-only',
+  // `contents` (display:contents) joined the set with the toolbar's semantic
+  // group wrappers: without it here the token is filtered out at isCandidate,
+  // so a missing `.contents` rule would be a silent no-op that turns those
+  // wrappers into real flex items and re-spaces the whole column.
+  'contents',
 ]);
 const PREFIXES = [
   'bg', 'text', 'border', 'rounded', 'shadow', 'opacity', 'accent',

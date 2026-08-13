@@ -129,6 +129,18 @@ export function useIdleTimer() {
       }
     };
 
+    // Keyboard reach for hidden chrome. While idle the chrome is
+    // visibility:hidden, so it is out of tab order and focus never enters it —
+    // the document focusin listener above can therefore never fire from a Tab
+    // press, and the container keydown below does not fire either when focus
+    // sits on document.body. Tab ONLY: scene movement keys (WASD, fly mode) are
+    // bound on window (useTrackballKeyboardHandlers), so they bubble past the
+    // container without resetting today; a document listener that woke on any
+    // key would postpone hiding for the whole flight.
+    const onDocumentKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Tab') resetTimer();
+    };
+
     el.addEventListener('pointerdown', onPointerActivity, { passive: true });
     el.addEventListener('pointerup', onPointerActivity, { passive: true });
     el.addEventListener('pointermove', onPointerActivity, { passive: true });
@@ -138,6 +150,7 @@ export function useIdleTimer() {
     document.addEventListener('mouseout', onMouseOut, { passive: true });
     document.addEventListener('focusin', onFocusIn);
     document.addEventListener('focusout', onFocusOut);
+    document.addEventListener('keydown', onDocumentKeyDown, { passive: true });
     document.addEventListener('pointerlockchange', onPointerLockChange);
 
     return () => {
@@ -151,6 +164,7 @@ export function useIdleTimer() {
       document.removeEventListener('mouseout', onMouseOut);
       document.removeEventListener('focusin', onFocusIn);
       document.removeEventListener('focusout', onFocusOut);
+      document.removeEventListener('keydown', onDocumentKeyDown);
       document.removeEventListener('pointerlockchange', onPointerLockChange);
     };
   }, [isPausedByUi, resetTimer, showFromIdle, startTimer]);

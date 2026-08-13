@@ -441,6 +441,12 @@ legend {
 .inline-flex { display: inline-flex; }
 .grid { display: grid; }
 .hidden { display: none; }
+/* Box-less wrapper: the element itself generates no box, so its children stay
+   direct flex/grid items of the grandparent. Used for grouping wrappers that
+   exist only to carry semantics (role/aria-label) without changing layout —
+   e.g. the toolbar clusters, whose gap is retuned on the CONTAINER at the
+   1520px and touch-mode breakpoints and must keep reaching the buttons. */
+.contents { display: contents; }
 
 /* Flex Direction */
 .flex-row { flex-direction: row; }
@@ -1730,7 +1736,13 @@ legend {
 
 /* Elements marked as idle-hideable fade out when the scene is idle.
    visibility:hidden removes them from tab order and hit-testing while hidden;
-   it flips at the end of the opacity fade. */
+   it flips at the end of the opacity fade.
+   Two durations, because a transition always uses the declaration in force on
+   the state being entered: this base rule governs the REVEAL (0.25s — the chrome
+   must be readable the instant you reach for it), while the idle rule below
+   governs the HIDE at 0.6s, slow enough to read as a fade rather than a blink
+   (user decision 2026-08-12). No !important on either: the
+   prefers-reduced-motion block above collapses both to 0.01ms and must win. */
 .idle-hideable {
   transition: opacity 0.25s ease, visibility 0.25s ease;
 }
@@ -1739,6 +1751,7 @@ legend {
 .scene-3d-container[data-autohide-preview="true"] .idle-hideable {
   opacity: 0;
   visibility: hidden;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
 }
 
 /* Hover-to-reveal hot-zone. Un-idling is gated on isIdlePauseTarget, whose first
