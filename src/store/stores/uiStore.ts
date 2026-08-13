@@ -262,7 +262,12 @@ export const useUIStore = create<UIState>()(
       axesScale: 1,
       gridScale: 1,
       axisLabelMode: 'extra',
-      backgroundColor: '#ffffff',
+      // Viewport default is the ds surface tone (--bg-secondary), so the canvas reads as
+      // one piece with the chrome instead of a white hole. PERSISTED key: profiles saved
+      // before this change keep their stored value (usually white) on purpose — only fresh
+      // sessions get the dark canvas. Keep in sync with the registry default in
+      // config/registry/definitions/ui.ts.
+      backgroundColor: '#161616',
       showGizmo: false,
       idleHideTimeout: 3,
       autoHideElements: { axes: true, grid: true, gizmo: true, points: false, cameras: false, matches: false, rigs: false, buttons: true },

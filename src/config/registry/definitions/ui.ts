@@ -17,7 +17,7 @@ import {
 } from '../../../types/gallery';
 import { OPACITY } from '../../../theme/opacity';
 import { LINE_WIDTH } from '../../../theme/opacity';
-import { VIZ_COLORS } from '../../../theme/colors';
+import { CANVAS_COLORS, VIZ_COLORS } from '../../../theme/colors';
 import { CSS_HEX_COLOR_PATTERN, CSS_HEX_COLOR_PATTERN_DESCRIPTION } from '../../../utils/hexColor';
 
 export const uiSection = defineSection({
@@ -43,7 +43,8 @@ export const uiSection = defineSection({
       type: 'string',
       pattern: CSS_HEX_COLOR_PATTERN,
       patternDesc: CSS_HEX_COLOR_PATTERN_DESCRIPTION,
-      default: '#ffffff',
+      // ds surface tone (--bg-secondary); mirrors the uiStore default.
+      default: CANVAS_COLORS.bgSecondary,
       persist: true,
     },
     // Match visualization

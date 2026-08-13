@@ -33,7 +33,10 @@ export const VIZ_COLORS = {
   },
   match: '#ff00ff',
   highlight: [1, 0, 1] as const,  // RGB for shader uniforms (magenta)
-  wireframe: '#333333',
+  // Suspense placeholder cube (Scene3D LoadingFallback). Mirrors --text-secondary so it
+  // reads on the dark default canvas (5.3:1) as well as on white (3.5:1); the old #333333
+  // was picked for a white canvas and disappeared into #161616 at 1.6:1.
+  wireframe: '#8a8a8a',
 } as const;
 
 /** Convert a CSS hex color string to a Three.js integer (e.g. '#ff4444' -> 0xff4444) */
@@ -65,10 +68,27 @@ export const MARKER_COLORS_CSS = [
   VIZ_COLORS.interaction.axisZ,
 ] as const;
 
-// Grid visualization colors (OriginVisualization infinite grid)
+// Grid visualization colors (OriginVisualization infinite grid).
+// The default canvas is the ds surface tone (--bg-secondary #161616), so the grid is a
+// neutral ink that recedes on dark instead of the old orange, which was picked for a white
+// canvas and glowed on a dark one. One ink, two weights: the major/minor hierarchy comes
+// from the shader's alpha (0.8 vs 0.3 in originGridMaterial), not from two different tones.
+//
+// These literals are chosen for how they RENDER, not how they read in a swatch:
+// originGridMaterial's fragment shader assigns gl_FragColor without the <colorspace_fragment>
+// chunk, so THREE.Color's sRGB->linear conversion is never undone and every value here lands
+// on screen about a gamma darker than its literal. Measured from a screenshot of the loaded
+// toy scene (browse screenshot -> pixel histogram):
+//   major 0x8f8f8f -> #3c3c3c on #161616, #6b6b6b on #ffffff
+//   minor 0x888888 -> #222222 on #161616, #c5c5c5 on #ffffff (unchanged from the white era)
+// Specifying the on-screen values directly (e.g. 0x4a4a4a / 0x2e2e2e) renders them DARKER
+// than the canvas, i.e. an invisible grid. If the shader ever gains the missing colorspace
+// conversion, re-measure and darken these to their rendered values.
+// negativeAxis draws through a normal built-in material and is color-managed correctly, so
+// it is untouched and still reads on both backgrounds.
 export const GRID_COLORS = {
   negativeAxis: 0x666666,
-  majorLines: 0xffcc88,
+  majorLines: 0x8f8f8f,
   minorLines: 0x888888,
 } as const;
 
