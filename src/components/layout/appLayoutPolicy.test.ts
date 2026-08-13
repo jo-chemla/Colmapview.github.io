@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getAppLayoutGuideTip,
   getDraggedGalleryPanelWidth,
+  getGalleryCollapseHandleState,
   getGalleryPanelInnerStyle,
   getGalleryPanelStyle,
   getInitialGalleryPanelWidth,
@@ -9,6 +10,7 @@ import {
   shouldHideInlineGallery,
   TOUCH_LAYOUT_ROOT_CLASS,
 } from './appLayoutPolicy';
+import { getGalleryToggleButtonState } from '../viewer3d/panels/galleryToggleButtonViewModel';
 
 describe('app layout policy', () => {
   it('derives the initial gallery panel width from the configured percent', () => {
@@ -69,6 +71,68 @@ describe('app layout policy', () => {
       touchMode: false,
       galleryCollapsed: true,
     })).toBe(true);
+  });
+
+  it('keeps the divider (and its collapse handle) mounted while the gallery is collapsed', () => {
+    expect(getGalleryCollapseHandleState({
+      embedMode: false,
+      touchMode: false,
+      galleryCollapsed: false,
+    })).toEqual({
+      isVisible: true,
+      isCollapsed: false,
+      canResize: true,
+      icon: 'collapse',
+      tooltip: 'Hide gallery',
+    });
+
+    // The divider used to be gated on shouldHideInlineGallery, which folds
+    // galleryCollapsed in — collapsing removed the only edge affordance.
+    expect(shouldHideInlineGallery({
+      embedMode: false,
+      touchMode: false,
+      galleryCollapsed: true,
+    })).toBe(true);
+    expect(getGalleryCollapseHandleState({
+      embedMode: false,
+      touchMode: false,
+      galleryCollapsed: true,
+    })).toEqual({
+      isVisible: true,
+      isCollapsed: true,
+      canResize: false,
+      icon: 'expand',
+      tooltip: 'Show gallery',
+    });
+  });
+
+  it('drops the divider entirely in embed and touch mode', () => {
+    expect(getGalleryCollapseHandleState({
+      embedMode: true,
+      touchMode: false,
+      galleryCollapsed: false,
+    })).toMatchObject({ isVisible: false, canResize: false });
+
+    expect(getGalleryCollapseHandleState({
+      embedMode: false,
+      touchMode: true,
+      galleryCollapsed: false,
+    })).toMatchObject({ isVisible: false, canResize: false });
+  });
+
+  it('labels the collapse handle with the same copy as the toolbar gallery button', () => {
+    for (const galleryCollapsed of [false, true]) {
+      expect(getGalleryCollapseHandleState({
+        embedMode: false,
+        touchMode: false,
+        galleryCollapsed,
+      }).tooltip).toBe(getGalleryToggleButtonState({
+        embedMode: false,
+        touchMode: false,
+        galleryCollapsed,
+        touchGalleryDrawer: false,
+      }).tooltip);
+    }
   });
 
   it('builds gallery panel styles from visibility and sizing state', () => {

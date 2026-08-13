@@ -14,6 +14,8 @@ export interface AppLayoutStoreFacadeData {
 export interface AppLayoutStoreFacadeActions {
   setTouchUIVisible: (element: keyof TouchUIVisibility, visible: boolean) => void;
   showGuideTip: (tipId: string, message: string) => boolean;
+  /** Same store action the toolbar's GalleryToggleButton fires. */
+  toggleGalleryCollapsed: () => void;
 }
 
 export interface AppLayoutStoreFacade {
@@ -27,6 +29,7 @@ export function useAppLayoutStoreFacade(): AppLayoutStoreFacade {
   const touchMode = useUIStore((s) => s.touchMode);
   const touchUI = useUIStore((s) => s.touchUI);
   const setTouchUIVisible = useUIStore((s) => s.setTouchUIVisible);
+  const toggleGalleryCollapsed = useUIStore((s) => s.toggleGalleryCollapsed);
 
   const reconstruction = useReconstructionStore((s) => s.reconstruction);
   const urlLoading = useReconstructionStore((s) => s.urlLoading);
@@ -45,6 +48,7 @@ export function useAppLayoutStoreFacade(): AppLayoutStoreFacade {
     actions: {
       setTouchUIVisible,
       showGuideTip,
+      toggleGalleryCollapsed,
     },
   };
 }

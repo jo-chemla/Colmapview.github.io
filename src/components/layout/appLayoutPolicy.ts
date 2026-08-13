@@ -1,4 +1,8 @@
 import type { CSSProperties } from 'react';
+import {
+  GALLERY_TOGGLE_TOOLTIP_COLLAPSED,
+  GALLERY_TOGGLE_TOOLTIP_OPEN,
+} from '../viewer3d/panels/galleryToggleButtonViewModel';
 
 export const APP_LAYOUT_MIN_PANEL_WIDTH = 300;
 export const APP_LAYOUT_MAX_PANEL_WIDTH_PERCENT = 0.6;
@@ -63,6 +67,51 @@ export function shouldHideInlineGallery({
   galleryCollapsed: boolean;
 }): boolean {
   return embedMode || touchMode || galleryCollapsed;
+}
+
+export type GalleryCollapseHandleIcon = 'collapse' | 'expand';
+
+export interface GalleryCollapseHandleState {
+  /** The divider (and with it the handle) renders at all. */
+  isVisible: boolean;
+  isCollapsed: boolean;
+  /** Drag-to-resize is only meaningful while the gallery has a width to drag. */
+  canResize: boolean;
+  icon: GalleryCollapseHandleIcon;
+  tooltip: string;
+}
+
+/**
+ * The viewer↔gallery divider and the collapse handle it carries.
+ *
+ * Deliberately NOT keyed off `shouldHideInlineGallery`: that predicate folds
+ * `galleryCollapsed` in, and the divider used to be gated on it — which meant
+ * the moment the gallery collapsed, the divider (and any affordance mounted on
+ * it) unmounted, leaving no edge control to bring the gallery back. The divider
+ * therefore survives collapse; only the drag-to-resize behaviour goes away with
+ * the panel width.
+ *
+ * Touch mode never reaches here — AppLayout returns the touch shell before the
+ * desktop tree renders — so the handle needs no touch-target sizing.
+ */
+export function getGalleryCollapseHandleState({
+  embedMode,
+  touchMode,
+  galleryCollapsed,
+}: {
+  embedMode: boolean;
+  touchMode: boolean;
+  galleryCollapsed: boolean;
+}): GalleryCollapseHandleState {
+  const isVisible = !embedMode && !touchMode;
+
+  return {
+    isVisible,
+    isCollapsed: galleryCollapsed,
+    canResize: isVisible && !galleryCollapsed,
+    icon: galleryCollapsed ? 'expand' : 'collapse',
+    tooltip: galleryCollapsed ? GALLERY_TOGGLE_TOOLTIP_COLLAPSED : GALLERY_TOGGLE_TOOLTIP_OPEN,
+  };
 }
 
 export function getGalleryPanelStyle({

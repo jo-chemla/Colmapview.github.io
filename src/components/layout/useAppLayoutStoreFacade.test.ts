@@ -71,4 +71,20 @@ describe('useAppLayoutStoreFacade', () => {
     expect(useUIStore.getState().touchUI.galleryDrawer).toBe(false);
     expect(useGuideStore.getState().tipShownCounts.touchMode).toBe(1);
   });
+
+  it('routes the gallery collapse handle to the shared gallery toggle', () => {
+    const { result } = renderHook(() => useAppLayoutStoreFacade());
+
+    expect(useUIStore.getState().galleryCollapsed).toBe(false);
+
+    act(() => {
+      result.current.actions.toggleGalleryCollapsed();
+    });
+    expect(useUIStore.getState().galleryCollapsed).toBe(true);
+
+    act(() => {
+      result.current.actions.toggleGalleryCollapsed();
+    });
+    expect(useUIStore.getState().galleryCollapsed).toBe(false);
+  });
 });

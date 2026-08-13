@@ -270,6 +270,16 @@ export function ChevronRightIcon({ className }: IconProps) {
   );
 }
 
+// Chevron left icon (mirror of ChevronRightIcon; there is no rotate-180
+// utility in index.css, so the flipped glyph is its own component)
+export function ChevronLeftIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  );
+}
+
 // Save / Floppy disk icon
 export function SaveIcon({ className }: IconProps) {
   return (

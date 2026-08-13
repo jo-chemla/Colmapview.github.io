@@ -6,6 +6,7 @@ import { Scene3D } from '../viewer3d';
 import { ImageGallery } from '../gallery/ImageGallery';
 import { GalleryErrorBoundary } from '../gallery/GalleryErrorBoundary';
 import { ImageDetailModal } from '../modals/ImageDetailModal';
+import { GalleryCollapseHandle } from './GalleryCollapseHandle';
 import { useHotkeyScope } from '../../hooks/useHotkeyScope';
 import { LAYOUT_PANELS } from '../../theme';
 import { clearBodyCursor, setBodyCursor } from '../../utils/bodyCursor';
@@ -181,13 +182,11 @@ export function AppLayout() {
           <Scene3D />
         </div>
 
-        {/* Resize handle - hairline with hover highlight (hidden in embed mode) */}
-        {!hideGallery && (
-          <div
-            className="resize-handle"
-            onMouseDown={handleMouseDown}
-          />
-        )}
+        {/* Resize handle - hairline with hover highlight, carrying the collapse
+            chevron. Rendered whether or not the gallery is collapsed (hidden in
+            embed mode only), so the edge affordance survives collapse. */}
+        <GalleryCollapseHandle onResizeMouseDown={handleMouseDown} />
+
 
         {/* Gallery panel with smooth transition (disabled during resize, hidden in embed mode) */}
         {!embedMode && (

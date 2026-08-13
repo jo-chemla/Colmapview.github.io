@@ -42,6 +42,7 @@ export {
   EmbedIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  ChevronLeftIcon,
   SaveIcon,
   TrashIcon,
   GalleryGridIcon,

@@ -1678,6 +1678,52 @@ legend {
   width: 4px;
 }
 
+/* Collapsed gallery: the hairline stays (it carries the collapse handle, the
+   only edge control that can bring the panel back) but there is no longer a
+   width to drag, so it must not advertise resizing. AppLayout detaches the
+   mousedown in the same state. */
+.resize-handle[data-collapsed='true'] {
+  cursor: default;
+}
+
+.resize-handle[data-collapsed='true']:hover::after {
+  width: 0;
+}
+
+/* Gallery collapse handle — a chevron tab on the viewer↔gallery divider.
+   Anchored to the divider's right edge so its box overhangs LEFT, onto the
+   viewer, rather than into the gallery (whose wrapper is overflow-hidden and
+   clips to zero width while collapsed). Its 12px width is exactly the control
+   column's `right-3` inset, so it fills the gap beside the toolbar without
+   overlapping the buttons — and stays narrow over live canvas, where a wider
+   box would eat orbit drags along the viewer's right edge.
+   Not idle-hideable — the divider lives outside .scene-3d-container, which is
+   where those fade rules are scoped. */
+.gallery-collapse-handle {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-right: none;
+  border-radius: 4px 0 0 4px;
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.gallery-collapse-handle:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
 /* ============================================
    Auto-hide overlays after idle
    ============================================ */
