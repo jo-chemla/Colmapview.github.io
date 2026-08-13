@@ -57,8 +57,8 @@ test.describe('DropZone', () => {
     await expect(dropZone).toBeVisible();
   });
 
-  test('should show Load COLMAP Data title', async ({ page }) => {
-    // The empty state should show the title
-    await expect(page.locator('h2:has-text("Load COLMAP Data")')).toBeVisible();
+  test('should show Load Dataset title', async ({ page }) => {
+    // The empty state should show the title (DROP_ZONE_DESKTOP_TITLE)
+    await expect(page.locator('h2:has-text("Load Dataset")')).toBeVisible();
   });
 });

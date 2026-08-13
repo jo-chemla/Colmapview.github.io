@@ -36,7 +36,7 @@ test.describe('Mask Export', () => {
 
     await page.locator('select').first().selectOption('zip');
     const downloadPromise = page.waitForEvent('download');
-    await page.getByRole('button', { name: 'Download', exact: true }).click();
+    await page.getByRole('button', { name: 'Download COLMAP', exact: true }).click();
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toBe('reconstruction.zip');
   });
@@ -62,7 +62,7 @@ test.describe('Mask Export', () => {
     page.on('download', (download) => {
       binaryDownloads.push(download.suggestedFilename());
     });
-    await page.getByRole('button', { name: 'Download', exact: true }).click();
+    await page.getByRole('button', { name: 'Download COLMAP', exact: true }).click();
     await expect.poll(() => binaryDownloads.length, { timeout: 5000 }).toBeGreaterThanOrEqual(3);
     expect(binaryDownloads.slice(0, 3)).toEqual([
       'cameras.bin',
@@ -90,7 +90,7 @@ test.describe('Mask Export', () => {
 
     await page.locator('select').first().selectOption('ply');
     const downloadPromise = page.waitForEvent('download');
-    await page.getByRole('button', { name: 'Download', exact: true }).click();
+    await page.getByRole('button', { name: 'Download COLMAP', exact: true }).click();
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toBe('points.ply');
 

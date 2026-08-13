@@ -17,7 +17,8 @@ export class DropZonePageObject {
   constructor(page: Page) {
     this.page = page;
     this.container = page.locator('[data-testid="drop-zone"]');
-    this.emptyStatePanel = page.locator('text="Load COLMAP Data"').locator('..').locator('..');
+    // Matches DROP_ZONE_DESKTOP_TITLE in src/components/dropzone/dropZonePanelViewModel.ts
+    this.emptyStatePanel = page.locator('text="Load Dataset"').locator('..').locator('..');
     this.loadUrlButton = page.locator('button:has-text("Load URL")');
     this.loadJsonButton = page.locator('button:has-text("Load manifest")');
     this.tryToyButton = page.locator('button:has-text("Try a Toy!")');
