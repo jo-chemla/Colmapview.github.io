@@ -33,9 +33,13 @@ export const VIZ_COLORS = {
   },
   match: '#ff00ff',
   highlight: [1, 0, 1] as const,  // RGB for shader uniforms (magenta)
-  // Suspense placeholder cube (Scene3D LoadingFallback). Mirrors --text-secondary so it
-  // reads on the dark default canvas (5.3:1) as well as on white (3.5:1); the old #333333
-  // was picked for a white canvas and disappeared into #161616 at 1.6:1.
+  // Suspense placeholder cube (Scene3D LoadingFallback). This was picked as a copy of
+  // --text-secondary and is now deliberately NOT one: it is a two-background compromise,
+  // not text. The 3D canvas background is user-toggleable, so the value has to read on
+  // both #161616 (5.2:1) and white (3.5:1); the old #333333 was picked for a white canvas
+  // and disappeared into the dark one at 1.6:1. Following --text-secondary up to #a8a8a8
+  // would push the white case to 2.4:1, trading one background for the other, so this
+  // literal stays where it is and is no longer a mirror of anything.
   wireframe: '#8a8a8a',
 } as const;
 
@@ -113,15 +117,19 @@ export const CHART_COLORS = {
   percentage: '#d0b383',
 } as const;
 
-// Canvas rendering colors (hardcoded because canvas can't read CSS variables)
+// Canvas rendering colors (hardcoded because canvas can't read CSS variables).
+// Every opaque entry below is a verbatim mirror of the :root token named in its
+// comment. The lockstep is ENFORCED by colors.test.ts, which parses :root out of
+// src/index.css — before that test the "keep in lockstep" note was an honour
+// system, and raising --text-secondary silently desynced this table.
 export const CANVAS_COLORS = {
-  bgVoid: '#0a0a0a',
-  bgSecondary: '#161616',
-  bgSecondaryOverlay: 'rgba(22, 22, 22, 0.85)',
-  bgTertiary: '#1e1e1e',
-  textPrimary: '#e8e8e8',
-  textSecondary: '#8a8a8a',
-  textMuted: '#858585',   // mirrors --text-muted (index.css); keep in lockstep
+  bgVoid: '#0a0a0a',            // --bg-void
+  bgSecondary: '#161616',       // --bg-secondary
+  bgSecondaryOverlay: 'rgba(22, 22, 22, 0.85)',   // --bg-secondary @ 85%
+  bgTertiary: '#1e1e1e',        // --bg-tertiary
+  textPrimary: '#e8e8e8',       // --text-primary
+  textSecondary: '#a8a8a8',     // --text-secondary
+  textMuted: '#858585',         // --text-muted
   outline: '#000000',
   white: '#ffffff',
 } as const;
@@ -242,14 +250,20 @@ export const STATUS_COLORS = {
 
 /**
  * Semantic status background colors as design-system utility class names.
- * `inactive` maps to --bg-hover (the dimmest surface tone) rather than the old
- * neutral-600 #525252: an "unavailable" dot is meant to recede.
+ *
+ * `inactive` is a --text-muted tint, not a surface tone. It first replaced the
+ * old neutral-600 #525252 with `bg-ds-hover` on the reasoning that an
+ * "unavailable" dot should recede — but --bg-hover #262626 on the cache-stats
+ * card (--bg-tertiary #1e1e1e) is 1.102:1, a hole rather than a dot. Recede is
+ * not vanish. `bg-ds-muted/50` composites to exactly #525252 on that card
+ * (2.134:1), reproducing the old dot's weight from a ds derivative instead of a
+ * fossil literal, and needs no new opaque token. See index.css .bg-ds-muted/50.
  */
 export const STATUS_BG = {
   success: 'bg-ds-success',
   info: 'bg-ds-info',
   warning: 'bg-ds-warning',
-  inactive: 'bg-ds-hover',
+  inactive: 'bg-ds-muted/50',
 } as const;
 
 /** Axis colors for UI icons (flat-UI palette, distinct from VIZ_COLORS.interaction) */

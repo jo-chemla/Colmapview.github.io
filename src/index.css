@@ -13,18 +13,46 @@
   --bg-input: #1a1a1a;
   --bg-elevated: #242424;
 
-  /* Text */
+  /* Text — three tiers, each a clearly separate step. The ladder is measured in
+     CIE L* (these are all neutrals, so ΔE76 is just the L* difference; the JND is
+     ~2.3): muted 55.5 -> secondary 68.9 -> primary 92.0, i.e. ΔE 13.3 and 23.1.
+     Secondary and muted used to be #8a8a8a/#858585 = ΔE 1.94, BELOW the JND — two
+     tokens rendering as one colour, side by side in the same row in four places
+     (histogram label/count, cache-stats legend/table, the landing panel, the
+     deletion list). */
   --text-primary: #e8e8e8;
-  --text-secondary: #8a8a8a;
+  /* #a8a8a8 is derived the same way as --text-muted below, one conformance tier
+     up: it is the DARKEST neutral that clears WCAG AAA (7:1) for normal-size text
+     on --bg-tertiary #1e1e1e, the lightest surface this token lands on.
+     L(#1e1e1e) = 0.0129830 -> the fg needs L >= 7 * 0.062983 - 0.05 = 0.390881,
+     i.e. channel >= 167.9 -> 168 = 0xa8. Measured: #a8a8a8 = 7.011:1,
+     #a7a7a7 = 6.929:1 (fails AAA). The darker surfaces clear AAA outright
+     (#161616 7.61:1, #0f0f0f 8.06:1); the two surfaces LIGHTER than tertiary land
+     just under AAA but far above AA (--bg-hover #262626 6.36:1, --bg-elevated
+     #242424 6.53:1). That pair is the real win — the old #8a8a8a FAILED AA on
+     --bg-hover (4.38:1) and was borderline on --bg-elevated (4.50:1), and
+     secondary text does sit on both (button ghost/control variants,
+     imageDetailNavigation's `bg-ds-hover text-ds-secondary`).
+     Upper bound: --accent #b8b8b8 (L* 74.8) is the next neutral up the ramp, so
+     secondary must stay clearly below it. #a8a8a8 sits ΔE 5.9 from accent
+     (~2.6x JND, still separable) and ΔE 23.1 from primary. Pushing secondary to
+     the even muted<->primary midpoint would be ~#b5b5b5, which IS accent.
+     CANVAS_COLORS.textSecondary mirrors this literal (colors.test.ts enforces). */
+  --text-secondary: #a8a8a8;
   /* #858585 is the DARKEST neutral that clears WCAG AA (4.5:1) for normal-size
      text on --bg-tertiary #1e1e1e, the lightest surface muted text ever lands on:
      relative luminance L(#1e1e1e) = 0.0129830, so the fg needs
      L >= 4.5 * (0.0129830 + 0.05) - 0.05 = 0.2334, i.e. channel >= 132.7 -> 133 = 0x85.
      Measured: #858585 = 4.518:1, #848484 = 4.457:1 (fails). It clears AA on every
-     darker surface too (#161616 4.90:1, #0a0a0a 5.37:1) and on --bg-hover #262626
-     it is 4.10:1 — that surface only ever carries hover-state chrome, not body copy.
+     surface muted text renders on EXCEPT --bg-hover #262626 (4.101:1) and
+     --bg-elevated #242424 (4.207:1); on the rest it passes (#1e1e1e 4.52:1,
+     #161616 4.90:1, #0a0a0a 5.37:1). On those two surfaces muted text appears
+     only transiently as hover chrome — contextMenuStyles.hotkey, the keyboard
+     hint at the right edge of a context-menu row, which is dim by design and only
+     reaches #262626 while the pointer is on the row (ContextMenuList/-Editor).
+     No body copy renders muted on either surface.
      The old #5a5a5a was 2.42:1. CANVAS_COLORS.textMuted in src/theme/colors.ts
-     mirrors this literal for canvas drawing; keep the two in lockstep. */
+     mirrors this literal for canvas drawing; colors.test.ts enforces the lockstep. */
   --text-muted: #858585;
 
   /* Borders */
@@ -226,7 +254,9 @@ select {
   outline: none;
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%238a8a8a' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+  /* The chevron is a data: URI, so it cannot read var(--text-secondary) — the fill
+     is a hand-mirrored copy of that token (%23a8a8a8 = #a8a8a8) and moves with it. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%23a8a8a8' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.25rem center;
   background-size: 10px;
@@ -997,11 +1027,21 @@ legend {
 .hover-bg-ds-success-20:hover { background-color: rgba(107, 155, 107, 0.2); }
 .bg-ds-error\/20,
 .hover-bg-ds-error-20:hover { background-color: rgba(184, 107, 107, 0.2); }
-/* Hairline dividers borrow the --text-muted ramp (#858585) as a fill; there is
-   no opaque .bg-ds-muted because nothing wants the flat colour. Recomputed with
-   the token when it moved to the AA value — these literals are declared
-   derivatives of --text-muted, so they track it. */
+/* Hairline dividers and the "unavailable" status dot borrow the --text-muted ramp
+   (#858585) as a fill; there is no opaque .bg-ds-muted because nothing wants the
+   flat colour. Recomputed with the token when it moved to the AA value — these
+   literals are declared derivatives of --text-muted, so they track it.
+   The /50 step is STATUS_BG.inactive. Composited on the cache-stats card
+   (--bg-tertiary #1e1e1e) it lands on #525252 = 2.134:1 — bit-for-bit the tone
+   the pre-consolidation `bg-neutral-600` dot rendered, so "unavailable" recedes
+   next to the live dots (success 5.18:1, warning 6.30:1, info 4.77:1) without
+   disappearing. The equivalence holds in situ too: an unavailable ResourceRow
+   also carries .opacity-40, and 0.5 x 0.4 over the card is #333333 (1.32:1),
+   the same value #525252 x 0.4 produced. The consolidation had pointed it at
+   .bg-ds-hover #262626 = 1.102:1 / ΔE 3.9 against that card (#212121, 1.035:1
+   once dimmed): an invisible dot, not a dim one. */
 .bg-ds-muted\/30 { background-color: rgba(133, 133, 133, 0.3); }   /* --text-muted @ 30% */
+.bg-ds-muted\/50 { background-color: rgba(133, 133, 133, 0.5); }   /* --text-muted @ 50% */
 
 /* Standard colors */
 .bg-transparent { background-color: transparent; }
