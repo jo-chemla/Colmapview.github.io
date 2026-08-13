@@ -1,5 +1,6 @@
 import { memo, useEffect, useMemo } from 'react';
 import * as THREE from 'three';
+import { TEXT_CANVAS_FONT_SIZE, canvasTextFont, useDsSansLoaded } from './canvasTextSpriteFont';
 
 type TextAnchorX = 'center' | 'left' | 'right';
 
@@ -14,9 +15,7 @@ interface CanvasTextSpriteProps {
   outlineOpacity?: number;
 }
 
-const TEXT_CANVAS_FONT_SIZE = 96;
 const TEXT_CANVAS_PADDING_RATIO = 0.25;
-const TEXT_CANVAS_FONT_FAMILY = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
 function toCanvasColor(value: string | number, opacity = 1): string {
   const color = new THREE.Color(value);
@@ -42,6 +41,12 @@ export const CanvasTextSprite = memo(function CanvasTextSprite({
   outlineColor = '#000000',
   outlineOpacity = 1,
 }: CanvasTextSpriteProps) {
+  // Flips once, when the ds sans face becomes usable. It is a memo dependency
+  // rather than an in-place canvas repaint on purpose: the canvas dimensions and
+  // the sprite's world size below are measureText-derived, so a family swap has
+  // to re-run the whole bake or the label renders stretched and clipped.
+  const dsSansLoaded = useDsSansLoaded();
+
   const { texture, worldWidth, worldHeight } = useMemo(() => {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -50,7 +55,7 @@ export const CanvasTextSprite = memo(function CanvasTextSprite({
       return { texture: emptyTexture, worldWidth: 0, worldHeight: 0 };
     }
 
-    const font = `600 ${TEXT_CANVAS_FONT_SIZE}px ${TEXT_CANVAS_FONT_FAMILY}`;
+    const font = canvasTextFont(dsSansLoaded);
     context.font = font;
     const metrics = context.measureText(text);
     const ascent = metrics.actualBoundingBoxAscent || TEXT_CANVAS_FONT_SIZE * 0.8;
@@ -86,8 +91,9 @@ export const CanvasTextSprite = memo(function CanvasTextSprite({
     const worldHeight = fontSize * canvas.height / textHeight;
     const worldWidth = worldHeight * canvas.width / canvas.height;
     return { texture, worldWidth, worldHeight };
-  }, [color, fontSize, outlineColor, outlineOpacity, outlineWidth, text]);
+  }, [color, dsSansLoaded, fontSize, outlineColor, outlineOpacity, outlineWidth, text]);
 
+  // Also frees the superseded texture when the ds-sans re-bake replaces it.
   useEffect(() => () => texture.dispose(), [texture]);
 
   return (

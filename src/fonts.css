@@ -1,0 +1,64 @@
+/* ============================================
+   Self-hosted webfaces (latin + latin-ext only)
+   ============================================
+
+   Vendored from @fontsource-variable/{ibm-plex-sans,jetbrains-mono} rather than
+   importing their index.css, which ships all six subsets (cyrillic-ext, cyrillic,
+   greek, vietnamese, latin-ext, latin) and has no per-subset entry point. Browsers
+   never fetch an out-of-range subset, so shipping them cost users nothing — but it
+   put ~160 kB of woff2 into every preserved release on GitHub Pages.
+
+   Kept: latin and latin-ext (European diacritics — dataset and image filenames are
+   routinely Polish/Czech/Turkish). Dropped: cyrillic-ext, cyrillic, greek,
+   vietnamese; text in those ranges falls back to the system stack named in
+   --font-sans / --font-mono.
+
+   The url()s are bare package specifiers: Vite resolves those inside CSS url()
+   just like an import. Each block is a verbatim copy of the upstream declaration
+   apart from that rewrite, and src/theme/fontContract.test.ts holds them to it, so
+   a fontsource bump that renames a file or edits a unicode-range fails the suite
+   instead of silently emitting a broken font URL (Vite only warns).
+
+   To restore a subset: copy its block back from
+   node_modules/@fontsource-variable/<pkg>/index.css and rewrite the url the same
+   way; the contract test picks it up automatically. */
+
+/* ibm-plex-sans-latin-ext-wght-normal */
+@font-face {
+  font-family: 'IBM Plex Sans Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 700;
+  src: url(@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-ext-wght-normal.woff2) format('woff2-variations');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+/* ibm-plex-sans-latin-wght-normal */
+@font-face {
+  font-family: 'IBM Plex Sans Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 700;
+  src: url(@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-wght-normal.woff2) format('woff2-variations');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+/* jetbrains-mono-latin-ext-wght-normal */
+@font-face {
+  font-family: 'JetBrains Mono Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url(@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-ext-wght-normal.woff2) format('woff2-variations');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+/* jetbrains-mono-latin-wght-normal */
+@font-face {
+  font-family: 'JetBrains Mono Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url(@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2) format('woff2-variations');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}

@@ -33,4 +33,49 @@ describe('useModalZIndex', () => {
     expect(result.current.zIndex).toBeGreaterThan(onOpen);
     expect(result.current.zIndex).toBeLessThan(Z_INDEX.modalOverlay);
   });
+
+  it('rewinds the shared counter once every window has closed', () => {
+    // Walk the counter forward, then close everything. Unmounts are explicit
+    // rather than left to testing-library's afterEach so the rewind under test
+    // is the hook's own cleanup, not teardown ordering.
+    const first = renderHook(() => useModalZIndex(true));
+    const second = renderHook(() => useModalZIndex(true));
+    expect(second.result.current.zIndex).toBeGreaterThan(first.result.current.zIndex);
+    first.unmount();
+    second.unmount();
+
+    const reopened = renderHook(() => useModalZIndex(true));
+    expect(reopened.result.current.zIndex).toBe(Z_INDEX.modal + 1);
+    reopened.unmount();
+  });
+
+  it('does not rewind while another window is still open', () => {
+    const survivor = renderHook(() => useModalZIndex(true));
+    const closed = renderHook(() => useModalZIndex(true));
+    const survivorZ = survivor.result.current.zIndex;
+    closed.unmount();
+
+    // One window is still on screen holding survivorZ, so a newly opened window
+    // has to land above it instead of restarting at the bottom of the band.
+    const opened = renderHook(() => useModalZIndex(true));
+    expect(opened.result.current.zIndex).toBeGreaterThan(survivorZ);
+    opened.unmount();
+    survivor.unmount();
+  });
+
+  it('releases its slot when isOpen goes false without unmounting', () => {
+    // ViewerToolModals renders all four tool modals unconditionally and only
+    // toggles isOpen, so closing a window never unmounts its hook.
+    const { result, rerender, unmount } = renderHook(
+      ({ isOpen }) => useModalZIndex(isOpen),
+      { initialProps: { isOpen: true } },
+    );
+    expect(result.current.zIndex).toBeGreaterThan(Z_INDEX.modal);
+    rerender({ isOpen: false });
+
+    const reopened = renderHook(() => useModalZIndex(true));
+    expect(reopened.result.current.zIndex).toBe(Z_INDEX.modal + 1);
+    reopened.unmount();
+    unmount();
+  });
 });
