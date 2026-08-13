@@ -16,7 +16,16 @@
   /* Text */
   --text-primary: #e8e8e8;
   --text-secondary: #8a8a8a;
-  --text-muted: #5a5a5a;
+  /* #858585 is the DARKEST neutral that clears WCAG AA (4.5:1) for normal-size
+     text on --bg-tertiary #1e1e1e, the lightest surface muted text ever lands on:
+     relative luminance L(#1e1e1e) = 0.0129830, so the fg needs
+     L >= 4.5 * (0.0129830 + 0.05) - 0.05 = 0.2334, i.e. channel >= 132.7 -> 133 = 0x85.
+     Measured: #858585 = 4.518:1, #848484 = 4.457:1 (fails). It clears AA on every
+     darker surface too (#161616 4.90:1, #0a0a0a 5.37:1) and on --bg-hover #262626
+     it is 4.10:1 — that surface only ever carries hover-state chrome, not body copy.
+     The old #5a5a5a was 2.42:1. CANVAS_COLORS.textMuted in src/theme/colors.ts
+     mirrors this literal for canvas drawing; keep the two in lockstep. */
+  --text-muted: #858585;
 
   /* Borders */
   --border-color: #2a2a2a;
@@ -988,9 +997,11 @@ legend {
 .hover-bg-ds-success-20:hover { background-color: rgba(107, 155, 107, 0.2); }
 .bg-ds-error\/20,
 .hover-bg-ds-error-20:hover { background-color: rgba(184, 107, 107, 0.2); }
-/* Hairline dividers borrow the --text-muted ramp (#5a5a5a) as a fill; there is
-   no opaque .bg-ds-muted because nothing wants the flat colour. */
-.bg-ds-muted\/30 { background-color: rgba(90, 90, 90, 0.3); }      /* --text-muted @ 30% */
+/* Hairline dividers borrow the --text-muted ramp (#858585) as a fill; there is
+   no opaque .bg-ds-muted because nothing wants the flat colour. Recomputed with
+   the token when it moved to the AA value — these literals are declared
+   derivatives of --text-muted, so they track it. */
+.bg-ds-muted\/30 { background-color: rgba(133, 133, 133, 0.3); }   /* --text-muted @ 30% */
 
 /* Standard colors */
 .bg-transparent { background-color: transparent; }
@@ -1017,8 +1028,16 @@ legend {
 .text-ds-primary { color: var(--text-primary); }
 .text-ds-secondary { color: var(--text-secondary); }
 .text-ds-muted { color: var(--text-muted); }
-.text-ds-muted\/70 { color: rgba(90, 90, 90, 0.7); }
-.text-ds-muted\/80 { color: rgba(90, 90, 90, 0.8); }
+/* --text-muted #858585 at 70% / 80%. Recomputed from the new base rather than
+   frozen at the old #5a5a5a: the comments declare them as derivatives, and a
+   pinned tint would re-fork the very palette this token consolidation merges.
+   Composited on --bg-tertiary #1e1e1e these land at #666666 (2.90:1) and #707070
+   (3.37:1), up from #484848 (1.82:1) / #4e4e4e (2.00:1). Still under AA, but they
+   only dress supporting help-panel prose,
+   and they now sit a consistent step below the base instead of below it AND
+   below the old base. */
+.text-ds-muted\/70 { color: rgba(133, 133, 133, 0.7); }
+.text-ds-muted\/80 { color: rgba(133, 133, 133, 0.8); }
 .text-ds-void\/70 { color: rgba(10, 10, 10, 0.7); }
 .text-ds-accent { color: var(--accent); }
 .text-ds-success { color: var(--success); }
@@ -1032,24 +1051,18 @@ legend {
 .text-white\/70 { color: rgba(255, 255, 255, 0.7); }
 .text-black { color: #000; }
 .text-transparent { color: transparent; }
-.text-gray-300 { color: #d1d5db; }
-.text-gray-500 { color: #6b7280; }
-.text-blue-400 { color: #60a5fa; }
-.text-green-400 { color: #4ade80; }
-.text-green-300 { color: #86efac; }
-.text-yellow-400 { color: #facc15; }
-.text-yellow-300 { color: #fde047; }
-.text-red-400 { color: #f87171; }
-.text-red-300 { color: #fca5a5; }
-.text-amber-400 { color: #fbbf24; }
-.text-orange-400 { color: #fb923c; }
+/* The Tailwind-era status palette that used to live here (gray-300/500,
+   blue/green/amber/red/orange-400, green/yellow/red-300, and the bg- twins
+   green/blue/amber-400 + neutral-600) is GONE. Every semantic consumer —
+   STATUS_COLORS, STATUS_BG, CHART_COLORS, the cache-stats footer, the camera
+   conversion preview, the context-menu/hotkey hints — now speaks the ds tokens
+   (.text-ds-success/-info/-warning/-error, .bg-ds-*), so "success" is one green
+   instead of two. Only `text-purple-400` survives: STATUS_COLORS.highlight marks
+   the "manifest" cache source, a CATEGORY hue with no ds analog, and there is no
+   token to fold it into without colliding with a real status colour.
+   The group-hover twin of gray-300 (ScreenshotPanel's attribution copy) also
+   survives, further down in the hover block, carrying its own literal. */
 .text-purple-400 { color: #c084fc; }
-
-/* Background color utilities for status indicators */
-.bg-green-400 { background-color: #4ade80; }
-.bg-blue-400 { background-color: #60a5fa; }
-.bg-amber-400 { background-color: #fbbf24; }
-.bg-neutral-600 { background-color: #525252; }
 
 /* 3D Visualization */
 .text-ds-frustum { color: var(--frustum-default); }
@@ -1359,10 +1372,11 @@ legend {
 .hover-opacity-90:hover { opacity: 0.9; }
 .hover-opacity-100:hover { opacity: 1; }
 
-/* Color hover (Tailwind-style syntax) */
-.hover\:text-green-300:hover { color: #86efac; }
-.hover\:text-yellow-300:hover { color: #fde047; }
-.hover\:text-red-300:hover { color: #fca5a5; }
+/* The three colon-form `hover:text-{green,yellow,red}-300` rules that lived here
+   are gone with the Tailwind palette above: the confirm/retry/cancel icon buttons
+   (actionButtonStyles) now wear a ds token plus `hover-brightness-110`, which
+   derives the lighter hover tone from whatever token the button carries instead
+   of pinning three more literals. */
 
 /* Composite hover states */
 .hover-interactive:hover {

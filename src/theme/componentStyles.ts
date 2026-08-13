@@ -109,11 +109,30 @@ export const actionButtonStyles = {
   // Full-width primary action button (for "Done", "Confirm" dialogs)
   buttonFullWidth: 'w-full px-3 py-1.5 bg-ds-accent text-ds-void rounded text-sm hover-opacity-90 transition-opacity',
 
-  // Icon action buttons (for confirm/retry/cancel style buttons)
+  // Icon action buttons (for confirm/retry/cancel style buttons).
+  //
+  // Hover affordance is the EXISTING `hover-brightness-110` utility, not three
+  // per-hue hover colors. The old form was `hover:text-green-300` /
+  // `-yellow-300` / `-red-300`: three escaped legacy rules carrying three more
+  // literal hexes whose only job was to be a lighter twin of three other
+  // literals. A brightness filter derives "lighter" from whatever ds token the
+  // button already wears, so the confirm/retry/cancel trio tracks
+  // --success/--warning/--error for free and the palette does not re-fork —
+  // and it adds ZERO new CSS (the rule already exists for menuStyles.itemHover).
+  // Retry moves off `text-yellow-400` onto the warning token: retry IS a
+  // warning, and yellow-400 had no other user.
+  //
+  // `hover-opacity-90` — the other candidate — was rejected: on these dark
+  // panels lowering opacity blends toward the background, so hover would DIM the
+  // icon, the wrong direction for an affordance.
+  //
+  // `transition` replaces `transition-colors` on the three: the colors no longer
+  // change, the filter does, and `.transition` is the repo utility whose
+  // property list already includes `filter` (index.css ~1199).
   iconButton: 'p-0.5 transition-colors flex items-center',
-  iconButtonConfirm: `p-0.5 ${STATUS_COLORS.success} hover:text-green-300 transition-colors flex items-center`,
-  iconButtonRetry: 'p-0.5 text-yellow-400 hover:text-yellow-300 transition-colors flex items-center',
-  iconButtonCancel: `p-0.5 ${STATUS_COLORS.error} hover:text-red-300 transition-colors flex items-center`,
+  iconButtonConfirm: `p-0.5 ${STATUS_COLORS.success} hover-brightness-110 transition flex items-center`,
+  iconButtonRetry: `p-0.5 ${STATUS_COLORS.warning} hover-brightness-110 transition flex items-center`,
+  iconButtonCancel: `p-0.5 ${STATUS_COLORS.error} hover-brightness-110 transition flex items-center`,
 } as const;
 
 // ============================================
@@ -554,7 +573,7 @@ export const contextMenuStyles = {
   container: 'bg-ds-tertiary rounded-lg shadow-ds-lg overflow-hidden border border-ds py-1',
   button: 'flex items-center gap-2 px-3 py-1.5 text-sm text-ds-primary hover-ds-hover cursor-pointer transition-colors w-full text-left',
   icon: 'w-4 h-4 flex-shrink-0',
-  hotkey: 'text-xs font-mono text-gray-500 ml-auto uppercase tracking-wide',
+  hotkey: 'text-xs font-mono text-ds-muted ml-auto uppercase tracking-wide',
 } as const;
 
 // ============================================
@@ -672,7 +691,7 @@ export const cacheStatsStyles = {
   legendText: 'text-ds-muted',
   // Status dots
   dotMemoryJs: `inline-block w-1.5 h-1.5 rounded-full ${STATUS_BG.success} flex-shrink-0`,
-  dotMemoryWasm: 'inline-block w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0',
+  dotMemoryWasm: `inline-block w-1.5 h-1.5 rounded-full ${STATUS_BG.warning} flex-shrink-0`,
   dotLazy: `inline-block w-1.5 h-1.5 rounded-full ${STATUS_BG.info} flex-shrink-0`,
   dotUnavailable: `inline-block w-1.5 h-1.5 rounded-full ${STATUS_BG.inactive} flex-shrink-0`,
   // Table styles

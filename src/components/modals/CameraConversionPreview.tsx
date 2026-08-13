@@ -45,7 +45,7 @@ export function CameraConversionPreview({
       </div>
 
       {conversionPreview.warning && (
-        <div className="text-amber-400">{conversionPreview.warning}</div>
+        <div className="text-ds-warning">{conversionPreview.warning}</div>
       )}
     </div>
   );

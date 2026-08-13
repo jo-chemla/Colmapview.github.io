@@ -30,7 +30,7 @@ export const URL_INPUT_DESCRIPTION =
 export const URL_INPUT_PLACEHOLDER =
   'https://huggingface.co/.../resolve/main/reconstruction';
 
-export const URL_INPUT_WARNING_TITLE_CLASS = 'font-medium text-amber-400 mb-1';
+export const URL_INPUT_WARNING_TITLE_CLASS = 'font-medium text-ds-warning mb-1';
 export const URL_INPUT_DEFAULT_TITLE_CLASS = 'font-medium text-ds-primary mb-2';
 export const URL_INPUT_WARNING_TEXT_CLASS = 'text-ds-muted/80';
 export const URL_INPUT_HELP_LIST_CLASS = 'space-y-1 mb-3';

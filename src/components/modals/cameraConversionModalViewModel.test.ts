@@ -137,10 +137,14 @@ describe('CameraConversionModal view-model helpers', () => {
       { name: 'k2', sourceValue: null, targetValue: 0, status: 'new' },
     ]);
     expect(buildCameraConversionParameterRows(null)).toEqual([]);
-    expect(getCameraConversionCharacterizationClassName('exact')).toBe('text-green-400');
-    expect(getCameraConversionCharacterizationClassName('expansion')).toBe('text-blue-400');
-    expect(getCameraConversionCharacterizationClassName('lossy')).toBe('text-amber-400');
-    expect(getCameraConversionCharacterizationClassName('approximation')).toBe('text-orange-400');
+    expect(getCameraConversionCharacterizationClassName('exact')).toBe('text-ds-success');
+    expect(getCameraConversionCharacterizationClassName('expansion')).toBe('text-ds-info');
+    expect(getCameraConversionCharacterizationClassName('lossy')).toBe('text-ds-warning');
+    // Not a copy-paste of the line above: `approximation` maps to STATUS_COLORS.caution,
+    // which the ds-token consolidation deliberately merged into warning (the ramp has no
+    // orange between --warning and --error). The two characterizations still differ by
+    // LABEL ('Lossy' vs 'Approx'), asserted below; only the hue folded.
+    expect(getCameraConversionCharacterizationClassName('approximation')).toBe('text-ds-warning');
     expect(getCameraConversionCharacterizationLabel('exact')).toBe('Exact');
     expect(getCameraConversionCharacterizationLabel('expansion')).toBe('Expansion');
     expect(getCameraConversionCharacterizationLabel('lossy')).toBe('Lossy');
@@ -171,10 +175,10 @@ describe('CameraConversionModal view-model helpers', () => {
       status: 'new',
     })).toEqual({
       name: 'f',
-      nameClassName: 'flex-1 text-center px-2 text-blue-400',
+      nameClassName: 'flex-1 text-center px-2 text-ds-info',
       sourceClassName: 'w-16 text-right text-ds-primary',
       sourceValueLabel: '\u2014',
-      targetClassName: 'w-16 text-left text-blue-400',
+      targetClassName: 'w-16 text-left text-ds-info',
       targetValueLabel: '5.10e+2',
     });
 
@@ -185,8 +189,8 @@ describe('CameraConversionModal view-model helpers', () => {
       status: 'removed',
     })).toEqual({
       name: 'fx',
-      nameClassName: 'flex-1 text-center px-2 text-red-400',
-      sourceClassName: 'w-16 text-right text-red-400 line-through',
+      nameClassName: 'flex-1 text-center px-2 text-ds-error',
+      sourceClassName: 'w-16 text-right text-ds-error line-through',
       sourceValueLabel: '5.00e+2',
       targetClassName: 'w-16 text-left text-ds-muted',
       targetValueLabel: '\u2014',
@@ -199,7 +203,7 @@ describe('CameraConversionModal view-model helpers', () => {
       status: 'changed',
     })).toMatchObject({
       nameClassName: 'flex-1 text-center px-2 text-ds-muted',
-      targetClassName: 'w-16 text-left text-amber-400',
+      targetClassName: 'w-16 text-left text-ds-warning',
       targetValueLabel: '3.30e+2',
     });
   });

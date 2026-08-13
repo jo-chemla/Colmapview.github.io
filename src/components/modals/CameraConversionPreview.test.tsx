@@ -16,14 +16,14 @@ describe('CameraConversionPreview', () => {
       />
     );
 
-    expect(screen.getByText('Expansion')).toHaveClass('text-blue-400');
+    expect(screen.getByText('Expansion')).toHaveClass('text-ds-info');
     expect(screen.getByText('Adding a focal parameter')).toHaveClass('text-ds-muted');
-    expect(screen.getByText('Expansion warning')).toHaveClass('text-amber-400');
-    expect(screen.getByText('f')).toHaveClass('text-blue-400');
-    expect(screen.getByText('5.10e+2')).toHaveClass('text-blue-400');
-    expect(screen.getByText('3.30e+2')).toHaveClass('text-amber-400');
-    expect(screen.getByText('old')).toHaveClass('text-red-400');
-    expect(screen.getByText('5')).toHaveClass('text-red-400', 'line-through');
+    expect(screen.getByText('Expansion warning')).toHaveClass('text-ds-warning');
+    expect(screen.getByText('f')).toHaveClass('text-ds-info');
+    expect(screen.getByText('5.10e+2')).toHaveClass('text-ds-info');
+    expect(screen.getByText('3.30e+2')).toHaveClass('text-ds-warning');
+    expect(screen.getByText('old')).toHaveClass('text-ds-error');
+    expect(screen.getByText('5')).toHaveClass('text-ds-error', 'line-through');
   });
 });
 

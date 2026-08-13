@@ -92,12 +92,25 @@ export const GRID_COLORS = {
   minorLines: 0x888888,
 } as const;
 
-// Chart/histogram colors for SVG-based visualizations (StatusBar tooltips)
+// Chart/histogram colors for SVG-based visualizations (StatusBar tooltips).
+// Literal hexes, not var(--…): these feed SVG `fill` attributes rendered inside a
+// portal-free <svg>, and the surrounding code passes them as plain strings — the
+// same reason CANVAS_COLORS below is hardcoded. They are DERIVED from the ds
+// warning ramp so the histogram reads as the same amber family as every other
+// warning surface:
+//   bar        = --warning verbatim (#b89b6b)
+//   percentage = --warning + 24 per channel (#b8+18=#d0, #9b+18=#b3, #6b+18=#83),
+//                the identical lightening step the system already uses for
+//                --accent #b8b8b8 -> --accent-hover #d0d0d0. The percentage label
+//                floats just ABOVE its bar on the tooltip card, so it stays the
+//                lighter of the two to read against --bg-tertiary (8.30:1).
+//   label      = --text-primary verbatim (#e8e8e8), was Tailwind gray-200 #e5e7eb
+// If --warning or --text-primary move, re-derive these by hand.
 export const CHART_COLORS = {
-  bar: '#f59e0b',
+  bar: '#b89b6b',
   barBackground: 'rgba(255,255,255,0.05)',
-  label: '#e5e7eb',
-  percentage: '#fbbf24',
+  label: '#e8e8e8',
+  percentage: '#d0b383',
 } as const;
 
 // Canvas rendering colors (hardcoded because canvas can't read CSS variables)
@@ -108,7 +121,7 @@ export const CANVAS_COLORS = {
   bgTertiary: '#1e1e1e',
   textPrimary: '#e8e8e8',
   textSecondary: '#8a8a8a',
-  textMuted: '#5a5a5a',
+  textMuted: '#858585',   // mirrors --text-muted (index.css); keep in lockstep
   outline: '#000000',
   white: '#ffffff',
 } as const;
@@ -198,22 +211,45 @@ export function getCameraColor(index: number): string {
   return FRUSTUM_COLORS[index % FRUSTUM_COLORS.length];
 }
 
-/** Semantic status colors as Tailwind utility class names */
+/**
+ * Semantic status colors as design-system utility class names.
+ *
+ * These map onto the ds tokens (--success/--info/--warning/--error) rather than
+ * the Tailwind-era literals they used to carry (#4ade80/#60a5fa/#fbbf24/#f87171).
+ * The ds tokens are canonical: before this, "success" rendered as one of two
+ * different greens depending on whether a call site went through STATUS_COLORS
+ * or hand-wrote `text-green-400`.
+ *
+ * `caution` is a deliberate SEMANTIC MERGE: it previously had its own
+ * `text-orange-400`, defined for this key alone, sitting one hue step from
+ * `warning`. The ds ramp has no orange between --warning and --error, and the
+ * distinction was never legible at the sizes it shipped at (a 12px modal label),
+ * so caution now resolves to the same token as warning. The key survives because
+ * call sites read better naming their intent (approximation = caution).
+ *
+ * `highlight` keeps `text-purple-400`: there is NO ds analog for it. It marks the
+ * "manifest" source in the cache legend, a category color rather than a status,
+ * and folding it into an existing token would collide with a real status hue.
+ */
 export const STATUS_COLORS = {
-  success: 'text-green-400',
-  info: 'text-blue-400',
-  warning: 'text-amber-400',
-  error: 'text-red-400',
-  caution: 'text-orange-400',
+  success: 'text-ds-success',
+  info: 'text-ds-info',
+  warning: 'text-ds-warning',
+  error: 'text-ds-error',
+  caution: 'text-ds-warning',
   highlight: 'text-purple-400',
 } as const;
 
-/** Semantic status background colors as Tailwind utility class names */
+/**
+ * Semantic status background colors as design-system utility class names.
+ * `inactive` maps to --bg-hover (the dimmest surface tone) rather than the old
+ * neutral-600 #525252: an "unavailable" dot is meant to recede.
+ */
 export const STATUS_BG = {
-  success: 'bg-green-400',
-  info: 'bg-blue-400',
-  warning: 'bg-amber-400',
-  inactive: 'bg-neutral-600',
+  success: 'bg-ds-success',
+  info: 'bg-ds-info',
+  warning: 'bg-ds-warning',
+  inactive: 'bg-ds-hover',
 } as const;
 
 /** Axis colors for UI icons (flat-UI palette, distinct from VIZ_COLORS.interaction) */

@@ -196,7 +196,7 @@ export const ScreenshotPanel = memo(function ScreenshotPanel({
         </div>
         <div
           onClick={() => setScreenshotHideLogo(!screenshotHideLogo)}
-          className={`group text-sm mt-3 cursor-pointer ${screenshotHideLogo ? 'text-blue-400' : ''}`}
+          className={`group text-sm mt-3 cursor-pointer ${screenshotHideLogo ? 'text-ds-info' : ''}`}
         >
           <div className="mb-1 font-medium">
             {screenshotHideLogo ? '✓ Watermark Removed!' : <span className="underline">Remove watermark:</span>}

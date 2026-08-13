@@ -321,9 +321,9 @@ export function getCameraConversionParameterNameClassName(
 ): string {
   switch (status) {
     case 'new':
-      return 'flex-1 text-center px-2 text-blue-400';
+      return `flex-1 text-center px-2 ${STATUS_COLORS.info}`;
     case 'removed':
-      return 'flex-1 text-center px-2 text-red-400';
+      return `flex-1 text-center px-2 ${STATUS_COLORS.error}`;
     case 'changed':
     case 'unchanged':
       return 'flex-1 text-center px-2 text-ds-muted';
@@ -334,7 +334,7 @@ export function getCameraConversionSourceValueClassName(
   status: CameraConversionParameterRow['status']
 ): string {
   return status === 'removed'
-    ? 'w-16 text-right text-red-400 line-through'
+    ? `w-16 text-right ${STATUS_COLORS.error} line-through`
     : 'w-16 text-right text-ds-primary';
 }
 
@@ -343,9 +343,9 @@ export function getCameraConversionTargetValueClassName(
 ): string {
   switch (status) {
     case 'new':
-      return 'w-16 text-left text-blue-400';
+      return `w-16 text-left ${STATUS_COLORS.info}`;
     case 'changed':
-      return 'w-16 text-left text-amber-400';
+      return `w-16 text-left ${STATUS_COLORS.warning}`;
     case 'removed':
       return 'w-16 text-left text-ds-muted';
     case 'unchanged':

@@ -61,7 +61,7 @@ export function ContextMenuEditor({
       <span className="w-4 h-4 flex-shrink-0 opacity-60">{action.icon}</span>
       <span className="text-sm text-ds-primary whitespace-nowrap">{action.label}</span>
       {action.hotkey && (
-        <span className="text-xs font-mono text-gray-500 uppercase tracking-wide">
+        <span className="text-xs font-mono text-ds-muted uppercase tracking-wide">
           ({formatKeyCombo(action.hotkey)})
         </span>
       )}

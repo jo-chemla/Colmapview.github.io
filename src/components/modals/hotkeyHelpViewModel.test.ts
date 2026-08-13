@@ -180,7 +180,7 @@ describe('hotkey help view model', () => {
     expect(HOTKEY_HELP_ROW_CLASS).toBe('flex items-center gap-2 px-4 py-1 text-sm text-ds-primary');
     expect(HOTKEY_HELP_ROW_DESCRIPTION_CLASS).toBe('flex-1 text-left');
     expect(HOTKEY_HELP_ROW_KEY_CLASS).toBe(
-      'text-xs font-mono text-gray-500 ml-auto uppercase tracking-wide'
+      'text-xs font-mono text-ds-muted ml-auto uppercase tracking-wide'
     );
     // The row's key styling is exactly the context menu's hotkey token string.
     expect(HOTKEY_HELP_ROW_KEY_CLASS).toBe(contextMenuStyles.hotkey);
@@ -195,7 +195,7 @@ describe('hotkey help view model', () => {
       'hotkey-help-divider-top px-4 py-2 text-ds-muted text-xs text-center flex-shrink-0'
     );
     // Footer key chips restyle to the same mono/uppercase hotkey idiom (no boxed chip).
-    expect(HOTKEY_HELP_FOOTER_KEY_CLASS).toBe('font-mono uppercase tracking-wide text-gray-500');
+    expect(HOTKEY_HELP_FOOTER_KEY_CLASS).toBe('font-mono uppercase tracking-wide text-ds-muted');
     expect(HOTKEY_HELP_FOOTER_PREFIX).toBe('Press');
     expect(HOTKEY_HELP_FOOTER_SUFFIX).toBe('to toggle this panel');
   });

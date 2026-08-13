@@ -95,7 +95,7 @@ export const HOTKEY_HELP_ROW_DESCRIPTION_CLASS = 'flex-1 text-left';
 // guards every utility exists in index.css (no Tailwind JIT here); a colocated test
 // also asserts this equals contextMenuStyles.hotkey to keep them in lockstep.
 export const HOTKEY_HELP_ROW_KEY_CLASS =
-  'text-xs font-mono text-gray-500 ml-auto uppercase tracking-wide';
+  'text-xs font-mono text-ds-muted ml-auto uppercase tracking-wide';
 // hotkey-help-divider-top instead of `border-t border-ds`: those utilities set
 // border-style on ALL sides while widths stay at the CSS-initial `medium` (3px),
 // which painted a visible box around the footer (repo-wide utility footgun,
@@ -126,7 +126,7 @@ export const HOTKEY_HELP_TAB_ACTIVE_CLASS =
 // below content height so overflow-auto actually scrolls inside the flex column).
 export const HOTKEY_HELP_TAB_PANEL_CLASS = 'flex-1 min-h-0 overflow-auto py-2';
 // Footer key chips: same mono/uppercase idiom as the row combos (no boxed chip).
-export const HOTKEY_HELP_FOOTER_KEY_CLASS = 'font-mono uppercase tracking-wide text-gray-500';
+export const HOTKEY_HELP_FOOTER_KEY_CLASS = 'font-mono uppercase tracking-wide text-ds-muted';
 export const HOTKEY_HELP_FOOTER_PREFIX = 'Press';
 export const HOTKEY_HELP_FOOTER_SUFFIX = 'to toggle this panel';
 

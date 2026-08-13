@@ -140,7 +140,7 @@ export function CacheStatsIndicator() {
                       <span className={cacheStatsStyles.tableFooterLabel}>WASM Loaded</span>
                     </td>
                     <td className={`${cacheStatsStyles.tableFooterCell} ${cacheStatsStyles.tableCellCount}`} />
-                    <td className={`${cacheStatsStyles.tableFooterCell} ${cacheStatsStyles.tableCellSize} text-amber-400`}>
+                    <td className={`${cacheStatsStyles.tableFooterCell} ${cacheStatsStyles.tableCellSize} text-ds-warning`}>
                       {formatCacheBytes(footerTotals.loadedWasmBytes)}
                     </td>
                   </tr>
@@ -153,7 +153,7 @@ export function CacheStatsIndicator() {
                     <span className={cacheStatsStyles.tableFooterLabel}>JS Loaded</span>
                   </td>
                   <td className={`${cacheStatsStyles.tableFooterCell} ${cacheStatsStyles.tableCellCount}`} />
-                  <td className={`${cacheStatsStyles.tableFooterCell} ${cacheStatsStyles.tableCellSize} text-green-400`}>
+                  <td className={`${cacheStatsStyles.tableFooterCell} ${cacheStatsStyles.tableCellSize} text-ds-success`}>
                     {formatCacheBytes(footerTotals.loadedJsBytes)}
                   </td>
                 </tr>
@@ -165,10 +165,10 @@ export function CacheStatsIndicator() {
                     <td className={cacheStatsStyles.tableFooterCell}>
                       <span className={cacheStatsStyles.tableFooterLabel}>JS Lazy</span>
                     </td>
-                    <td className={`${cacheStatsStyles.tableFooterCell} ${cacheStatsStyles.tableCellCount} text-blue-400`}>
+                    <td className={`${cacheStatsStyles.tableFooterCell} ${cacheStatsStyles.tableCellCount} text-ds-info`}>
                       {footerTotals.lazyJsCount.toLocaleString()}
                     </td>
-                    <td className={`${cacheStatsStyles.tableFooterCell} ${cacheStatsStyles.tableCellSize} text-blue-400`}>
+                    <td className={`${cacheStatsStyles.tableFooterCell} ${cacheStatsStyles.tableCellSize} text-ds-info`}>
                       {formatCacheBytes(footerTotals.lazyJsBytes)}
                     </td>
                   </tr>
