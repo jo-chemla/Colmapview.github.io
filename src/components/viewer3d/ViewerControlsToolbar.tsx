@@ -1,4 +1,5 @@
 import {
+  AlignPanel,
   AxesGridPanel,
   BackgroundPanel,
   CameraDisplayPanel,
@@ -45,6 +46,7 @@ export function ViewerControlsToolbar({ controller }: ViewerControlsToolbarProps
     cameraModePanel,
     backgroundPanel,
     transformPanel,
+    alignPanel,
     pointCloudPanel,
     cameraDisplayPanel,
     matchesPanel,
@@ -65,6 +67,7 @@ export function ViewerControlsToolbar({ controller }: ViewerControlsToolbarProps
       <CameraModePanel {...cameraModePanel} />
       <BackgroundPanel {...backgroundPanel} />
       <TransformPanel {...transformPanel} />
+      <AlignPanel {...alignPanel} />
 
       <ToolbarDivider />
 

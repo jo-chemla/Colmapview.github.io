@@ -94,37 +94,36 @@ describe('app layout policy', () => {
     });
   });
 
-  it('selects the first-load guide tip for desktop or touch mode', () => {
+  it('selects the first-load guide tip in touch mode only', () => {
     expect(getAppLayoutGuideTip({
       hasReconstruction: false,
       urlLoading: false,
-      touchMode: false,
+      touchMode: true,
       hasShownTip: false,
     })).toBeNull();
 
     expect(getAppLayoutGuideTip({
       hasReconstruction: true,
       urlLoading: true,
-      touchMode: false,
+      touchMode: true,
       hasShownTip: false,
     })).toBeNull();
 
     expect(getAppLayoutGuideTip({
       hasReconstruction: true,
       urlLoading: false,
-      touchMode: false,
+      touchMode: true,
       hasShownTip: true,
     })).toBeNull();
 
+    // Desktop gets no first-load tip: the retired right-click instruction is
+    // replaced by the alignment tools being visible in the toolbar.
     expect(getAppLayoutGuideTip({
       hasReconstruction: true,
       urlLoading: false,
       touchMode: false,
       hasShownTip: false,
-    })).toEqual({
-      id: 'contextMenu',
-      message: 'Right-click anywhere for quick actions',
-    });
+    })).toBeNull();
 
     expect(getAppLayoutGuideTip({
       hasReconstruction: true,

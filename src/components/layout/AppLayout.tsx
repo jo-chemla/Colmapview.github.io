@@ -130,7 +130,8 @@ export function AppLayout() {
     };
   }, [touchMode]);
 
-  // Show context menu tip when reconstruction is first loaded (only on desktop)
+  // Show the touch gesture tip when a reconstruction is first loaded (touch only;
+  // desktop's right-click instruction tip was retired with the align toolbar panel)
   const hasShownLayoutTipRef = useRef(false);
 
   useEffect(() => {

@@ -14,6 +14,9 @@ export type { ExportPanelProps } from './ExportPanel';
 export { TransformPanel } from './TransformPanel';
 export type { TransformPanelProps } from './TransformPanel';
 
+export { AlignPanel } from './AlignPanel';
+export type { AlignPanelProps } from './AlignPanel';
+
 export { ViewPanel } from './ViewPanel';
 export type { ViewPanelProps } from './ViewPanel';
 

@@ -40,6 +40,23 @@ export function TransformIcon({ className }: IconProps) {
   );
 }
 
+// Align icon - three picked points spanning a plane above an origin corner
+export function AlignIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      {/* Origin corner the picked geometry gets aligned to */}
+      <path d="M3 21h7" />
+      <path d="M3 21v-7" />
+      {/* Plane spanned by the picked points */}
+      <path d="M7 12l7-4 7 4-7 4z" opacity="0.55" />
+      {/* The picked points themselves */}
+      <circle cx="7" cy="12" r="1.7" fill="currentColor" stroke="none" />
+      <circle cx="14" cy="8" r="1.7" fill="currentColor" stroke="none" />
+      <circle cx="21" cy="12" r="1.7" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 // Camera frustum icon (video camera)
 export function FrustumIcon({ className }: IconProps) {
   return (

@@ -3,6 +3,7 @@ import { controlPanelStyles } from '../../theme';
 import { isSplatColorMode, type ColorMode } from '../../store/types';
 import { getNextSplatSourceId } from '../../utils/splatFileSourcePolicy';
 import type {
+  AlignPanelProps,
   AxesGridPanelProps,
   BackgroundPanelProps,
   CameraDisplayPanelProps,
@@ -42,6 +43,7 @@ export interface ViewerControlsController {
   cameraModePanel: CameraModePanelProps;
   backgroundPanel: BackgroundPanelProps;
   transformPanel: TransformPanelProps;
+  alignPanel: AlignPanelProps;
   pointCloudPanel: PointCloudPanelProps;
   cameraDisplayPanel: CameraDisplayPanelProps;
   matchesPanel: MatchesPanelProps;
@@ -336,6 +338,7 @@ export function useViewerControlsController(): ViewerControlsController {
       ...panelState,
       onOpenFloorModal: () => modals.setShowFloorModal(true),
     },
+    alignPanel: panelState,
     pointCloudPanel: {
       ...panelState,
       showPointCloud: pointsNode.visible,

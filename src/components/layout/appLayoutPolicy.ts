@@ -11,9 +11,12 @@ export const APP_LAYOUT_CURSOR_OWNER = 'app-layout';
  */
 export const TOUCH_LAYOUT_ROOT_CLASS = 'h-screen flex flex-col bg-ds-primary touch-none safe-area-inset';
 
-export type AppLayoutGuideTip =
-  | { id: 'contextMenu'; message: 'Right-click anywhere for quick actions' }
-  | { id: 'touchMode'; message: 'Tap to select, long-press for options' };
+/**
+ * First-load guide tip. Touch only: the desktop right-click instruction was
+ * retired once the alignment tools became visible in the toolbar, so the
+ * context menu no longer needs to be advertised on load.
+ */
+export type AppLayoutGuideTip = { id: 'touchMode'; message: 'Tap to select, long-press for options' };
 
 export function getInitialGalleryPanelWidth(
   windowWidth: number,
@@ -93,11 +96,9 @@ export function getAppLayoutGuideTip({
   touchMode: boolean;
   hasShownTip: boolean;
 }): AppLayoutGuideTip | null {
-  if (!hasReconstruction || urlLoading || hasShownTip) {
+  if (!hasReconstruction || urlLoading || hasShownTip || !touchMode) {
     return null;
   }
 
-  return touchMode
-    ? { id: 'touchMode', message: 'Tap to select, long-press for options' }
-    : { id: 'contextMenu', message: 'Right-click anywhere for quick actions' };
+  return { id: 'touchMode', message: 'Tap to select, long-press for options' };
 }

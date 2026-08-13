@@ -55,6 +55,7 @@ export {
   ScreenshotIcon,
   ExportIcon,
   TransformIcon,
+  AlignIcon,
   FrustumIcon,
   ArrowIcon,
   CameraOffIcon,

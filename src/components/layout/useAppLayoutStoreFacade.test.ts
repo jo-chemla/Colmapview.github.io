@@ -65,10 +65,10 @@ describe('useAppLayoutStoreFacade', () => {
 
     act(() => {
       result.current.actions.setTouchUIVisible('galleryDrawer', false);
-      result.current.actions.showGuideTip('contextMenu', 'Right-click anywhere for quick actions');
+      result.current.actions.showGuideTip('touchMode', 'Tap to select, long-press for options');
     });
 
     expect(useUIStore.getState().touchUI.galleryDrawer).toBe(false);
-    expect(useGuideStore.getState().tipShownCounts.contextMenu).toBe(1);
+    expect(useGuideStore.getState().tipShownCounts.touchMode).toBe(1);
   });
 });
