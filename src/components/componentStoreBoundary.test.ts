@@ -4,7 +4,14 @@ import { describe, expect, it } from 'vitest';
 
 const SRC_ROOT = path.join(process.cwd(), 'src');
 const COMPONENTS_ROOT = path.join(SRC_ROOT, 'components');
-const STORE_BOUNDARY_SCAN_TIMEOUT_MS = 15_000;
+// Both tests walk the whole of src/ and read every file, so their runtime tracks
+// disk contention rather than the work itself: ~130ms standalone, but repeatedly
+// past 15s when the suite runs them alongside the other whole-tree scans
+// (classContract, sparkImportBoundary) on a loaded machine. That was the single
+// most frequent false failure while building this branch, and CI runs the full
+// suite on every push. The budget is a flake guard, not a performance
+// assertion — a real regression here would be orders of magnitude, not 2x.
+const STORE_BOUNDARY_SCAN_TIMEOUT_MS = 45_000;
 const STORE_HOOK_CALL_PATTERN = /\buse[A-Z][A-Za-z0-9]*Store\s*\(/g;
 const DOCUMENTED_STORE_BOUNDARY_CALLERS = new Set([
   'src/dataset/index.ts',
