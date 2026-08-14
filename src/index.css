@@ -1728,6 +1728,12 @@ legend {
   --gallery-handle-height: 48px;
   --grip-clearance: 6px;
   position: relative;
+  /* The collapse tab straddles the divider, so 6px of it overhangs the gallery —
+     a later sibling whose thumbnail items are positioned and would otherwise
+     paint over it. The gallery's padding happens to clear the tab today, but
+     that is incidental spacing, not a guarantee. Stays below every layer on the
+     shared scale (controls: 10). */
+  z-index: 1;
   width: 1px;
   background-color: var(--border-color);
   cursor: col-resize;
@@ -1826,11 +1832,16 @@ legend {
    box would eat orbit drags along the viewer's right edge.
    Not idle-hideable — the divider lives outside .scene-3d-container, which is
    where those fade rules are scoped. */
+/* Straddles the divider rather than hanging off its left side. Hanging left put
+   all 12px of the tab inside the viewer, where the control column sits 12px from
+   the same edge — a 1px gap that read as the tab being attached to the toolbar.
+   Centred, it belongs to the divider it actually controls and clears the buttons
+   by 7px, at the cost of 6px over the gallery's left padding. */
 .gallery-collapse-handle {
   position: absolute;
   top: 50%;
   right: 0;
-  transform: translateY(-50%);
+  transform: translate(50%, -50%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1840,8 +1851,7 @@ legend {
   height: var(--gallery-handle-height);
   padding: 0;
   border: 1px solid var(--border-color);
-  border-right: none;
-  border-radius: 4px 0 0 4px;
+  border-radius: 4px;
   background-color: var(--bg-tertiary);
   color: var(--text-secondary);
   cursor: pointer;
