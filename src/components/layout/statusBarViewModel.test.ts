@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { statusBarStyles } from '../../theme';
-import { HOTKEY_INFO_BUTTON_TITLE } from '../modals/hotkeyHelpViewModel';
 import {
   STATUS_BAR_HIDDEN_CLASS_NAME,
   STATUS_BAR_SHORTCUTS_BUTTON_CLASS,
@@ -76,8 +75,9 @@ describe('status bar view model', () => {
 
   it('offers a visible Shortcuts entry point', () => {
     expect(STATUS_BAR_SHORTCUTS_LABEL).toBe('⌨ Shortcuts');
-    // One tooltip string for both entry points into the same panel.
-    expect(STATUS_BAR_SHORTCUTS_TITLE).toBe(HOTKEY_INFO_BUTTON_TITLE);
+    // Sole pointer entry point into the Help panel since the redundant
+    // top-left ⓘ button was dropped: names the panel and its hotkey.
+    expect(STATUS_BAR_SHORTCUTS_TITLE).toBe('Help & keyboard shortcuts (I)');
     expect(STATUS_BAR_SHORTCUTS_BUTTON_CLASS).toBe(
       'text-ds-secondary hover-ds-text-primary cursor-pointer transition-colors'
     );

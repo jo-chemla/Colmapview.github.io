@@ -4,12 +4,6 @@ import { useUIStore } from '../../store';
 import { useHotkeyHelpStoreFacade } from './useHotkeyHelpStoreFacade';
 
 const DEFAULT_FACADE = {
-  touchMode: false,
-  embedMode: false,
-  // Defaults: buttons participate in auto-hide, viewer starts active.
-  autoHideButtons: true,
-  isIdle: false,
-  showAutoHideEditor: false,
   // Panel open state is store-owned so the status bar's Shortcuts entry can
   // open this exact panel.
   showHotkeyHelp: false,
@@ -24,43 +18,32 @@ describe('useHotkeyHelpStoreFacade', () => {
     });
   });
 
-  it('mirrors touch/embed mode and auto-hide chrome state from the UI store', () => {
+  it('exposes only the shared panel open state', () => {
     const { result } = renderHook(() => useHotkeyHelpStoreFacade());
 
     expect(result.current).toEqual(DEFAULT_FACADE);
+    // The top-left ⓘ trigger is gone, so the modal no longer subscribes to the
+    // mode flags or the auto-hide chrome state that only gated that button.
+    expect(result.current).not.toHaveProperty('touchMode');
+    expect(result.current).not.toHaveProperty('embedMode');
+    expect(result.current).not.toHaveProperty('autoHideButtons');
+    expect(result.current).not.toHaveProperty('isIdle');
+    expect(result.current).not.toHaveProperty('showAutoHideEditor');
   });
 
-  it('reflects touch mode changes from the store', () => {
+  it('ignores touch mode, embed mode, and idle chrome changes', () => {
     const { result } = renderHook(() => useHotkeyHelpStoreFacade());
 
     act(() => {
       useUIStore.getState().setTouchMode(true);
-    });
-
-    expect(result.current).toEqual({ ...DEFAULT_FACADE, touchMode: true });
-  });
-
-  it('reflects embed mode changes from the store', () => {
-    const { result } = renderHook(() => useHotkeyHelpStoreFacade());
-
-    act(() => {
       useUIStore.getState().setEmbedMode(true);
-    });
-
-    expect(result.current).toEqual({ ...DEFAULT_FACADE, embedMode: true });
-  });
-
-  it('reflects idle state and the buttons auto-hide toggle from the store', () => {
-    const { result } = renderHook(() => useHotkeyHelpStoreFacade());
-
-    act(() => {
       useUIStore.setState({
         isIdle: true,
         autoHideElements: { ...useUIStore.getState().autoHideElements, buttons: false },
       });
     });
 
-    expect(result.current).toEqual({ ...DEFAULT_FACADE, isIdle: true, autoHideButtons: false });
+    expect(result.current).toEqual(DEFAULT_FACADE);
   });
 
   it('reflects and writes the shared panel open state', () => {

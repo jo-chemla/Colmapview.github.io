@@ -30,19 +30,12 @@ import {
   HOTKEY_HELP_TAB_LIST_CLASS,
   HOTKEY_HELP_TAB_PANEL_CLASS,
   HOTKEY_HELP_TITLE,
-  HOTKEY_INFO_BUTTON_ARIA_LABEL,
-  HOTKEY_INFO_BUTTON_CLASS,
-  HOTKEY_INFO_BUTTON_ICON_CLASS,
-  HOTKEY_INFO_BUTTON_TITLE,
   getHotkeyHelpOverlayStyle,
   getHotkeyHelpPanelStyle,
   getHotkeyHelpSections,
   getHotkeyHelpTabs,
   getHotkeyHelpToggleKeyLabels,
   getAboutLinkHoverColor,
-  getHotkeyInfoButtonClassName,
-  getHotkeyInfoButtonStyle,
-  shouldShowHotkeyInfoButton,
 } from './hotkeyHelpViewModel';
 import {
   ESSENTIAL_FLY_NAV_ROW_ID,
@@ -201,7 +194,7 @@ describe('hotkey help view model', () => {
   });
 });
 
-describe('hotkey info button view model', () => {
+describe('hotkey help toggle labels', () => {
   it('lists both toggle labels for the multi-key help binding', () => {
     expect(getHotkeyHelpToggleKeyLabels()).toEqual(['?', 'I']);
     expect(getHotkeyHelpToggleKeyLabels('shift+/, i')).toEqual(['?', 'I']);
@@ -213,50 +206,23 @@ describe('hotkey info button view model', () => {
     expect(getHotkeyHelpToggleKeyLabels('i')).toEqual(['I']);
   });
 
-  it('shows the info button only on non-touch, non-embed (desktop) views', () => {
-    expect(shouldShowHotkeyInfoButton({ touchMode: false, embedMode: false })).toBe(true);
-    expect(shouldShowHotkeyInfoButton({ touchMode: true, embedMode: false })).toBe(false);
-    expect(shouldShowHotkeyInfoButton({ touchMode: false, embedMode: true })).toBe(false);
-    expect(shouldShowHotkeyInfoButton({ touchMode: true, embedMode: true })).toBe(false);
-  });
-
-  it('pins the info button class string to a transparent, icon-only button', () => {
-    // Revision (2026-07-10): the InfoIcon draws its own circle, so the button is
-    // transparent (no rounded pill, no background blob) and just brightens the
-    // muted icon on hover via an existing utility (hover-ds-text-primary).
-    // transition-all (not transition-colors): the auto-hide fade transitions
-    // opacity too, and the button never moves, so `all` is safe here.
-    expect(HOTKEY_INFO_BUTTON_CLASS).toBe(
-      'fixed top-4 left-4 flex items-center justify-center text-ds-muted hover-ds-text-primary cursor-pointer transition-all'
-    );
-    expect(HOTKEY_INFO_BUTTON_CLASS).toContain('top-4 left-4');
-    expect(HOTKEY_INFO_BUTTON_CLASS).toContain('text-ds-muted');
-    expect(HOTKEY_INFO_BUTTON_CLASS).toContain('hover-ds-text-primary');
-    // No background blob / pill anymore.
-    expect(HOTKEY_INFO_BUTTON_CLASS).not.toContain('rounded-full');
-    expect(HOTKEY_INFO_BUTTON_CLASS).not.toContain('bg-');
-  });
-
-  it('fades the info button with the auto-hide chrome (buttons element)', () => {
-    // User request 2026-07-12: the top-left info button participates in
-    // auto-hide like the rest of the button chrome. Hidden = faded AND
-    // click-through, so an invisible button can never swallow canvas clicks.
-    expect(getHotkeyInfoButtonClassName(false)).toBe(HOTKEY_INFO_BUTTON_CLASS);
-    expect(getHotkeyInfoButtonClassName(true)).toBe(
-      `${HOTKEY_INFO_BUTTON_CLASS} opacity-0 pointer-events-none`
-    );
-  });
-
-  it('exposes stable icon size, title, and aria labels', () => {
-    expect(HOTKEY_INFO_BUTTON_ICON_CLASS).toBe('w-5 h-5');
-    expect(HOTKEY_INFO_BUTTON_TITLE).toBe('Help & keyboard shortcuts (I)');
-    expect(HOTKEY_INFO_BUTTON_ARIA_LABEL).toBe('Show keyboard shortcuts');
-  });
-
-  it('sits above the canvas but below modal overlays via the overlay z-index', () => {
-    expect(getHotkeyInfoButtonStyle()).toEqual({ zIndex: Z_INDEX.overlay });
-    expect(getHotkeyInfoButtonStyle(123)).toEqual({ zIndex: 123 });
-    expect(Z_INDEX.overlay).toBeLessThan(Z_INDEX.modalOverlay);
+  it('exports no floating info-button view model anymore', async () => {
+    // The top-left ⓘ button was dropped once the status bar gained its visible
+    // ⌨ Shortcuts entry into this same panel (2026-08-13); its predicate,
+    // classes, styles, and labels went with it.
+    const viewModel = await import('./hotkeyHelpViewModel');
+    for (const removed of [
+      'shouldShowHotkeyInfoButton',
+      'getHotkeyInfoButtonClassName',
+      'getHotkeyInfoButtonStyle',
+      'HOTKEY_INFO_BUTTON_CLASS',
+      'HOTKEY_INFO_BUTTON_HIDDEN_CLASS',
+      'HOTKEY_INFO_BUTTON_ICON_CLASS',
+      'HOTKEY_INFO_BUTTON_TITLE',
+      'HOTKEY_INFO_BUTTON_ARIA_LABEL',
+    ]) {
+      expect(viewModel).not.toHaveProperty(removed);
+    }
   });
 });
 

@@ -2,7 +2,7 @@ import { Fragment, useId, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { HOTKEYS } from '../../config/hotkeys';
 import { modalStyles } from '../../theme';
-import { CloseIcon, InfoIcon } from '../../icons';
+import { CloseIcon } from '../../icons';
 import { ModalDialogShell } from '../ui/ModalDialogShell';
 import { useHotkeyHelpStoreFacade } from './useHotkeyHelpStoreFacade';
 import {
@@ -32,24 +32,14 @@ import {
   HOTKEY_HELP_TAB_LIST_CLASS,
   HOTKEY_HELP_TAB_PANEL_CLASS,
   HOTKEY_HELP_TITLE,
-  HOTKEY_INFO_BUTTON_ARIA_LABEL,
-  HOTKEY_INFO_BUTTON_ICON_CLASS,
-  HOTKEY_INFO_BUTTON_TITLE,
   getAboutLinkHoverColor,
   getHotkeyHelpOverlayStyle,
   getHotkeyHelpPanelStyle,
   getHotkeyHelpTabs,
   getHotkeyHelpToggleKeyLabels,
-  getHotkeyInfoButtonClassName,
-  getHotkeyInfoButtonStyle,
-  shouldShowHotkeyInfoButton,
   type AboutLink,
   type HotkeyHelpTabId,
 } from './hotkeyHelpViewModel';
-import {
-  getAutoHiddenChromeProps,
-  shouldHideChromeWithButtons,
-} from '../layout/autoHideChromePolicy';
 
 /** Project link with its per-link hover color, as the status bar rendered it. */
 function AboutLinkAnchor({ link }: { link: AboutLink }) {
@@ -93,8 +83,8 @@ function HotkeyHelpAboutPanel() {
 /**
  * Tab bar plus the active tab's body. Mounted only while the panel is open
  * (ModalDialogShell renders nothing when closed), so the selected tab resets to
- * Essentials on every open — from the info button, the hotkey, or the status
- * bar's Shortcuts entry alike — with no cross-component state.
+ * Essentials on every open — from the hotkey or the status bar's Shortcuts
+ * entry alike — with no cross-component state.
  */
 function HotkeyHelpTabs() {
   const [activeTabId, setActiveTabId] = useState<HotkeyHelpTabId>(ESSENTIALS_TAB_ID);
@@ -151,25 +141,19 @@ function HotkeyHelpTabs() {
  * long list no longer floods the page (revision 2026-07-10). The first tab,
  * Essentials, curates the most-used shortcuts and is re-selected every time the
  * panel opens. Toggle with Shift+? (question mark) or I; also opened by the
- * desktop top-left info button and the status bar's Shortcuts entry.
+ * status bar's ⌨ Shortcuts entry, which owns the pointer path into this panel
+ * (the redundant top-left ⓘ button it duplicated was dropped 2026-08-13).
+ *
+ * The component renders nothing at all while the panel is closed.
  */
 export function HotkeyHelpModal() {
   const titleId = useId();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const mode = useHotkeyHelpStoreFacade();
   const {
-    autoHideButtons,
-    isIdle,
-    showAutoHideEditor,
     showHotkeyHelp: isOpen,
     setShowHotkeyHelp,
     toggleHotkeyHelp,
-  } = mode;
-  const hideWithButtons = shouldHideChromeWithButtons({
-    autoHideButtons,
-    isIdle,
-    showAutoHideEditor,
-  });
+  } = useHotkeyHelpStoreFacade();
 
   // Toggle help panel with ? or I (global scope, always available)
   useHotkeys(
@@ -183,64 +167,49 @@ export function HotkeyHelpModal() {
   );
 
   return (
-    <>
-      {shouldShowHotkeyInfoButton(mode) && (
+    <ModalDialogShell
+      isOpen={isOpen}
+      onClose={() => setShowHotkeyHelp(false)}
+      ariaLabelledBy={titleId}
+      // Flex-center the panel and bake the tint into the overlay (mirrors
+      // SplatPickerModal). The overlay captures pointer events, so clicking
+      // outside the panel closes it; the panel class deliberately omits
+      // modalStyles.panel's `absolute`, which would defeat flex centering.
+      overlayClassName="fixed inset-0 flex items-center justify-center bg-ds-void/50"
+      overlayStyle={getHotkeyHelpOverlayStyle()}
+      // Popup surface mirroring SplatPickerModal exactly (bg-ds-tertiary
+      // rounded-lg shadow-ds-lg, no border), kept as a flex column so the
+      // header/tabs/footer stay put while the active tab's rows scroll.
+      panelClassName={`bg-ds-tertiary rounded-lg shadow-ds-lg flex flex-col ${HOTKEY_HELP_PANEL_LAYOUT_CLASS}`}
+      panelStyle={getHotkeyHelpPanelStyle()}
+      initialFocusRef={closeButtonRef}
+    >
+      {/* Header: the app's tool-header bar with its standard title token. */}
+      <div className={HOTKEY_HELP_HEADER_CLASS}>
+        <h2 id={titleId} className={modalStyles.toolHeaderTitle}>{HOTKEY_HELP_TITLE}</h2>
         <button
-          onClick={toggleHotkeyHelp}
-          className={getHotkeyInfoButtonClassName(hideWithButtons)}
-          style={getHotkeyInfoButtonStyle()}
-          title={HOTKEY_INFO_BUTTON_TITLE}
-          aria-label={HOTKEY_INFO_BUTTON_ARIA_LABEL}
-          {...getAutoHiddenChromeProps(hideWithButtons)}
-          data-testid="hotkey-info-button"
+          ref={closeButtonRef}
+          onClick={() => setShowHotkeyHelp(false)}
+          className={modalStyles.toolHeaderClose}
+          title="Close"
         >
-          <InfoIcon className={HOTKEY_INFO_BUTTON_ICON_CLASS} />
+          <CloseIcon className="w-3.5 h-3.5" />
         </button>
-      )}
-      <ModalDialogShell
-        isOpen={isOpen}
-        onClose={() => setShowHotkeyHelp(false)}
-        ariaLabelledBy={titleId}
-        // Flex-center the panel and bake the tint into the overlay (mirrors
-        // SplatPickerModal). The overlay captures pointer events, so clicking
-        // outside the panel closes it; the panel class deliberately omits
-        // modalStyles.panel's `absolute`, which would defeat flex centering.
-        overlayClassName="fixed inset-0 flex items-center justify-center bg-ds-void/50"
-        overlayStyle={getHotkeyHelpOverlayStyle()}
-        // Popup surface mirroring SplatPickerModal exactly (bg-ds-tertiary
-        // rounded-lg shadow-ds-lg, no border), kept as a flex column so the
-        // header/tabs/footer stay put while the active tab's rows scroll.
-        panelClassName={`bg-ds-tertiary rounded-lg shadow-ds-lg flex flex-col ${HOTKEY_HELP_PANEL_LAYOUT_CLASS}`}
-        panelStyle={getHotkeyHelpPanelStyle()}
-        initialFocusRef={closeButtonRef}
-      >
-        {/* Header: the app's tool-header bar with its standard title token. */}
-        <div className={HOTKEY_HELP_HEADER_CLASS}>
-          <h2 id={titleId} className={modalStyles.toolHeaderTitle}>{HOTKEY_HELP_TITLE}</h2>
-          <button
-            ref={closeButtonRef}
-            onClick={() => setShowHotkeyHelp(false)}
-            className={modalStyles.toolHeaderClose}
-            title="Close"
-          >
-            <CloseIcon className="w-3.5 h-3.5" />
-          </button>
-        </div>
+      </div>
 
-        <HotkeyHelpTabs />
+      <HotkeyHelpTabs />
 
-        {/* Footer hint */}
-        <div className={HOTKEY_HELP_FOOTER_CLASS}>
-          {HOTKEY_HELP_FOOTER_PREFIX}{' '}
-          {getHotkeyHelpToggleKeyLabels().map((label, index) => (
-            <Fragment key={label}>
-              {index > 0 && <>{' '}or{' '}</>}
-              <kbd className={HOTKEY_HELP_FOOTER_KEY_CLASS}>{label}</kbd>
-            </Fragment>
-          ))}{' '}
-          {HOTKEY_HELP_FOOTER_SUFFIX}
-        </div>
-      </ModalDialogShell>
-    </>
+      {/* Footer hint */}
+      <div className={HOTKEY_HELP_FOOTER_CLASS}>
+        {HOTKEY_HELP_FOOTER_PREFIX}{' '}
+        {getHotkeyHelpToggleKeyLabels().map((label, index) => (
+          <Fragment key={label}>
+            {index > 0 && <>{' '}or{' '}</>}
+            <kbd className={HOTKEY_HELP_FOOTER_KEY_CLASS}>{label}</kbd>
+          </Fragment>
+        ))}{' '}
+        {HOTKEY_HELP_FOOTER_SUFFIX}
+      </div>
+    </ModalDialogShell>
   );
 }

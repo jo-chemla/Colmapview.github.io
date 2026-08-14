@@ -20,6 +20,13 @@ function pressI() {
   });
 }
 
+/** Opens the panel the way the status bar's ⌨ Shortcuts entry does. */
+function openFromStatusBar() {
+  act(() => {
+    useUIStore.getState().setShowHotkeyHelp(true);
+  });
+}
+
 describe('HotkeyHelpModal', () => {
   afterEach(() => {
     // act(): the panel's open state is store-owned now, so resetting the store
@@ -29,54 +36,17 @@ describe('HotkeyHelpModal', () => {
     });
   });
 
-  it('renders the desktop info button and toggles the panel on click', () => {
+  it('renders no chrome of its own while closed (the top-left info button is gone)', () => {
     useUIStore.setState({ touchMode: false, embedMode: false });
-    renderModal();
+    const { container } = renderModal();
 
-    const button = screen.getByTestId('hotkey-info-button');
-    expect(button).toBeInTheDocument();
-    expect(button).toHaveAttribute('aria-label', 'Show keyboard shortcuts');
+    // The redundant floating ⓘ trigger was dropped once the status bar gained
+    // its visible ⌨ Shortcuts entry: the closed modal now contributes nothing
+    // to the viewport, so it can never overlap the canvas or the corner chrome.
+    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByTestId('hotkey-info-button')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Show keyboard shortcuts')).not.toBeInTheDocument();
     expect(screen.queryByText('Help')).not.toBeInTheDocument();
-
-    fireEvent.click(button);
-    expect(screen.getByText('Help')).toBeInTheDocument();
-
-    fireEvent.click(button);
-    expect(screen.queryByText('Help')).not.toBeInTheDocument();
-  });
-
-  it('fades the info button with the auto-hide chrome when the viewer goes idle', () => {
-    useUIStore.setState({ touchMode: false, embedMode: false, isIdle: true });
-    // Default autoHideElements has buttons: true, so idle alone hides.
-    renderModal();
-
-    const button = screen.getByTestId('hotkey-info-button');
-    expect(button.className).toContain('opacity-0');
-    expect(button.className).toContain('pointer-events-none');
-    expect(button).toHaveAttribute('aria-hidden', 'true');
-    expect(button).toHaveAttribute('tabindex', '-1');
-
-    // Activity returns: the button comes back, focusable again.
-    act(() => {
-      useUIStore.setState({ isIdle: false });
-    });
-    expect(button.className).not.toContain('opacity-0');
-    expect(button).not.toHaveAttribute('aria-hidden', 'true');
-    expect(button).not.toHaveAttribute('tabindex', '-1');
-  });
-
-  it('keeps the info button visible while idle when buttons are excluded from auto-hide', () => {
-    useUIStore.setState({
-      touchMode: false,
-      embedMode: false,
-      isIdle: true,
-      autoHideElements: { ...useUIStore.getState().autoHideElements, buttons: false },
-    });
-    renderModal();
-
-    const button = screen.getByTestId('hotkey-info-button');
-    expect(button.className).not.toContain('opacity-0');
-    expect(button).not.toHaveAttribute('aria-hidden', 'true');
   });
 
   it('toggles the panel with the i hotkey and closes on Escape', () => {
@@ -92,31 +62,54 @@ describe('HotkeyHelpModal', () => {
     expect(screen.queryByText('Help')).not.toBeInTheDocument();
   });
 
-  it('hides the button in touch mode but keeps the i hotkey working', () => {
-    useUIStore.setState({ touchMode: true, embedMode: false });
+  it('toggles the panel shut with a second i press', () => {
+    useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
-    expect(screen.queryByTestId('hotkey-info-button')).not.toBeInTheDocument();
+    pressI();
+    expect(screen.getByText('Help')).toBeInTheDocument();
+
+    pressI();
+    expect(screen.queryByText('Help')).not.toBeInTheDocument();
+  });
+
+  it('keeps the i hotkey working in touch mode', () => {
+    useUIStore.setState({ touchMode: true, embedMode: false });
+    renderModal();
 
     pressI();
     expect(screen.getByText('Help')).toBeInTheDocument();
   });
 
-  it('hides the button in embed mode but keeps the i hotkey working', () => {
+  it('keeps the i hotkey working in embed mode', () => {
     useUIStore.setState({ touchMode: false, embedMode: true });
     renderModal();
 
-    expect(screen.queryByTestId('hotkey-info-button')).not.toBeInTheDocument();
-
     pressI();
     expect(screen.getByText('Help')).toBeInTheDocument();
+  });
+
+  it('never fades with the auto-hide button chrome once open', () => {
+    // The panel is a modal, not corner chrome: idle-fading it would hide a
+    // dialog the user just opened. Only the removed ⓘ trigger participated in
+    // the buttons auto-hide group.
+    // Default autoHideElements has buttons: true, so idle alone used to hide.
+    useUIStore.setState({ touchMode: false, embedMode: false, isIdle: true });
+    const { baseElement } = renderModal();
+    openFromStatusBar();
+
+    expect(screen.getByText('Help')).toBeInTheDocument();
+    expect(baseElement.querySelector('.opacity-0')).toBeNull();
+    expect(baseElement.querySelector('.pointer-events-none')).toBeNull();
+    expect(baseElement.querySelector('[aria-hidden="true"]')).toBeNull();
+    expect(screen.getByRole('tab', { name: 'Essentials' })).toBeVisible();
   });
 
   it('shows both the ? and I toggle keys in the footer', () => {
     useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
-    fireEvent.click(screen.getByTestId('hotkey-info-button'));
+    openFromStatusBar();
 
     const questionKey = screen.getByText('?');
     const letterKey = screen.getByText('I');
@@ -128,7 +121,7 @@ describe('HotkeyHelpModal', () => {
     useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
-    fireEvent.click(screen.getByTestId('hotkey-info-button'));
+    openFromStatusBar();
 
     expect(screen.getByRole('tab', { name: 'Essentials' })).toHaveAttribute(
       'aria-selected',
@@ -151,7 +144,7 @@ describe('HotkeyHelpModal', () => {
     useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
-    fireEvent.click(screen.getByTestId('hotkey-info-button'));
+    openFromStatusBar();
 
     const panel = screen.getByRole('tabpanel');
     expect(panel.id).toBeTruthy();
@@ -175,7 +168,7 @@ describe('HotkeyHelpModal', () => {
     useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
-    fireEvent.click(screen.getByTestId('hotkey-info-button'));
+    openFromStatusBar();
     expect(screen.getByText('Select camera')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('tab', { name: 'Camera Controls' }));
@@ -194,18 +187,17 @@ describe('HotkeyHelpModal', () => {
     useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
-    const button = screen.getByTestId('hotkey-info-button');
-    fireEvent.click(button); // open
+    pressI(); // open
     fireEvent.click(screen.getByRole('tab', { name: 'Camera Controls' }));
     expect(screen.getByRole('tab', { name: 'Camera Controls' })).toHaveAttribute(
       'aria-selected',
       'true'
     );
 
-    fireEvent.click(button); // close
+    pressI(); // close
     expect(screen.queryByText('Help')).not.toBeInTheDocument();
 
-    fireEvent.click(button); // reopen
+    pressI(); // reopen
     expect(screen.getByRole('tab', { name: 'Essentials' })).toHaveAttribute(
       'aria-selected',
       'true'
@@ -219,9 +211,7 @@ describe('HotkeyHelpModal', () => {
 
     expect(screen.queryByText('Help')).not.toBeInTheDocument();
 
-    act(() => {
-      useUIStore.getState().setShowHotkeyHelp(true);
-    });
+    openFromStatusBar();
 
     expect(screen.getByText('Help')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Essentials' })).toHaveAttribute(
@@ -234,7 +224,7 @@ describe('HotkeyHelpModal', () => {
     useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
-    fireEvent.click(screen.getByTestId('hotkey-info-button'));
+    openFromStatusBar();
     fireEvent.click(screen.getByRole('tab', { name: 'About' }));
 
     expect(screen.getByText('ColmapView by OpsiClear')).toBeInTheDocument();
