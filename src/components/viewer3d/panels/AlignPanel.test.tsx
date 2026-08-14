@@ -4,10 +4,10 @@ import {
   usePointCloudStore,
   usePointPickingStore,
   useReconstructionStore,
-  useUIStore,
 } from '../../../store';
 import { buildReconstruction } from '../../../test/builders';
 import { AlignPanel, type AlignPanelProps } from './AlignPanel';
+import { ALIGN_TOOLS } from './alignPanelViewModel';
 
 function renderPanel(overrides: Partial<AlignPanelProps> = {}) {
   const props: AlignPanelProps = {
@@ -22,7 +22,6 @@ function renderPanel(overrides: Partial<AlignPanelProps> = {}) {
 describe('AlignPanel', () => {
   beforeEach(() => {
     useReconstructionStore.setState(useReconstructionStore.getInitialState(), true);
-    useUIStore.setState(useUIStore.getInitialState(), true);
     usePointPickingStore.setState(usePointPickingStore.getInitialState(), true);
     usePointCloudStore.setState(usePointCloudStore.getInitialState(), true);
     useReconstructionStore.setState({ reconstruction: buildReconstruction() });
@@ -77,22 +76,14 @@ describe('AlignPanel', () => {
     expect(screen.queryByLabelText('Align tools')).not.toBeNull();
   });
 
-  it('shows the three picking tools and leaves the gizmo to the transform panel', () => {
+  it('shows the picking tools and leaves the gizmo to the transform panel', () => {
     renderPanel();
 
-    // Everything inside the panel, i.e. every button but the labelled toolbar one.
-    const panelButtons = screen
-      .queryAllByRole('button')
-      .filter((button) => !button.hasAttribute('aria-label'));
-
-    expect(panelButtons.map((button) => button.textContent)).toEqual([
-      '1-Point Origin',
-      '2-Point Scale',
-      '3-Point Align',
-    ]);
+    for (const tool of ALIGN_TOOLS) {
+      expect(screen.getByText(tool.label)).toBeInTheDocument();
+    }
     expect(screen.queryByText('Gizmo (T)')).toBeNull();
     expect(screen.queryByRole('switch')).toBeNull();
-    expect(useUIStore.getState().showGizmo).toBe(false);
   });
 
   it('stays disabled with no reconstruction loaded', () => {

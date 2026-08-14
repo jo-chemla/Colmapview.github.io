@@ -5,10 +5,7 @@ import {
   formatTransformDegreesValue,
   formatTransformScaleValue,
   formatTransformTranslationValue,
-  getNextTransformPickingMode,
-  getPointCloudStateForPickingMode,
   getTransformPanelState,
-  getTransformPickingButtonState,
   radiansToDegrees,
 } from './transformPanelViewModel';
 
@@ -66,54 +63,6 @@ describe('transform panel view-model helpers', () => {
       canReloadDroppedFiles: true,
       canRunFloorDetection: true,
       tooltip: 'Transform (T): On (dbl-click to apply)',
-    });
-  });
-
-  it('toggles target picking modes', () => {
-    expect(getNextTransformPickingMode('off', 'origin-1pt')).toBe('origin-1pt');
-    expect(getNextTransformPickingMode('origin-1pt', 'origin-1pt')).toBe('off');
-    expect(getNextTransformPickingMode('distance-2pt', 'normal-3pt')).toBe('normal-3pt');
-  });
-
-  it('returns picking button activity and next mode', () => {
-    expect(getTransformPickingButtonState('origin-1pt', 'origin-1pt')).toEqual({
-      isActive: true,
-      nextMode: 'off',
-    });
-    expect(getTransformPickingButtonState('distance-2pt', 'origin-1pt')).toEqual({
-      isActive: false,
-      nextMode: 'origin-1pt',
-    });
-  });
-
-  it('makes point cloud state pickable when entering point-picking modes', () => {
-    expect(getPointCloudStateForPickingMode({
-      showPointCloud: false,
-      colorMode: 'trackLength',
-    })).toEqual({
-      showPointCloud: true,
-      colorMode: 'rgb',
-    });
-    expect(getPointCloudStateForPickingMode({
-      showPointCloud: true,
-      colorMode: 'splats',
-    })).toEqual({
-      showPointCloud: true,
-      colorMode: 'splatPoints',
-    });
-    expect(getPointCloudStateForPickingMode({
-      showPointCloud: true,
-      colorMode: 'splatPoints',
-    })).toEqual({
-      showPointCloud: true,
-      colorMode: 'splatPoints',
-    });
-    expect(getPointCloudStateForPickingMode({
-      showPointCloud: true,
-      colorMode: 'rgb',
-    })).toEqual({
-      showPointCloud: true,
-      colorMode: 'rgb',
     });
   });
 });

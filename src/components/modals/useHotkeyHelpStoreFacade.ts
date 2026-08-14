@@ -10,11 +10,11 @@ export interface HotkeyHelpStoreFacade {
 
 /**
  * Store facade for HotkeyHelpModal (componentStoreBoundary: components never
- * call use*Store directly). Exposes only the shared open state for the panel:
- * the touch/embed flags and the auto-hide chrome state that used to live here
- * existed for the top-left ⓘ trigger, which was dropped once the status bar
- * gained its visible ⌨ Shortcuts entry (2026-08-13). The panel itself is a
- * modal — it never fades with the button chrome.
+ * call use*Store directly). Deliberately narrow: it exposes only the shared
+ * open state. The touch/embed flags and the auto-hide chrome state it used to
+ * carry existed for the top-left ⓘ trigger, which the status bar's ⌨ Shortcuts
+ * entry replaced. The panel itself is a modal — it never fades with the button
+ * chrome, so it needs none of them.
  */
 export function useHotkeyHelpStoreFacade(): HotkeyHelpStoreFacade {
   const showHotkeyHelp = useUIStore((s) => s.showHotkeyHelp);

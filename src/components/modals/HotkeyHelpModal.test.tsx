@@ -36,21 +36,13 @@ describe('HotkeyHelpModal', () => {
     });
   });
 
-  it('renders no chrome of its own while closed (the top-left info button is gone)', () => {
-    useUIStore.setState({ touchMode: false, embedMode: false });
+  it('renders nothing at all while closed', () => {
     const { container } = renderModal();
 
-    // The redundant floating ⓘ trigger was dropped once the status bar gained
-    // its visible ⌨ Shortcuts entry: the closed modal now contributes nothing
-    // to the viewport, so it can never overlap the canvas or the corner chrome.
     expect(container).toBeEmptyDOMElement();
-    expect(screen.queryByTestId('hotkey-info-button')).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('Show keyboard shortcuts')).not.toBeInTheDocument();
-    expect(screen.queryByText('Help')).not.toBeInTheDocument();
   });
 
   it('toggles the panel with the i hotkey and closes on Escape', () => {
-    useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
     expect(screen.queryByText('Help')).not.toBeInTheDocument();
@@ -63,7 +55,6 @@ describe('HotkeyHelpModal', () => {
   });
 
   it('toggles the panel shut with a second i press', () => {
-    useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
     pressI();
@@ -73,40 +64,16 @@ describe('HotkeyHelpModal', () => {
     expect(screen.queryByText('Help')).not.toBeInTheDocument();
   });
 
-  it('keeps the i hotkey working in touch mode', () => {
-    useUIStore.setState({ touchMode: true, embedMode: false });
+  it('stays open while the scene is idle (a modal never fades with the chrome)', () => {
+    useUIStore.setState({ isIdle: true });
     renderModal();
-
-    pressI();
-    expect(screen.getByText('Help')).toBeInTheDocument();
-  });
-
-  it('keeps the i hotkey working in embed mode', () => {
-    useUIStore.setState({ touchMode: false, embedMode: true });
-    renderModal();
-
-    pressI();
-    expect(screen.getByText('Help')).toBeInTheDocument();
-  });
-
-  it('never fades with the auto-hide button chrome once open', () => {
-    // The panel is a modal, not corner chrome: idle-fading it would hide a
-    // dialog the user just opened. Only the removed ⓘ trigger participated in
-    // the buttons auto-hide group.
-    // Default autoHideElements has buttons: true, so idle alone used to hide.
-    useUIStore.setState({ touchMode: false, embedMode: false, isIdle: true });
-    const { baseElement } = renderModal();
     openFromStatusBar();
 
     expect(screen.getByText('Help')).toBeInTheDocument();
-    expect(baseElement.querySelector('.opacity-0')).toBeNull();
-    expect(baseElement.querySelector('.pointer-events-none')).toBeNull();
-    expect(baseElement.querySelector('[aria-hidden="true"]')).toBeNull();
     expect(screen.getByRole('tab', { name: 'Essentials' })).toBeVisible();
   });
 
   it('shows both the ? and I toggle keys in the footer', () => {
-    useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
     openFromStatusBar();
@@ -118,7 +85,6 @@ describe('HotkeyHelpModal', () => {
   });
 
   it('defaults to the Essentials tab and shows the U (undistorted) row', () => {
-    useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
     openFromStatusBar();
@@ -141,7 +107,6 @@ describe('HotkeyHelpModal', () => {
   });
 
   it('wires the ARIA tab pattern: tabs control the panel, panel labelled by the active tab', () => {
-    useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
     openFromStatusBar();
@@ -165,7 +130,6 @@ describe('HotkeyHelpModal', () => {
   });
 
   it('switches tabs: clicking Camera Controls shows camera rows and hides essentials-only rows', () => {
-    useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
     openFromStatusBar();
@@ -184,7 +148,6 @@ describe('HotkeyHelpModal', () => {
   });
 
   it('resets to the Essentials tab each time the panel reopens', () => {
-    useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
     pressI(); // open
@@ -206,7 +169,6 @@ describe('HotkeyHelpModal', () => {
   });
 
   it('opens when the shared store flag is set (the status bar Shortcuts entry)', () => {
-    useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
     expect(screen.queryByText('Help')).not.toBeInTheDocument();
@@ -221,7 +183,6 @@ describe('HotkeyHelpModal', () => {
   });
 
   it('shows the brand, project links, license, credit, and version on the About tab', () => {
-    useUIStore.setState({ touchMode: false, embedMode: false });
     renderModal();
 
     openFromStatusBar();

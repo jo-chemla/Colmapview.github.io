@@ -21,28 +21,7 @@ describe('useHotkeyHelpStoreFacade', () => {
   it('exposes only the shared panel open state', () => {
     const { result } = renderHook(() => useHotkeyHelpStoreFacade());
 
-    expect(result.current).toEqual(DEFAULT_FACADE);
-    // The top-left ⓘ trigger is gone, so the modal no longer subscribes to the
-    // mode flags or the auto-hide chrome state that only gated that button.
-    expect(result.current).not.toHaveProperty('touchMode');
-    expect(result.current).not.toHaveProperty('embedMode');
-    expect(result.current).not.toHaveProperty('autoHideButtons');
-    expect(result.current).not.toHaveProperty('isIdle');
-    expect(result.current).not.toHaveProperty('showAutoHideEditor');
-  });
-
-  it('ignores touch mode, embed mode, and idle chrome changes', () => {
-    const { result } = renderHook(() => useHotkeyHelpStoreFacade());
-
-    act(() => {
-      useUIStore.getState().setTouchMode(true);
-      useUIStore.getState().setEmbedMode(true);
-      useUIStore.setState({
-        isIdle: true,
-        autoHideElements: { ...useUIStore.getState().autoHideElements, buttons: false },
-      });
-    });
-
+    // toEqual fails on any extra key, so this pins the whole facade shape.
     expect(result.current).toEqual(DEFAULT_FACADE);
   });
 

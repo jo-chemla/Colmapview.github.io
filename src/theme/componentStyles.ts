@@ -451,15 +451,6 @@ export const cardStyles = {
 } as const;
 
 // ============================================
-// SEPARATOR STYLES
-// ============================================
-
-export const separatorStyles = {
-  vertical: 'w-1 bg-ds-tertiary hover-bg-ds-accent transition-colors cursor-col-resize',
-  horizontal: 'h-1 bg-ds-tertiary hover-bg-ds-accent transition-colors cursor-row-resize',
-} as const;
-
-// ============================================
 // TOGGLE SWITCH STYLES (Single source of truth)
 // ============================================
 

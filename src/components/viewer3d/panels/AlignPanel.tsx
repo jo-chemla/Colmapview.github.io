@@ -10,8 +10,8 @@ import {
   ALIGN_TOOLS,
   getAlignPanelState,
   getAlignPickingActivation,
+  getAlignPickingButtonState,
 } from './alignPanelViewModel';
-import { getTransformPickingButtonState } from './transformPanelViewModel';
 import { useAlignPanelStoreFacade } from './useAlignPanelStoreFacade';
 
 const styles = controlPanelStyles;
@@ -70,7 +70,7 @@ export const AlignPanel = memo(function AlignPanel({
       <div className={styles.panelContent}>
         <div className={styles.presetGroup}>
           {ALIGN_TOOLS.map((tool) => {
-            const buttonState = getTransformPickingButtonState(pickingMode, tool.mode);
+            const buttonState = getAlignPickingButtonState(pickingMode, tool.mode);
 
             return (
               <button

@@ -1,5 +1,4 @@
 import type { ColorMode, PointPickingMode } from '../../../store';
-import { getPointCloudStateForPickingMode } from './transformPanelViewModel';
 
 type ActiveAlignPickingMode = Exclude<PointPickingMode, 'off'>;
 
@@ -11,9 +10,9 @@ export interface AlignToolDescriptor {
 
 /**
  * The point-picking alignment tools, in the order the context menu lists them.
- * Labels and tooltips intentionally match the context-menu entries and the
- * Transform panel presets: these are alternative entry points into the same
- * store actions, not a second set of tools.
+ * Labels and tooltips intentionally match the context-menu entries: the menu is
+ * the only other entry point into these same store actions, not a second set of
+ * tools.
  */
 export const ALIGN_TOOLS: readonly AlignToolDescriptor[] = [
   {
@@ -42,6 +41,16 @@ export interface AlignPanelState {
   hint: string;
   isPicking: boolean;
   activeToolLabel: string | null;
+}
+
+export interface AlignPickingButtonState {
+  isActive: boolean;
+  nextMode: PointPickingMode;
+}
+
+interface PointCloudPickingVisibilityState {
+  showPointCloud: boolean;
+  colorMode: ColorMode;
 }
 
 export interface AlignPickingActivation {
@@ -81,11 +90,44 @@ export function getAlignPanelState(pickingMode: PointPickingMode): AlignPanelSta
   };
 }
 
+function getNextAlignPickingMode(
+  currentMode: PointPickingMode,
+  targetMode: ActiveAlignPickingMode
+): PointPickingMode {
+  return currentMode === targetMode ? 'off' : targetMode;
+}
+
+/** A tool row is lit while its own mode is armed, and disarms it when clicked again. */
+export function getAlignPickingButtonState(
+  currentMode: PointPickingMode,
+  targetMode: ActiveAlignPickingMode
+): AlignPickingButtonState {
+  return {
+    isActive: currentMode === targetMode,
+    nextMode: getNextAlignPickingMode(currentMode, targetMode),
+  };
+}
+
+function getPointCloudStateForPickingMode({
+  showPointCloud,
+  colorMode,
+}: PointCloudPickingVisibilityState): PointCloudPickingVisibilityState {
+  if (!showPointCloud) {
+    return { showPointCloud: true, colorMode: 'rgb' };
+  }
+
+  if (colorMode === 'splats') {
+    return { showPointCloud: true, colorMode: 'splatPoints' };
+  }
+
+  return { showPointCloud, colorMode };
+}
+
 /**
- * Arming a picking tool must also make points pickable — the context menu and
- * the Transform panel both force the point cloud visible and swap the splats
- * color mode before setting the mode. Reuses that shared helper so the align
- * panel cannot drift into silently arming a tool with nothing to click.
+ * Arming a picking tool must also make points pickable: splats are not
+ * ray-castable and a hidden cloud offers nothing to click. Both arming sites —
+ * this panel and the context menu — route through here, so the rule has exactly
+ * one owner and neither can drift into arming a tool with nothing to click.
  */
 export function getAlignPickingActivation({
   nextMode,

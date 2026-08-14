@@ -34,7 +34,7 @@ describe('useAlignPanelStoreFacade', () => {
   it('leaves the gizmo to the transform panel and exposes no UI slice', () => {
     const { result } = renderHook(() => useAlignPanelStoreFacade());
 
-    expect(Object.keys(result.current)).toEqual(['data', 'pointPicking', 'pointCloud']);
+    expect(Object.keys(result.current).sort()).toEqual(['data', 'pointCloud', 'pointPicking']);
   });
 
   it('routes point-picking and point-cloud actions back to owning stores', () => {

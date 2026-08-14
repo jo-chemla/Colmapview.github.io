@@ -5,6 +5,7 @@ import {
   ALIGN_TOOLS,
   getAlignPanelState,
   getAlignPickingActivation,
+  getAlignPickingButtonState,
   getAlignToolLabel,
 } from './alignPanelViewModel';
 
@@ -42,6 +43,21 @@ describe('align panel view-model helpers', () => {
     });
   });
 
+  it('lights the armed tool row and makes its next click the off-switch', () => {
+    expect(getAlignPickingButtonState('origin-1pt', 'origin-1pt')).toEqual({
+      isActive: true,
+      nextMode: 'off',
+    });
+    expect(getAlignPickingButtonState('distance-2pt', 'origin-1pt')).toEqual({
+      isActive: false,
+      nextMode: 'origin-1pt',
+    });
+    expect(getAlignPickingButtonState('off', 'normal-3pt')).toEqual({
+      isActive: false,
+      nextMode: 'normal-3pt',
+    });
+  });
+
   it('forces the point cloud pickable when arming a tool', () => {
     expect(getAlignPickingActivation({
       nextMode: 'origin-1pt',
@@ -71,6 +87,17 @@ describe('align panel view-model helpers', () => {
       colorMode: 'rgb',
     })).toEqual({
       pickingMode: 'normal-3pt',
+      showPointCloud: null,
+      colorMode: null,
+    });
+
+    // Already swapped to splat points by an earlier arming: nothing left to do.
+    expect(getAlignPickingActivation({
+      nextMode: 'origin-1pt',
+      showPointCloud: true,
+      colorMode: 'splatPoints',
+    })).toEqual({
+      pickingMode: 'origin-1pt',
       showPointCloud: null,
       colorMode: null,
     });

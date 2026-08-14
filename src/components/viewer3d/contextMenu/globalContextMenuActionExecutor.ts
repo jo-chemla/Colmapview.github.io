@@ -32,7 +32,7 @@ import {
   getNextPointSize,
   getNextSelectionColorMenuState,
 } from './globalContextMenuViewModel';
-import { getPointCloudStateForPickingMode } from '../panels/transformPanelViewModel';
+import { getAlignPickingActivation } from '../panels/alignPanelViewModel';
 
 type MaybePromise<T> = T | Promise<T>;
 type Setter<T> = (value: T) => void;
@@ -131,24 +131,25 @@ export interface GlobalContextMenuActionExecutorDeps {
   openEditPopup: () => void;
 }
 
+/** Same arming rule as the Align panel's rows — see getAlignPickingActivation. */
 function setPickingModeWithPickablePoints(
   deps: GlobalContextMenuActionExecutorDeps,
   nextMode: PointPickingMode
 ): void {
-  if (nextMode !== 'off') {
-    const nextPointState = getPointCloudStateForPickingMode({
-      showPointCloud: deps.showPointCloud,
-      colorMode: deps.colorMode,
-    });
-    if (nextPointState.showPointCloud !== deps.showPointCloud) {
-      deps.setShowPointCloud(nextPointState.showPointCloud);
-    }
-    if (nextPointState.colorMode !== deps.colorMode) {
-      deps.setColorMode(nextPointState.colorMode);
-    }
+  const activation = getAlignPickingActivation({
+    nextMode,
+    showPointCloud: deps.showPointCloud,
+    colorMode: deps.colorMode,
+  });
+
+  if (activation.showPointCloud !== null) {
+    deps.setShowPointCloud(activation.showPointCloud);
+  }
+  if (activation.colorMode !== null) {
+    deps.setColorMode(activation.colorMode);
   }
 
-  deps.setPickingMode(nextMode);
+  deps.setPickingMode(activation.pickingMode);
 }
 
 export async function executeGlobalContextMenuAction(

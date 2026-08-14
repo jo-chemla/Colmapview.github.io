@@ -55,7 +55,7 @@ describe('useTransformPanelStoreFacade', () => {
   it('leaves point picking to the align panel and subscribes to neither picking store', () => {
     const { result } = renderHook(() => useTransformPanelStoreFacade());
 
-    expect(Object.keys(result.current)).toEqual(['data', 'transform', 'ui', 'actions']);
+    expect(Object.keys(result.current).sort()).toEqual(['actions', 'data', 'transform', 'ui']);
   });
 
   it('routes transform and UI actions back to owning stores', () => {
