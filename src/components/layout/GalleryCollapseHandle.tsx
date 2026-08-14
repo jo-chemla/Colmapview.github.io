@@ -8,6 +8,8 @@ import { useAppLayoutStoreFacade } from './useAppLayoutStoreFacade';
 export interface GalleryCollapseHandleProps {
   /** AppLayout's resize-drag starter, attached only while the gallery has width. */
   onResizeMouseDown: (event: MouseEvent) => void;
+  /** True for the whole resize drag, including after the pointer leaves the divider. */
+  isResizing: boolean;
 }
 
 /**
@@ -23,9 +25,14 @@ export interface GalleryCollapseHandleProps {
  * the first mousedown with no drag threshold, so a bubbling press would flash
  * the col-resize cursor and could snap the panel width in the same gesture that
  * toggles it.
+ *
+ * `data-resizing` is what keeps the grip lit for the whole drag: the pointer
+ * leaves this 9px strip routinely (past the width clamp the divider stops
+ * following the cursor), and CSS `:active` does not survive that.
  */
 export const GalleryCollapseHandle = memo(function GalleryCollapseHandle({
   onResizeMouseDown,
+  isResizing,
 }: GalleryCollapseHandleProps) {
   const {
     data: {
@@ -50,6 +57,7 @@ export const GalleryCollapseHandle = memo(function GalleryCollapseHandle({
     <div
       className="resize-handle"
       data-collapsed={handleState.isCollapsed ? 'true' : undefined}
+      data-resizing={isResizing ? 'true' : undefined}
       onMouseDown={handleState.canResize ? onResizeMouseDown : undefined}
     >
       <button

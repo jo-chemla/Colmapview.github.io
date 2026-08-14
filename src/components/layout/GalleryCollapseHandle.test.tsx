@@ -3,8 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useUIStore } from '../../store/stores/uiStore';
 import { GalleryCollapseHandle } from './GalleryCollapseHandle';
 
-function renderHandle(onResizeMouseDown = vi.fn()) {
-  const utils = render(<GalleryCollapseHandle onResizeMouseDown={onResizeMouseDown} />);
+function renderHandle(onResizeMouseDown = vi.fn(), isResizing = false) {
+  const utils = render(
+    <GalleryCollapseHandle onResizeMouseDown={onResizeMouseDown} isResizing={isResizing} />
+  );
   return { ...utils, onResizeMouseDown };
 }
 
@@ -62,6 +64,17 @@ describe('GalleryCollapseHandle', () => {
 
     fireEvent.mouseDown(getDivider(collapsed.container));
     expect(onResizeMouseDown).toHaveBeenCalledTimes(1);
+  });
+
+  it('marks the divider for the whole drag, not just while it is pressed', () => {
+    // The CSS lit state hangs off this attribute because :active dies the
+    // moment the pointer leaves the 9px strip, which a resize drag always does.
+    const { container } = renderHandle(vi.fn(), false);
+    expect(getDivider(container).dataset.resizing).toBeUndefined();
+
+    cleanup();
+    const dragging = renderHandle(vi.fn(), true);
+    expect(getDivider(dragging.container).dataset.resizing).toBe('true');
   });
 
   it('renders nothing in embed mode', () => {

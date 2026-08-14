@@ -1716,15 +1716,13 @@ legend {
    RESIZE HANDLE
    ============================================ */
 
-/* The viewer↔gallery divider. Three layers, and only the first is permanent:
-   the 1px hairline (the element itself), a transparent grab strip that widens
-   the pointer target, and a rectangular grip that fades in on hover. Ported
-   from the ocraw hub's divider, which is the same idea with the same tokens —
-   an invisible strip carrying a small bar that lights up when you reach for it.
-   The one structural difference: ocraw's strip is a transparent overlay, ours
-   IS the visible hairline, so the hairline stays put and only the grip is
-   hover-revealed. */
+/* The viewer↔gallery divider: a 1px hairline (the element itself) carrying a
+   transparent grab strip and a rectangular grip that lights up when you reach
+   for it. The two lengths below are the grip's contract with the collapse
+   chevron it frames — see the grip rule. */
 .resize-handle {
+  --gallery-handle-height: 48px;
+  --grip-clearance: 6px;
   position: relative;
   width: 1px;
   background-color: var(--border-color);
@@ -1732,16 +1730,11 @@ legend {
   flex-shrink: 0;
 }
 
-/* Grab strip. A 1px target is far below a comfortable pointer target, so this
-   pseudo widens it to 9px — 4px of overhang each side, which clears the viewer's
-   control column (12px inset) and stops short of the gallery's content box.
-   Absolutely positioned, so it adds no width to the flex row: the viewer/gallery
-   split is byte-identical with and without it. Hits on generated content are
-   attributed to the originating element, so a press anywhere in the strip still
-   starts AppLayout's resize drag and still shows `cursor: col-resize`.
+/* Grab strip: widens a 1px target to a comfortable 9px without adding width to
+   the flex row.
    ::before, not ::after: an absolutely positioned ::before paints — and so
    hit-tests — BELOW the element's positioned children, so the collapse chevron
-   keeps winning every event inside its own 12x48 box. */
+   keeps winning every event inside its own box. */
 .resize-handle::before {
   content: '';
   position: absolute;
@@ -1750,64 +1743,59 @@ legend {
   left: -4px;
   width: 9px;
   background-color: transparent;
-  transition: background-color 0.15s ease;
+  transition: background-color var(--transition-base);
 }
 
-.resize-handle:hover::before,
-.resize-handle:active::before {
-  background-color: var(--accent-dim);
-}
-
-/* The grip: a 2px rectangular bar, invisible at rest, that fades in and grows on
-   hover — but split into two segments with a 60px gap, because the collapse
-   chevron is 48px tall and vertically centred on this same divider. One centred
-   bar would sit entirely behind the chevron's opaque tab and read as a rendering
-   fault; two segments framing it read as one handle that the chevron is set
-   into. The 60px gap leaves 6px of clearance above and below the tab, and the
-   two segments together carry exactly the reference's ink (2x20px at rest,
-   2x30px on hover).
+/* The grip: a 2px bar split into two segments framing the collapse chevron,
+   which is centred on this same divider — one continuous bar would sit behind
+   the chevron's opaque tab and read as a rendering fault. The transparent gap
+   is the chevron's own height plus clearance on each side, so the two lengths
+   are read from the same custom properties the chevron sizes itself from.
    One pseudo paints both segments via a gradient with a transparent middle,
-   which keeps the chevron's DOM untouched. `pointer-events: none` so the grip
-   can never intercept a chevron click even though ::after paints above it.
-   Glow: the reference escalates one dim accent from 8px to 12px of blur; ours
-   uses --accent-focus (--accent-dim is spent on the strip tint above and is too
-   faint at 12% alpha to register as a glow) and escalates 3px→5px, drop-shadow
-   rather than box-shadow so the halo follows the two segments instead of
-   boxing the transparent gap behind the chevron. */
+   keeping the chevron's DOM untouched. `pointer-events: none` so the grip can
+   never intercept a chevron click even though ::after paints above it.
+   height is deliberately NOT transitioned: --grip-segment is an unregistered
+   custom property and snaps, so animating height would shrink the gap below
+   the chevron mid-transition — the exact artifact the two segments prevent. */
 .resize-handle::after {
   --grip-segment: 20px;
-  --grip-ink: var(--border-color);
   content: '';
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 2px;
-  height: calc(60px + 2 * var(--grip-segment));
+  height: calc(
+    var(--gallery-handle-height) + 2 * var(--grip-clearance) + 2 * var(--grip-segment)
+  );
   border-radius: 1px;
   background-image: linear-gradient(
     to bottom,
-    var(--grip-ink) 0 var(--grip-segment),
+    var(--accent) 0 var(--grip-segment),
     transparent var(--grip-segment) calc(100% - var(--grip-segment)),
-    var(--grip-ink) calc(100% - var(--grip-segment)) 100%
+    var(--accent) calc(100% - var(--grip-segment)) 100%
   );
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.15s ease, height 0.15s ease, filter 0.15s ease;
+  transition: opacity var(--transition-base), filter var(--transition-base);
 }
 
-.resize-handle:hover::after {
+/* Lit while reaching for the divider, and for the whole drag. data-resizing,
+   not :active: Chrome drops :active as soon as the pointer leaves the element,
+   and a resize drag routinely leaves this 9px strip — past the width clamp the
+   divider stops tracking the cursor entirely — so :active went dark exactly
+   when the feedback matters. AppLayout force-sets the body cursor for the same
+   reason. */
+.resize-handle:hover::before,
+.resize-handle[data-resizing='true']::before {
+  background-color: var(--accent-dim);
+}
+
+.resize-handle:hover::after,
+.resize-handle[data-resizing='true']::after {
   --grip-segment: 30px;
-  --grip-ink: var(--accent);
   opacity: 1;
   filter: drop-shadow(0 0 3px var(--accent-focus));
-}
-
-.resize-handle:active::after {
-  --grip-segment: 30px;
-  --grip-ink: var(--accent);
-  opacity: 1;
-  filter: drop-shadow(0 0 5px var(--accent-focus));
 }
 
 /* Collapsed gallery: the hairline stays (it carries the collapse handle, the
@@ -1843,7 +1831,9 @@ legend {
   align-items: center;
   justify-content: center;
   width: 12px;
-  height: 48px;
+  /* Same property the grip's transparent gap is sized from, so the two can
+     never disagree about how much room the chevron needs. */
+  height: var(--gallery-handle-height);
   padding: 0;
   border: 1px solid var(--border-color);
   border-right: none;

@@ -185,7 +185,7 @@ export function AppLayout() {
         {/* Resize handle - hairline with hover highlight, carrying the collapse
             chevron. Rendered whether or not the gallery is collapsed (hidden in
             embed mode only), so the edge affordance survives collapse. */}
-        <GalleryCollapseHandle onResizeMouseDown={handleMouseDown} />
+        <GalleryCollapseHandle onResizeMouseDown={handleMouseDown} isResizing={isResizing} />
 
 
         {/* Gallery panel with smooth transition (disabled during resize, hidden in embed mode) */}
