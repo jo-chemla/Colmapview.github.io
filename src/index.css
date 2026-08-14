@@ -1850,6 +1850,30 @@ legend {
   z-index: 250;
 }
 
+/* Tool windows author their width in JS (the same number clamps the drag
+   position against the viewport), so it reaches the DOM as data rather than as
+   an inline `width`: FloatingWindowShell publishes it as --tool-modal-width and
+   this rule is what turns it back into a width. It is deliberately OUTSIDE the
+   media query — the authored width flows through the property at every viewport
+   size, so the compact tier below only has to multiply it, and never has to
+   out-rank an inline declaration with `!important`.
+
+   Fail-safe by construction: because the stylesheet is the only thing that sets
+   `width`, a var that does not resolve can only lose the cascade. Windows that
+   size to their content publish nothing, `var()` on an undefined custom
+   property is invalid at computed-value time, and `width` computes to its
+   initial value `auto` — exactly what those windows had. An element that
+   carries an inline width but no property (the shape a future regression would
+   take) keeps that inline width, because an inline declaration beats this rule.
+
+   The earlier form was `width: calc(var(--tool-modal-width) * 0.85) !important`
+   inside the media query only. That inverted the failure: `!important` beat the
+   inline width, then went invalid at computed-value time, and the authored
+   300px window rendered at 8.125px. */
+.tool-modal-responsive {
+  width: var(--tool-modal-width);
+}
+
 /* Responsive styles for small screens (laptops and smaller) */
 @media (max-width: 1520px) {
   /* Smaller control buttons — scale border-radius proportionally (desktop: 40px/8px = 20%) */
@@ -2000,22 +2024,30 @@ legend {
     padding: 12px;   /* p-4 -> p-3 */
   }
 
-  /* Tool windows carry their width as inline data (the view models own the
-     number because the same one clamps the drag position), and no stylesheet
-     beats an inline declaration — hence !important on a mirror of that value
-     (FloatingWindowShell publishes --tool-modal-width). Windows that size to
-     their content set no width and no property: the var is then undefined,
-     the declaration is invalid at computed-value time, and width falls back
-     to auto — exactly what they had. */
+  /* 0.85 of the authored width, as arithmetic on the property the shell
+     publishes (see the base rule just above this media query). No !important:
+     nothing inlines a raw `width` any more, so this only has to beat the base
+     rule, which it does on source order. */
   .tool-modal-responsive {
-    width: calc(var(--tool-modal-width) * 0.85) !important;
+    width: calc(var(--tool-modal-width) * 0.85);
   }
 
   /* padding */
+  .hover-panel-responsive .p-1,
+  .tool-modal-responsive .p-1 { padding: 3px; }
   .hover-panel-responsive .p-4,
   .tool-modal-responsive .p-4 { padding: 14px; }
+  .hover-panel-responsive .px-1,
+  .tool-modal-responsive .px-1 { padding-left: 3px; padding-right: 3px; }
+  .hover-panel-responsive .px-2,
+  .tool-modal-responsive .px-2 { padding-left: 7px; padding-right: 7px; }
   .hover-panel-responsive .px-4,
   .tool-modal-responsive .px-4 { padding-left: 14px; padding-right: 14px; }
+  /* The 0.5 steps are 2px, and 2 x 0.85 = 1.7 rounds back to 2 on this tier's
+     whole-pixel ladder. Declared anyway so the enumeration is auditable: a
+     reader can tell "considered, lands on itself" from "forgotten". */
+  .hover-panel-responsive .py-0\.5,
+  .tool-modal-responsive .py-0\.5 { padding-top: 2px; padding-bottom: 2px; }
   .hover-panel-responsive .py-1\.5,
   .tool-modal-responsive .py-1\.5 { padding-top: 5px; padding-bottom: 5px; }
   .hover-panel-responsive .py-2,
@@ -2034,14 +2066,20 @@ legend {
   .tool-modal-responsive .mt-3 { margin-top: 10px; }
   .hover-panel-responsive .mt-4,
   .tool-modal-responsive .mt-4 { margin-top: 14px; }
+  .hover-panel-responsive .mr-1,
+  .tool-modal-responsive .mr-1 { margin-right: 3px; }
   .hover-panel-responsive .mb-1,
   .tool-modal-responsive .mb-1 { margin-bottom: 3px; }
   .hover-panel-responsive .mb-2,
   .tool-modal-responsive .mb-2 { margin-bottom: 7px; }
   .hover-panel-responsive .mb-3,
   .tool-modal-responsive .mb-3 { margin-bottom: 10px; }
+  .hover-panel-responsive .ml-2,
+  .tool-modal-responsive .ml-2 { margin-left: 7px; }
 
   /* gap */
+  .hover-panel-responsive .gap-0\.5,
+  .tool-modal-responsive .gap-0\.5 { gap: 2px; }  /* 2 x 0.85 -> 2, see above */
   .hover-panel-responsive .gap-1,
   .tool-modal-responsive .gap-1 { gap: 3px; }
   .hover-panel-responsive .gap-1\.5,
@@ -2050,6 +2088,11 @@ legend {
   .tool-modal-responsive .gap-2 { gap: 7px; }
   .hover-panel-responsive .gap-3,
   .tool-modal-responsive .gap-3 { gap: 10px; }
+  /* Axis gaps — the context-menu editor's two-column grid. */
+  .hover-panel-responsive .gap-x-4,
+  .tool-modal-responsive .gap-x-4 { column-gap: 14px; }
+  .hover-panel-responsive .gap-y-3,
+  .tool-modal-responsive .gap-y-3 { row-gap: 10px; }
 
   /* space-y (declared after the margin utilities, as at desktop width) */
   .hover-panel-responsive .space-y-2 > * + *,

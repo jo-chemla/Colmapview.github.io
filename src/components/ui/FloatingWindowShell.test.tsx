@@ -38,10 +38,14 @@ describe('FloatingWindowShell', () => {
     expect(screen.getByText('Floating title')).toBeVisible();
     expect(panelRef.current).toHaveClass(...modalStyles.toolPanel.split(' '));
     expect(panelRef.current).toHaveAttribute('data-idle-pause', 'true');
-    expect(panelRef.current).toHaveStyle({ left: '12px', top: '24px', width: '300px' });
-    // The compact breakpoint restyles the width, and no stylesheet beats an
-    // inline declaration — so the shell republishes it as a custom property.
+    expect(panelRef.current).toHaveStyle({ left: '12px', top: '24px' });
+    // The authored width is handed to the stylesheet as a custom property
+    // INSTEAD of an inline width (index.css turns it back into a width, and the
+    // compact tier multiplies it). Publishing both would put an unbeatable
+    // inline declaration in front of the rule that does the arithmetic, which
+    // is what forced an `!important` that collapsed the box when it failed.
     expect(panelRef.current!.style.getPropertyValue('--tool-modal-width')).toBe('300px');
+    expect(panelRef.current!.style.width).toBe('');
 
     fireEvent.pointerDown(panelRef.current!);
     fireEvent.pointerDown(screen.getByText('Floating title').parentElement!);
@@ -77,8 +81,8 @@ describe('FloatingWindowShell', () => {
   });
 
   it('publishes no width property for windows that size to their content', () => {
-    // The compact rule's calc() is then invalid at computed-value time and the
-    // width falls back to auto — the width these windows already had.
+    // `var(--tool-modal-width)` is then invalid at computed-value time and the
+    // width computes to `auto` — the width these windows already had.
     const panelRef = createRef<HTMLDivElement>();
 
     render(
@@ -95,7 +99,35 @@ describe('FloatingWindowShell', () => {
 
     expect(panelRef.current).toHaveStyle({ maxWidth: '90vw' });
     expect(panelRef.current!.style.getPropertyValue('--tool-modal-width')).toBe('');
+    expect(panelRef.current!.style.width).toBe('');
   });
+
+  it('keeps the inline width when the panel class carries no stylesheet hook', () => {
+    // The property only becomes a width through `.tool-modal-responsive`. A
+    // caller that supplies its own panel class has no such rule, so handing the
+    // width over would delete it; the shell leaves it inline instead.
+    const panelRef = createRef<HTMLDivElement>();
+
+    render(
+      <FloatingWindowShell
+        isOpen
+        title="Custom class"
+        onClose={vi.fn()}
+        panelRef={panelRef}
+        panelClassName="bg-ds-tertiary rounded-lg"
+        panelStyle={{ width: 300 }}
+      >
+        <div>Body</div>
+      </FloatingWindowShell>
+    );
+
+    expect(panelRef.current).toHaveStyle({ width: '300px' });
+    expect(panelRef.current!.style.getPropertyValue('--tool-modal-width')).toBe('');
+  });
+
+  // The stylesheet half of this contract (the rule that turns the published
+  // property back into a width) is pinned in toolModalWidthContract.test.ts —
+  // it has to read index.css from disk, which only a .ts test can do here.
 
   it('moves focus into the window on open and back to the opener on close', async () => {
     function Harness({ open }: { open: boolean }) {

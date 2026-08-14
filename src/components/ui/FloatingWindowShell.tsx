@@ -14,22 +14,37 @@ import { CloseIcon } from '../../icons';
 import { useFloatingDialogFocus } from './useFloatingDialogFocus';
 
 /**
- * Mirror an inline `width` into `--tool-modal-width` so the compact breakpoint
- * can restyle it (index.css, `@media (max-width: 1520px)`).
+ * Publish an authored `width` as `--tool-modal-width` *instead of* an inline
+ * `width`, and let the stylesheet turn the property back into a width
+ * (index.css: `.tool-modal-responsive { width: var(--tool-modal-width) }`, then
+ * `* 0.85` inside `@media (max-width: 1520px)`).
  *
  * Tool windows own their width in JS — the same number clamps the drag position
- * against the viewport — and it therefore arrives as an inline declaration,
- * which no stylesheet can beat. Publishing it as a custom property lets the
- * compact tier do arithmetic on it instead of scaling the rendered pixels.
- * Windows that size to their content pass no width and set no property; the
- * compact rule's `calc()` is then invalid at computed-value time and `width`
- * falls back to `auto`, which is what those windows already had.
+ * against the viewport — so it arrives as an inline declaration, which no
+ * stylesheet can beat. Handing the number over as a custom property lets the
+ * compact tier do arithmetic on it without `!important`, and keeps the two
+ * declarations from fighting: exactly one of them (the stylesheet's) ever sets
+ * `width`, so a rule that fails to resolve can only lose the cascade, never win
+ * it and then collapse the box to shrink-to-fit.
+ *
+ * Windows that size to their content author no width and publish no property;
+ * `var()` on an undefined custom property is invalid at computed-value time, so
+ * `width` computes to its initial value `auto` — what those windows already had.
+ *
+ * The swap is gated on the panel actually carrying `tool-modal-responsive`: the
+ * property is inert without that rule, so a caller with its own panel class
+ * keeps its inline width rather than losing it to a hook that isn't there.
  */
-function withCompactWidthVar(style: CSSProperties | undefined): CSSProperties | undefined {
+function withCompactWidthVar(
+  style: CSSProperties | undefined,
+  panelClassName: string
+): CSSProperties | undefined {
   if (style?.width === undefined) return style;
+  if (!panelClassName.split(/\s+/).includes('tool-modal-responsive')) return style;
+  const { width, ...rest } = style;
   return {
-    ...style,
-    '--tool-modal-width': typeof style.width === 'number' ? `${style.width}px` : style.width,
+    ...rest,
+    '--tool-modal-width': typeof width === 'number' ? `${width}px` : width,
   } as CSSProperties;
 }
 
@@ -127,7 +142,7 @@ export function FloatingWindowShell({
         data-idle-pause="true"
         data-testid={panelTestId}
         className={panelClassName}
-        style={withCompactWidthVar(panelStyle)}
+        style={withCompactWidthVar(panelStyle, panelClassName)}
         onPointerDown={onPanelPointerDown}
         onMouseDown={onPanelMouseDown}
         onContextMenu={onPanelContextMenu}
