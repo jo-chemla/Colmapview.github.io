@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Muted text meets the AA contrast minimum (it was 2.4:1), and the secondary tier was raised alongside it so the three text weights stay visually distinct rather than collapsing into two.
 - Tool panels and hover panels reflow at the compact breakpoint instead of being shrunk with a transform, so their text renders sharp rather than scaled. Footprints are unchanged: panel widths are identical and heights land within a few pixels.
 - Toolbar clusters are announced as labelled groups to assistive tech, pressing Tab wakes chrome that has faded out, the idle fade is slower, and the shortcuts panel is titled "Help" now that it also carries the About tab.
+- The floating ⓘ button in the top-left corner of the viewport is gone. It opened the same Help panel as the status bar's "Shortcuts" entry and appeared in exactly the same situations, so it was redundant; the panel is still one click away there, and the `I` / `?` hotkey is unchanged.
 
 ### Fixed
 
