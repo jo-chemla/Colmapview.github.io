@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-08-13
+
+### Added
+
+- An **Align** button in the viewer toolbar, exposing the gizmo toggle and the 1-point origin / 2-point scale / 3-point align tools that were previously buried in the Transform panel or the right-click menu. While a picking mode is armed the button becomes its cancel affordance — the right-click menu is taken over by picking, so there was no mouse-reachable way out. The instructional "right-click anywhere" toast is retired now that the actions are visible.
+- A collapse handle on the gallery's own edge, so the panel can be hidden and restored where it lives instead of only from the far side of the toolbar.
+- A Tools section in Settings listing the deletion, camera-conversion, floor-detection, and auto-hide windows, so the app's tool windows can be found by reading rather than by hunting.
+- Continuous integration now runs the browser end-to-end suite on every push and pull request; it previously existed but nothing executed it.
+
+### Changed
+
+- **The 3D viewport opens dark by default** (the same surface tone as the interface), so the canvas and the chrome read as one instrument instead of a dark frame around a white hole. The grid is a neutral ink that recedes instead of the old orange, which was chosen for a white canvas. Pressing **B** still returns the white background, and existing profiles keep whatever background they had saved.
+- Status colours are consolidated onto one palette. Success, warning, error, and info each had two to five different renderings depending on which vocabulary the code reached for; there is now a single calm tone per meaning. Eighteen leftover colour rules were deleted.
+- Muted text meets the AA contrast minimum (it was 2.4:1), and the secondary tier was raised alongside it so the three text weights stay visually distinct rather than collapsing into two.
+- Tool panels and hover panels reflow at the compact breakpoint instead of being shrunk with a transform, so their text renders sharp rather than scaled. Footprints are unchanged: panel widths are identical and heights land within a few pixels.
+- Toolbar clusters are announced as labelled groups to assistive tech, pressing Tab wakes chrome that has faded out, the idle fade is slower, and the shortcuts panel is titled "Help" now that it also carries the About tab.
+
+### Fixed
+
+- Text labels drawn inside the 3D scene now use the interface typeface once fonts finish loading, instead of staying on a system fallback.
+- Floating tool windows no longer drift upward in the stacking order across a long session; the counter resets once the last window closes.
+- The "unavailable" marker in the cache-statistics tooltip is visible again.
+
+### Notes
+
+- The splat renderer (5 MB) is loaded on demand and is not part of the initial page load; a test now enforces that, so it cannot regress silently.
+
 ## [0.10.0] - 2026-08-12
 
 ### Added
