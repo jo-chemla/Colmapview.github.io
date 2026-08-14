@@ -2,20 +2,13 @@ import {
   usePointCloudStore,
   usePointPickingStore,
   useReconstructionStore,
-  useUIStore,
   type PointCloudState,
   type PointPickingState,
-  type UIState,
 } from '../../../store';
 import type { Reconstruction } from '../../../types/colmap';
 
 interface AlignPanelDataFacade {
   reconstruction: Reconstruction | null;
-}
-
-interface AlignPanelUiFacade {
-  showGizmo: boolean;
-  toggleGizmo: UIState['toggleGizmo'];
 }
 
 interface AlignPanelPointPickingFacade {
@@ -32,16 +25,12 @@ interface AlignPanelPointCloudFacade {
 
 export interface AlignPanelStoreFacade {
   data: AlignPanelDataFacade;
-  ui: AlignPanelUiFacade;
   pointPicking: AlignPanelPointPickingFacade;
   pointCloud: AlignPanelPointCloudFacade;
 }
 
 export function useAlignPanelStoreFacade(): AlignPanelStoreFacade {
   const reconstruction = useReconstructionStore((s) => s.reconstruction);
-
-  const showGizmo = useUIStore((s) => s.showGizmo);
-  const toggleGizmo = useUIStore((s) => s.toggleGizmo);
 
   const pickingMode = usePointPickingStore((s) => s.pickingMode);
   const setPickingMode = usePointPickingStore((s) => s.setPickingMode);
@@ -54,10 +43,6 @@ export function useAlignPanelStoreFacade(): AlignPanelStoreFacade {
   return {
     data: {
       reconstruction,
-    },
-    ui: {
-      showGizmo,
-      toggleGizmo,
     },
     pointPicking: {
       pickingMode,

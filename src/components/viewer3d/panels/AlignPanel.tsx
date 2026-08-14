@@ -4,7 +4,6 @@ import type { PointPickingMode } from '../../../store';
 import { controlPanelStyles } from '../../../theme';
 import {
   ControlButton,
-  ToggleRow,
   type PanelType,
 } from '../ControlComponents';
 import {
@@ -23,11 +22,11 @@ export interface AlignPanelProps {
 }
 
 /**
- * Toolbar entry point for the point-picking alignment tools. These live in the
- * context menu and (below seven transform sliders) in the Transform panel; this
- * panel makes them visible on their own button. It deliberately registers no
- * hotkey — the Transform panel already owns the `T` gizmo binding, and a second
- * registration would fire the toggle twice per press.
+ * Toolbar entry point for the point-picking alignment tools. This panel is
+ * their only home in the toolbar — the Transform panel next door owns the gizmo
+ * and the sliders, and neither panel repeats the other's controls. It
+ * deliberately registers no hotkey: the Transform panel owns the `T` gizmo
+ * binding, and a second registration would fire the toggle twice per press.
  */
 export const AlignPanel = memo(function AlignPanel({
   activePanel,
@@ -35,7 +34,6 @@ export const AlignPanel = memo(function AlignPanel({
 }: AlignPanelProps) {
   const {
     data: { reconstruction },
-    ui: { showGizmo, toggleGizmo },
     pointPicking: { pickingMode, setPickingMode },
     pointCloud: { showPointCloud, colorMode, setShowPointCloud, setColorMode },
   } = useAlignPanelStoreFacade();
@@ -70,8 +68,6 @@ export const AlignPanel = memo(function AlignPanel({
       disabled={!reconstruction}
     >
       <div className={styles.panelContent}>
-        <ToggleRow label="Gizmo (T)" checked={showGizmo} onChange={toggleGizmo} />
-
         <div className={styles.presetGroup}>
           {ALIGN_TOOLS.map((tool) => {
             const buttonState = getTransformPickingButtonState(pickingMode, tool.mode);

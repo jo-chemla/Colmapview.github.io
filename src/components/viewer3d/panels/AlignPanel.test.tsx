@@ -77,13 +77,22 @@ describe('AlignPanel', () => {
     expect(screen.queryByLabelText('Align tools')).not.toBeNull();
   });
 
-  it('routes the gizmo row to the shared UI store toggle', () => {
+  it('shows the three picking tools and leaves the gizmo to the transform panel', () => {
     renderPanel();
 
-    expect(screen.queryByText('Gizmo (T)')).not.toBeNull();
-    fireEvent.click(screen.getByRole('switch'));
+    // Everything inside the panel, i.e. every button but the labelled toolbar one.
+    const panelButtons = screen
+      .queryAllByRole('button')
+      .filter((button) => !button.hasAttribute('aria-label'));
 
-    expect(useUIStore.getState().showGizmo).toBe(true);
+    expect(panelButtons.map((button) => button.textContent)).toEqual([
+      '1-Point Origin',
+      '2-Point Scale',
+      '3-Point Align',
+    ]);
+    expect(screen.queryByText('Gizmo (T)')).toBeNull();
+    expect(screen.queryByRole('switch')).toBeNull();
+    expect(useUIStore.getState().showGizmo).toBe(false);
   });
 
   it('stays disabled with no reconstruction loaded', () => {

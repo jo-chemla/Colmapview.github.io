@@ -1,13 +1,9 @@
 import {
   applyTransformPreset,
   applyTransformToData,
-  usePointCloudStore,
-  usePointPickingStore,
   useReconstructionStore,
   useTransformStore,
   useUIStore,
-  type PointCloudState,
-  type PointPickingState,
   type TransformState,
   type UIState,
 } from '../../../store';
@@ -31,18 +27,6 @@ interface TransformPanelUiFacade {
   toggleGizmo: UIState['toggleGizmo'];
 }
 
-interface TransformPanelPointPickingFacade {
-  pickingMode: PointPickingState['pickingMode'];
-  setPickingMode: PointPickingState['setPickingMode'];
-}
-
-interface TransformPanelPointCloudFacade {
-  showPointCloud: boolean;
-  colorMode: PointCloudState['colorMode'];
-  setShowPointCloud: PointCloudState['setShowPointCloud'];
-  setColorMode: PointCloudState['setColorMode'];
-}
-
 interface TransformPanelActionFacade {
   applyTransformPreset: typeof applyTransformPreset;
   applyTransformToData: typeof applyTransformToData;
@@ -52,8 +36,6 @@ export interface TransformPanelStoreFacade {
   data: TransformPanelDataFacade;
   transform: TransformPanelTransformFacade;
   ui: TransformPanelUiFacade;
-  pointPicking: TransformPanelPointPickingFacade;
-  pointCloud: TransformPanelPointCloudFacade;
   actions: TransformPanelActionFacade;
 }
 
@@ -69,14 +51,6 @@ export function useTransformPanelStoreFacade(): TransformPanelStoreFacade {
   const showGizmo = useUIStore((s) => s.showGizmo);
   const toggleGizmo = useUIStore((s) => s.toggleGizmo);
 
-  const pickingMode = usePointPickingStore((s) => s.pickingMode);
-  const setPickingMode = usePointPickingStore((s) => s.setPickingMode);
-
-  const showPointCloud = usePointCloudStore((s) => s.showPointCloud);
-  const colorMode = usePointCloudStore((s) => s.colorMode);
-  const setShowPointCloud = usePointCloudStore((s) => s.setShowPointCloud);
-  const setColorMode = usePointCloudStore((s) => s.setColorMode);
-
   return {
     data: {
       reconstruction,
@@ -91,16 +65,6 @@ export function useTransformPanelStoreFacade(): TransformPanelStoreFacade {
     ui: {
       showGizmo,
       toggleGizmo,
-    },
-    pointPicking: {
-      pickingMode,
-      setPickingMode,
-    },
-    pointCloud: {
-      showPointCloud,
-      colorMode,
-      setShowPointCloud,
-      setColorMode,
     },
     actions: {
       applyTransformPreset,

@@ -1,8 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  usePointPickingStore,
-  usePointCloudStore,
   useReconstructionStore,
   useTransformStore,
   useUIStore,
@@ -20,8 +18,6 @@ describe('useTransformPanelStoreFacade', () => {
     useReconstructionStore.setState(useReconstructionStore.getInitialState(), true);
     useTransformStore.setState(useTransformStore.getInitialState(), true);
     useUIStore.setState(useUIStore.getInitialState(), true);
-    usePointPickingStore.setState(usePointPickingStore.getInitialState(), true);
-    usePointCloudStore.setState(usePointCloudStore.getInitialState(), true);
   });
 
   it('collects transform-panel dependencies from owning stores', () => {
@@ -42,8 +38,6 @@ describe('useTransformPanelStoreFacade', () => {
     });
     useTransformStore.setState({ transform });
     useUIStore.setState({ showGizmo: true });
-    usePointPickingStore.setState({ pickingMode: 'distance-2pt' });
-    usePointCloudStore.setState({ showPointCloud: true, colorMode: 'splats' });
 
     const { result } = renderHook(() => useTransformPanelStoreFacade());
 
@@ -54,24 +48,22 @@ describe('useTransformPanelStoreFacade', () => {
     });
     expect(result.current.transform.transform).toBe(transform);
     expect(result.current.ui.showGizmo).toBe(true);
-    expect(result.current.pointPicking.pickingMode).toBe('distance-2pt');
-    expect(result.current.pointCloud).toMatchObject({
-      showPointCloud: true,
-      colorMode: 'splats',
-    });
     expect(typeof result.current.actions.applyTransformPreset).toBe('function');
     expect(typeof result.current.actions.applyTransformToData).toBe('function');
   });
 
-  it('routes transform, UI, and point-picking actions back to owning stores', () => {
+  it('leaves point picking to the align panel and subscribes to neither picking store', () => {
+    const { result } = renderHook(() => useTransformPanelStoreFacade());
+
+    expect(Object.keys(result.current)).toEqual(['data', 'transform', 'ui', 'actions']);
+  });
+
+  it('routes transform and UI actions back to owning stores', () => {
     const { result } = renderHook(() => useTransformPanelStoreFacade());
 
     act(() => {
       result.current.transform.setTransform({ scale: 3, translationX: 4 });
       result.current.ui.toggleGizmo();
-      result.current.pointPicking.setPickingMode('normal-3pt');
-      result.current.pointCloud.setShowPointCloud(false);
-      result.current.pointCloud.setColorMode('rgb');
     });
 
     expect(useTransformStore.getState().transform).toMatchObject({
@@ -79,22 +71,11 @@ describe('useTransformPanelStoreFacade', () => {
       translationX: 4,
     });
     expect(useUIStore.getState().showGizmo).toBe(true);
-    expect(usePointPickingStore.getState().pickingMode).toBe('normal-3pt');
-    expect(usePointCloudStore.getState()).toMatchObject({
-      showPointCloud: false,
-      colorMode: 'rgb',
-    });
 
     act(() => {
       result.current.transform.resetTransform();
-      result.current.pointPicking.setPickingMode('normal-3pt');
     });
 
     expect(useTransformStore.getState().transform).toEqual(createIdentityEuler());
-    expect(usePointPickingStore.getState()).toMatchObject({
-      pickingMode: 'normal-3pt',
-      selectedPoints: [],
-      targetDistance: null,
-    });
   });
 });

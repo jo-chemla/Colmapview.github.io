@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useFileDropzone } from '../../../hooks/useFileDropzone';
 import { TransformIcon } from '../../../icons';
@@ -14,9 +14,7 @@ import {
   formatTransformDegreesValue,
   formatTransformScaleValue,
   formatTransformTranslationValue,
-  getPointCloudStateForPickingMode,
   getTransformPanelState,
-  getTransformPickingButtonState,
   radiansToDegrees,
 } from './transformPanelViewModel';
 import { useTransformPanelStoreFacade } from './useTransformPanelStoreFacade';
@@ -29,6 +27,12 @@ export interface TransformPanelProps {
   onOpenFloorModal: () => void;
 }
 
+/**
+ * Toolbar entry point for the gizmo and the Sim3D transform itself. This panel
+ * owns the gizmo — the button's own click, the `T` hotkey, and the toggle row —
+ * while the point-picking alignment tools live in the Align panel and the
+ * context menu, so no control has two homes.
+ */
 export const TransformPanel = memo(function TransformPanel({
   activePanel,
   setActivePanel,
@@ -49,16 +53,6 @@ export const TransformPanel = memo(function TransformPanel({
       showGizmo,
       toggleGizmo,
     },
-    pointPicking: {
-      pickingMode,
-      setPickingMode,
-    },
-    pointCloud: {
-      showPointCloud,
-      colorMode,
-      setShowPointCloud,
-      setColorMode,
-    },
     actions: {
       applyTransformPreset,
       applyTransformToData,
@@ -73,25 +67,6 @@ export const TransformPanel = memo(function TransformPanel({
     hasPoints,
     hasDroppedFiles: Boolean(droppedFiles),
   });
-  const onePointOriginButton = getTransformPickingButtonState(pickingMode, 'origin-1pt');
-  const twoPointScaleButton = getTransformPickingButtonState(pickingMode, 'distance-2pt');
-  const threePointAlignButton = getTransformPickingButtonState(pickingMode, 'normal-3pt');
-  const handlePickingModeClick = useCallback((nextMode: typeof pickingMode) => {
-    if (nextMode !== 'off') {
-      const nextPointState = getPointCloudStateForPickingMode({
-        showPointCloud,
-        colorMode,
-      });
-      if (nextPointState.showPointCloud !== showPointCloud) {
-        setShowPointCloud(nextPointState.showPointCloud);
-      }
-      if (nextPointState.colorMode !== colorMode) {
-        setColorMode(nextPointState.colorMode);
-      }
-    }
-
-    setPickingMode(nextMode);
-  }, [colorMode, setColorMode, setPickingMode, setShowPointCloud, showPointCloud]);
 
   useHotkeys(
     HOTKEYS.toggleGizmo.keys,
@@ -189,33 +164,6 @@ export const TransformPanel = memo(function TransformPanel({
             data-tooltip-pos="bottom"
           >
             Center at Origin
-          </button>
-        </div>
-
-        <div className={styles.presetGroup}>
-          <button
-            onClick={() => handlePickingModeClick(onePointOriginButton.nextMode)}
-            className={onePointOriginButton.isActive ? styles.actionButtonPrimary : styles.presetButton}
-            data-tooltip="{LMB} Click 1 point to set as origin (0,0,0)"
-            data-tooltip-pos="bottom"
-          >
-            1-Point Origin
-          </button>
-          <button
-            onClick={() => handlePickingModeClick(twoPointScaleButton.nextMode)}
-            className={twoPointScaleButton.isActive ? styles.actionButtonPrimary : styles.presetButton}
-            data-tooltip="{LMB} Click 2 points, set target distance"
-            data-tooltip-pos="bottom"
-          >
-            2-Point Scale
-          </button>
-          <button
-            onClick={() => handlePickingModeClick(threePointAlignButton.nextMode)}
-            className={threePointAlignButton.isActive ? styles.actionButtonPrimary : styles.presetButton}
-            data-tooltip="{LMB} Click 3 points clockwise to align plane with Y-up"
-            data-tooltip-pos="bottom"
-          >
-            3-Point Align
           </button>
           <button
             onClick={onOpenFloorModal}
