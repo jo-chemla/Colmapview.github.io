@@ -149,7 +149,11 @@
   --tap-target-min: 44px; /* mirrors TOUCH.minTapTarget (src/theme/sizing.ts) */
 
   /* Range Slider */
-  --slider-thumb-size: 12px;
+  /* Fader, not a knob: a thin bar reads as a precise position against the 4px
+     track, where a circle reads as a blob. Two axes because the shape is
+     deliberately not square — keep both when compacting (see the 1520px tier). */
+  --slider-thumb-width: 4px;
+  --slider-thumb-height: 16px;
   --slider-track-height: 4px;
   --slider-container-height: 20px;
 
@@ -403,14 +407,14 @@ input[type="range"]::-webkit-slider-runnable-track {
 input[type="range"]::-webkit-slider-thumb {
   appearance: none;
   -webkit-appearance: none;
-  width: var(--slider-thumb-size);
-  height: var(--slider-thumb-size);
+  width: var(--slider-thumb-width);
+  height: var(--slider-thumb-height);
   background: var(--accent);
   border: none;
-  border-radius: 50%;
+  border-radius: 1px;
   cursor: pointer;
-  margin-top: calc((var(--slider-track-height) - var(--slider-thumb-size)) / 2);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  margin-top: calc((var(--slider-track-height) - var(--slider-thumb-height)) / 2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 /* Firefox track */
@@ -429,13 +433,13 @@ input[type="range"]::-moz-range-progress {
 
 /* Firefox thumb */
 input[type="range"]::-moz-range-thumb {
-  width: var(--slider-thumb-size);
-  height: var(--slider-thumb-size);
+  width: var(--slider-thumb-width);
+  height: var(--slider-thumb-height);
   background: var(--accent);
   border: none;
-  border-radius: 50%;
+  border-radius: 1px;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 input[type="range"]:focus {
@@ -2079,9 +2083,11 @@ legend {
   .tool-modal-responsive,
   .hover-panel-responsive {
     /* Slider geometry is token-driven (see :root), so the whole control
-       compacts from here: 20 -> 17 container, 12 -> 10 thumb. */
+       compacts from here: 20 -> 17 container, 16 -> 14 thumb height. The bar
+       keeps its 4px width — thinning it here would push it toward a hairline
+       at the size where it is already hardest to see. */
     --slider-container-height: 17px;
-    --slider-thumb-size: 10px;
+    --slider-thumb-height: 14px;
   }
 
   .hover-panel-responsive {
