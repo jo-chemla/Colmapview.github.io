@@ -13,6 +13,26 @@ import { modalStyles } from '../../theme';
 import { CloseIcon } from '../../icons';
 import { useFloatingDialogFocus } from './useFloatingDialogFocus';
 
+/**
+ * Mirror an inline `width` into `--tool-modal-width` so the compact breakpoint
+ * can restyle it (index.css, `@media (max-width: 1520px)`).
+ *
+ * Tool windows own their width in JS — the same number clamps the drag position
+ * against the viewport — and it therefore arrives as an inline declaration,
+ * which no stylesheet can beat. Publishing it as a custom property lets the
+ * compact tier do arithmetic on it instead of scaling the rendered pixels.
+ * Windows that size to their content pass no width and set no property; the
+ * compact rule's `calc()` is then invalid at computed-value time and `width`
+ * falls back to `auto`, which is what those windows already had.
+ */
+function withCompactWidthVar(style: CSSProperties | undefined): CSSProperties | undefined {
+  if (style?.width === undefined) return style;
+  return {
+    ...style,
+    '--tool-modal-width': typeof style.width === 'number' ? `${style.width}px` : style.width,
+  } as CSSProperties;
+}
+
 // Module scope on purpose: react-hooks/immutability forbids writing to a prop's
 // `.current` inside the component body.
 function assignForwardedRef(ref: Ref<HTMLDivElement> | undefined, node: HTMLDivElement | null): void {
@@ -107,7 +127,7 @@ export function FloatingWindowShell({
         data-idle-pause="true"
         data-testid={panelTestId}
         className={panelClassName}
-        style={panelStyle}
+        style={withCompactWidthVar(panelStyle)}
         onPointerDown={onPanelPointerDown}
         onMouseDown={onPanelMouseDown}
         onContextMenu={onPanelContextMenu}

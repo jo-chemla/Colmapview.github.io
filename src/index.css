@@ -1957,19 +1957,124 @@ legend {
     height: 0.75rem !important;
   }
 
-  /* Scale down tool modals and hover panels uniformly */
+  /* ---------------------------------------------------------------------
+     Compact tier for tool windows and hover panels.
+
+     This used to be `transform: scale(0.85)` plus transform-origin hacks
+     (center center for the modals, top right for the panels). A transform
+     rasterizes: every glyph in the busiest chrome in the app rendered at a
+     non-integer size, soft and off the pixel grid, and the boxes lied about
+     their geometry to every getBoundingClientRect that measured them.
+
+     The substitutions below are the same 0.85 step expressed as REAL layout —
+     derived by measuring the scaled result at a 1400px viewport and matching
+     it (panels land within ~7px of their old footprint, exact on width). Each
+     value is 0.85 x the desktop step rounded to whole pixels: 16 -> 14,
+     12 -> 10, 8 -> 7, 4 -> 3, type 14/20 -> 12/16 and 12/16 -> 10/14.
+
+     Two things deliberately do NOT scale, which is the point of reflowing
+     rather than scaling:
+       - `py-1` (4px) stays, so the panel action buttons keep a real hit area
+         (it is also what lands their height on the old scaled height);
+       - toggle switches keep their size — their thumb offsets are inline px
+         from THUMB_POSITIONS, so a CSS-only track resize would desync them,
+         and shrinking hit targets to save 4px is a bad trade. A window that is
+         mostly toggles (Auto-hide Elements) therefore compacts less than one
+         that is mostly text. That is a real tier, not a lie about pixels.
+
+     Rule ORDER matters and mirrors the base utilities above (padding, margin,
+     gap, space-y, size, type): these overrides all have the same specificity
+     as each other, so `.mt-3` beating `.space-y-2 > * + *` — or not — has to
+     resolve exactly as it does at desktop width, where `.space-y-2` is
+     declared later and wins. --------------------------------------------- */
   .tool-modal-responsive,
   .hover-panel-responsive {
-    transform: scale(0.85);
-  }
-
-  .tool-modal-responsive {
-    transform-origin: center center;
+    /* Slider geometry is token-driven (see :root), so the whole control
+       compacts from here: 20 -> 17 container, 12 -> 10 thumb. */
+    --slider-container-height: 17px;
+    --slider-thumb-size: 10px;
   }
 
   .hover-panel-responsive {
-    transform-origin: top right;
+    width: 204px;    /* 240 x 0.85 — the anchored right edge does not move */
+    padding: 12px;   /* p-4 -> p-3 */
   }
+
+  /* Tool windows carry their width as inline data (the view models own the
+     number because the same one clamps the drag position), and no stylesheet
+     beats an inline declaration — hence !important on a mirror of that value
+     (FloatingWindowShell publishes --tool-modal-width). Windows that size to
+     their content set no width and no property: the var is then undefined,
+     the declaration is invalid at computed-value time, and width falls back
+     to auto — exactly what they had. */
+  .tool-modal-responsive {
+    width: calc(var(--tool-modal-width) * 0.85) !important;
+  }
+
+  /* padding */
+  .hover-panel-responsive .p-4,
+  .tool-modal-responsive .p-4 { padding: 14px; }
+  .hover-panel-responsive .px-4,
+  .tool-modal-responsive .px-4 { padding-left: 14px; padding-right: 14px; }
+  .hover-panel-responsive .py-1\.5,
+  .tool-modal-responsive .py-1\.5 { padding-top: 5px; padding-bottom: 5px; }
+  .hover-panel-responsive .py-2,
+  .tool-modal-responsive .py-2 { padding-top: 7px; padding-bottom: 7px; }
+  .hover-panel-responsive .py-3,
+  .tool-modal-responsive .py-3 { padding-top: 10px; padding-bottom: 10px; }
+  .hover-panel-responsive .pt-3,
+  .tool-modal-responsive .pt-3 { padding-top: 10px; }
+
+  /* margin */
+  .hover-panel-responsive .mt-1,
+  .tool-modal-responsive .mt-1 { margin-top: 3px; }
+  .hover-panel-responsive .mt-2,
+  .tool-modal-responsive .mt-2 { margin-top: 7px; }
+  .hover-panel-responsive .mt-3,
+  .tool-modal-responsive .mt-3 { margin-top: 10px; }
+  .hover-panel-responsive .mt-4,
+  .tool-modal-responsive .mt-4 { margin-top: 14px; }
+  .hover-panel-responsive .mb-1,
+  .tool-modal-responsive .mb-1 { margin-bottom: 3px; }
+  .hover-panel-responsive .mb-2,
+  .tool-modal-responsive .mb-2 { margin-bottom: 7px; }
+  .hover-panel-responsive .mb-3,
+  .tool-modal-responsive .mb-3 { margin-bottom: 10px; }
+
+  /* gap */
+  .hover-panel-responsive .gap-1,
+  .tool-modal-responsive .gap-1 { gap: 3px; }
+  .hover-panel-responsive .gap-1\.5,
+  .tool-modal-responsive .gap-1\.5 { gap: 5px; }
+  .hover-panel-responsive .gap-2,
+  .tool-modal-responsive .gap-2 { gap: 7px; }
+  .hover-panel-responsive .gap-3,
+  .tool-modal-responsive .gap-3 { gap: 10px; }
+
+  /* space-y (declared after the margin utilities, as at desktop width) */
+  .hover-panel-responsive .space-y-2 > * + *,
+  .tool-modal-responsive .space-y-2 > * + * { margin-top: 7px; }
+  .hover-panel-responsive .space-y-3 > * + *,
+  .tool-modal-responsive .space-y-3 > * + * { margin-top: 10px; }
+
+  /* size — the row's label/value columns (w-24 / w-8) and the header's close
+     button (w-6 h-6). The label column has to come down with the panel or it
+     eats the slider: at 96px of a 176px content box the tracks lose a third of
+     their length. Toggle tracks (w-7 / w-9 / w-11) are deliberately absent. */
+  .hover-panel-responsive .w-6,
+  .tool-modal-responsive .w-6 { width: 20px; }
+  .hover-panel-responsive .w-8,
+  .tool-modal-responsive .w-8 { width: 27px; }
+  .hover-panel-responsive .w-24,
+  .tool-modal-responsive .w-24 { width: 82px; }
+  .hover-panel-responsive .h-6,
+  .tool-modal-responsive .h-6 { height: 20px; }
+
+  /* type */
+  .hover-panel-responsive .text-xs,
+  .tool-modal-responsive .text-xs { font-size: 0.625rem; line-height: 0.875rem; }
+  .hover-panel-responsive .text-sm,
+  .tool-modal-responsive .text-sm { font-size: 0.75rem; line-height: 1rem; }
 }
 
 /* ---------------------------------------------------------------------------

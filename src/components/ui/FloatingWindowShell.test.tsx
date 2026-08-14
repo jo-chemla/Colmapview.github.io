@@ -39,6 +39,9 @@ describe('FloatingWindowShell', () => {
     expect(panelRef.current).toHaveClass(...modalStyles.toolPanel.split(' '));
     expect(panelRef.current).toHaveAttribute('data-idle-pause', 'true');
     expect(panelRef.current).toHaveStyle({ left: '12px', top: '24px', width: '300px' });
+    // The compact breakpoint restyles the width, and no stylesheet beats an
+    // inline declaration — so the shell republishes it as a custom property.
+    expect(panelRef.current!.style.getPropertyValue('--tool-modal-width')).toBe('300px');
 
     fireEvent.pointerDown(panelRef.current!);
     fireEvent.pointerDown(screen.getByText('Floating title').parentElement!);
@@ -71,6 +74,27 @@ describe('FloatingWindowShell', () => {
     fireEvent.click(backdrop);
 
     expect(onBackdropClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('publishes no width property for windows that size to their content', () => {
+    // The compact rule's calc() is then invalid at computed-value time and the
+    // width falls back to auto — the width these windows already had.
+    const panelRef = createRef<HTMLDivElement>();
+
+    render(
+      <FloatingWindowShell
+        isOpen
+        title="Content sized"
+        onClose={vi.fn()}
+        panelRef={panelRef}
+        panelStyle={{ maxWidth: '90vw' }}
+      >
+        <div>Body</div>
+      </FloatingWindowShell>
+    );
+
+    expect(panelRef.current).toHaveStyle({ maxWidth: '90vw' });
+    expect(panelRef.current!.style.getPropertyValue('--tool-modal-width')).toBe('');
   });
 
   it('moves focus into the window on open and back to the opener on close', async () => {
