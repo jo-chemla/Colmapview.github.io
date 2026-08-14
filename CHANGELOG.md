@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tool panels and hover panels reflow at the compact breakpoint instead of being shrunk with a transform, so their text renders sharp rather than scaled. Footprints are unchanged: panel widths are identical and heights land within a few pixels.
 - Toolbar clusters are announced as labelled groups to assistive tech, pressing Tab wakes chrome that has faded out, the idle fade is slower, and the shortcuts panel is titled "Help" now that it also carries the About tab.
 - The floating ⓘ button in the top-left corner of the viewport is gone. It opened the same Help panel as the status bar's "Shortcuts" entry and appeared in exactly the same situations, so it was redundant; the panel is still one click away there, and the `I` / `?` hotkey is unchanged.
+- The gizmo toggle and the alignment tools each have one home now: the gizmo stays in Transform (whose toolbar button toggles it, and which owns the `T` shortcut), and 1-Point Origin / 2-Point Scale / 3-Point Align live in Align. They were showing in both panels, in adjacent toolbar buttons. The right-click menu still offers all four.
+- The viewer↔gallery divider has a proper grab handle: a small rectangular grip fades in as you approach it and stays lit for the whole drag, instead of a hairline that flashed a full-height bar on hover. It sits clear of the collapse chevron, and the collapsed divider shows no grip, since there is nothing to drag.
 
 ### Fixed
 
