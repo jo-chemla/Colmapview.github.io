@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Splat previews no longer download the 5 MB renderer when the viewer is going to draw them with WebGPU instead.
+- The Help panel can now be opened on touch devices, from the status bar.
 - Text labels drawn inside the 3D scene now use the interface typeface once fonts finish loading, instead of staying on a system fallback.
 - Floating tool windows no longer drift upward in the stacking order across a long session; the counter resets once the last window closes.
 - The "unavailable" marker in the cache-statistics tooltip is visible again.
