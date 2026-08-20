@@ -7,6 +7,11 @@ import { getCameraIntrinsics } from '../../utils/cameraIntrinsics';
 import { distortNormalized } from '../../utils/cameraUndistortion';
 import {
   computeSplatMetricColorScale,
+  SPLAT_PSNR_GREEN,
+  SPLAT_PSNR_ORANGE,
+  SPLAT_PSNR_RED,
+  SPLAT_PSNR_UNAVAILABLE_COLOR,
+  SPLAT_PSNR_YELLOW,
   computePsnrAndSsimFromRgba,
   computePsnrFromRgba,
   computePsnrFromRgbaWebGpu,
@@ -31,32 +36,32 @@ describe('splatPsnrMetric helpers', () => {
     expect(formatSplatPsnrMetric(31.24)).toBe('31.2 dB PSNR');
     expect(formatSplatPsnrValue(Infinity)).toBe('99+');
 
-    // The hexes below are the ds semantic tokens, not arbitrary swatches:
-    // #858585 --text-muted, #b86b6b --error, #b8836b (error/warning midpoint),
-    // #b89b6b --warning, #6b9b6b --success. src/theme/colors.test.ts pins each
-    // one against :root, so a token move fails there and is fixed here.
-    expect(getSplatPsnrColor(undefined)).toBe('#858585');
-    expect(getSplatPsnrColor(8)).toBe('#b86b6b');
-    expect(getSplatPsnrColor(30)).toBe('#6b9b6b');
-    expect(getSplatPsnrColor(100)).toBe('#6b9b6b');
+    // Asserted through the exported stops, not literal hexes: the ramp is a data
+    // encoding whose values are tuned for separation (see splatPsnrMetric.ts), so
+    // re-tuning a stop should not have to be retyped here. colors.test.ts pins the
+    // one stop that IS a token mirror (unavailable = --text-muted).
+    expect(getSplatPsnrColor(undefined)).toBe(SPLAT_PSNR_UNAVAILABLE_COLOR);
+    expect(getSplatPsnrColor(8)).toBe(SPLAT_PSNR_RED);
+    expect(getSplatPsnrColor(30)).toBe(SPLAT_PSNR_GREEN);
+    expect(getSplatPsnrColor(100)).toBe(SPLAT_PSNR_GREEN);
 
     expect(formatSplatSsimValue(undefined)).toBe('--');
     expect(formatSplatSsimMetric(0.9428)).toBe('0.943 SSIM');
-    expect(getSplatSsimColor(undefined)).toBe('#858585');
-    expect(getSplatSsimColor(0.4)).toBe('#b86b6b');
-    expect(getSplatSsimColor(0.95)).toBe('#6b9b6b');
+    expect(getSplatSsimColor(undefined)).toBe(SPLAT_PSNR_UNAVAILABLE_COLOR);
+    expect(getSplatSsimColor(0.4)).toBe(SPLAT_PSNR_RED);
+    expect(getSplatSsimColor(0.95)).toBe(SPLAT_PSNR_GREEN);
   });
 
   it('maps metric frustum colors across the active min-max range', () => {
     const scale = computeSplatMetricColorScale([10, 20, 30, 40]);
 
     expect(scale).toEqual({ min: 10, max: 40 });
-    expect(getSplatMetricScaleColor(undefined, scale)).toBe('#858585');
-    expect(getSplatMetricScaleColor(10, scale)).toBe('#b86b6b');
-    expect(getSplatMetricScaleColor(20, scale)).toBe('#b8836b');
-    expect(getSplatMetricScaleColor(30, scale)).toBe('#b89b6b');
-    expect(getSplatMetricScaleColor(40, scale)).toBe('#6b9b6b');
-    expect(getSplatMetricScaleColor(50, scale)).toBe('#6b9b6b');
+    expect(getSplatMetricScaleColor(undefined, scale)).toBe(SPLAT_PSNR_UNAVAILABLE_COLOR);
+    expect(getSplatMetricScaleColor(10, scale)).toBe(SPLAT_PSNR_RED);
+    expect(getSplatMetricScaleColor(20, scale)).toBe(SPLAT_PSNR_ORANGE);
+    expect(getSplatMetricScaleColor(30, scale)).toBe(SPLAT_PSNR_YELLOW);
+    expect(getSplatMetricScaleColor(40, scale)).toBe(SPLAT_PSNR_GREEN);
+    expect(getSplatMetricScaleColor(50, scale)).toBe(SPLAT_PSNR_GREEN);
   });
 
   it('uses full-resolution render dimensions by default', () => {

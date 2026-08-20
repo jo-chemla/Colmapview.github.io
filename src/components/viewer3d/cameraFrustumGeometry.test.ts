@@ -21,7 +21,13 @@ import {
 import { CameraModelId } from '../../types/colmap';
 import type { ImageId } from '../../types/colmap';
 import { getCameraColor } from '../../theme';
-import { SPLAT_PSNR_UNAVAILABLE_COLOR } from './splatPsnrMetric';
+import {
+  SPLAT_PSNR_GREEN,
+  SPLAT_PSNR_ORANGE,
+  SPLAT_PSNR_RED,
+  SPLAT_PSNR_UNAVAILABLE_COLOR,
+  SPLAT_PSNR_YELLOW,
+} from './splatPsnrMetric';
 
 function buildFrustumGeometryItem({
   modelId = CameraModelId.PINHOLE,
@@ -79,7 +85,7 @@ describe('camera frustum geometry helpers', () => {
       imageFrameIndexMap,
       '#123456',
       new Map([[frameA0.imageId, { psnr: 30 }]])
-    )).toBe('#6b9b6b');
+    )).toBe(SPLAT_PSNR_GREEN);
     expect(getFrustumBaseColor(
       'splatSsim',
       true,
@@ -88,7 +94,7 @@ describe('camera frustum geometry helpers', () => {
       imageFrameIndexMap,
       '#123456',
       new Map([[frameA0.imageId, { psnr: 30, ssim: 0.95 }]])
-    )).toBe('#6b9b6b');
+    )).toBe(SPLAT_PSNR_GREEN);
 
     const psnrMetrics = new Map([
       [frameA0.imageId, { psnr: 20 }],
@@ -111,7 +117,7 @@ describe('camera frustum geometry helpers', () => {
       '#123456',
       psnrMetrics,
       psnrScale
-    )).toBe('#b86b6b');
+    )).toBe(SPLAT_PSNR_RED);
     expect(getFrustumBaseColor(
       'splatPsnr',
       true,
@@ -121,7 +127,7 @@ describe('camera frustum geometry helpers', () => {
       '#123456',
       psnrMetrics,
       psnrScale
-    )).toBe('#6b9b6b');
+    )).toBe(SPLAT_PSNR_GREEN);
 
     const ssimMetrics = new Map([
       [frameA0.imageId, { psnr: 20, ssim: 0.82 }],
@@ -142,7 +148,7 @@ describe('camera frustum geometry helpers', () => {
       '#123456',
       ssimMetrics,
       ssimScale
-    )).toBe('#b86b6b');
+    )).toBe(SPLAT_PSNR_RED);
     expect(getFrustumBaseColor(
       'splatSsim',
       true,
@@ -152,7 +158,7 @@ describe('camera frustum geometry helpers', () => {
       '#123456',
       ssimMetrics,
       ssimScale
-    )).toBe('#6b9b6b');
+    )).toBe(SPLAT_PSNR_GREEN);
   });
 
   it('builds renderable frustum items from reconstruction data', () => {

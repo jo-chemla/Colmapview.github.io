@@ -107,35 +107,20 @@ describe('TS <-> CSS colour mirrors', () => {
     expect(accentHover[0] - accent[0]).toBe(24);
   });
 
-  it('keeps the splat metric ramp on the --error/--warning/--success tokens', () => {
-    // The PSNR/SSIM quality ramp is a status encoding drawn into THREE.Color and
-    // into a `border-color` string, so it has to be a literal — but it is a
-    // literal COPY of the semantic tokens, not the Tailwind red/orange/yellow/
-    // green it used to be. Table form so a failure names the token.
-    const mirrors: Array<[string, string, string]> = [
-      ['unavailable', SPLAT_PSNR_UNAVAILABLE_COLOR, '--text-muted'],
-      ['red', SPLAT_PSNR_RED, '--error'],
-      ['yellow', SPLAT_PSNR_YELLOW, '--warning'],
-      ['green', SPLAT_PSNR_GREEN, '--success'],
-    ];
-    const actual = mirrors.map(([key, value]) => `${key}=${value}`);
-    const expected = mirrors.map(([key, , name]) => `${key}=${token(name)}`);
-    expect(actual).toEqual(expected);
-  });
+  it('pins the unavailable metric colour to --text-muted, and only that one', () => {
+    // "No metric for this image" is an absence — chrome — so it mirrors the muted
+    // token and must move with it.
+    expect(SPLAT_PSNR_UNAVAILABLE_COLOR).toBe(token('--text-muted'));
 
-  it('derives the ramp orange as the --error/--warning midpoint', () => {
-    // Documented derivation (splatPsnrMetric.ts): the ds ramp has no orange of
-    // its own, so the stop is the per-channel midpoint of the two it sits
-    // between. Pinned as arithmetic, not as a hex, so re-deriving is mechanical
-    // if either token moves — same idiom as the histogram percentage above.
-    const [error, warning] = [token('--error'), token('--warning')].map(channels);
-    const midpoint = error
-      .map((c, i) => ((c + warning[i]) / 2).toString(16).padStart(2, '0'))
-      .join('');
-    expect(SPLAT_PSNR_ORANGE).toBe(`#${midpoint}`);
-    // The midpoint has to be a whole channel value, or the "hand-derived" claim
-    // is a rounding fiction.
-    error.forEach((c, i) => expect((c + warning[i]) % 2).toBe(0));
+    // The four quality stops are deliberately NOT ds tokens: this is a data
+    // encoding, and derived from --error/--warning/--success the ramp loses the
+    // separation that is its entire purpose (tried and rejected 2026-08-20, see
+    // splatPsnrMetric.ts). Assert they stay OFF the semantic ramp, so a future
+    // consolidation pass cannot quietly re-mute them.
+    const semantic = ['--error', '--warning', '--success'].map(token);
+    for (const stop of [SPLAT_PSNR_RED, SPLAT_PSNR_ORANGE, SPLAT_PSNR_YELLOW, SPLAT_PSNR_GREEN]) {
+      expect(semantic).not.toContain(stop);
+    }
   });
 
   it('keeps the About-tab brand hues clear of the token palette', () => {

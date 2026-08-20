@@ -25,41 +25,29 @@ export {
 /**
  * Reconstruction-quality ramp for PSNR/SSIM, as literal hexes.
  *
- * Literals, not var(--…), for the same reason CANVAS_COLORS and CHART_COLORS are
- * literals: these feed THREE.Color (frustum vertex colours) and an inline SVG/DOM
- * `border-color` string (gallery tiles). Neither can read a CSS custom property.
+ * Literals, not var(--…), because these feed THREE.Color (frustum vertex colours)
+ * and an inline SVG/DOM `border-color` string (gallery tiles). Neither can read a
+ * CSS custom property.
  *
- * But they are DERIVED from the ds semantic tokens rather than invented, so the
- * ramp reads as the same family as every other status surface in the app. It used
- * to be Tailwind's red-500/orange-400/yellow-400/green-500/gray-500 — the same
- * fossil layer STATUS_COLORS shed when it moved to --success/--info/--warning/
- * --error (see src/theme/colors.ts).
+ * DELIBERATELY VIVID, and deliberately NOT the muted ds status tokens. This is a
+ * data-encoding ramp, not chrome: its whole job is to make a quality difference
+ * legible at a glance across a ring of frustums. Derived from --error/--warning/
+ * --success it walks one low-chroma axis, and red/orange/yellow/green stop being
+ * separable — the ramp looks calmer and reads worse (compared side by side and
+ * rejected, 2026-08-20). The same exemption the 3D viz palettes carry: encoding
+ * needs discriminability, chrome needs restraint.
  *
- *   unavailable = --text-muted verbatim (#858585). "No metric for this image" is
- *                 an absence, and muted is the token for absent/inert text; the
- *                 old #6b7280 was a fourth grey competing with three real ones.
- *   red         = --error   verbatim (#b86b6b)
- *   yellow      = --warning verbatim (#b89b6b)
- *   green       = --success verbatim (#6b9b6b)
- *   orange      = the per-channel MIDPOINT of --error and --warning
- *                 (184,107,107) -> (184,131,107) <- (184,155,107) = #b8836b.
- *                 Not a new token: the ds ramp deliberately has no orange between
- *                 warning and error (colors.ts explains why caution merged into
- *                 warning), and this ramp is interpolated continuously, so the
- *                 midpoint is a value the gradient already passes through. The
- *                 named stop earns its keep only in the PIECEWISE mappings below,
- *                 whose bands are uneven (PSNR 10-20 vs 20-25 vs 25-30).
- *
- * The whole ramp walks one axis: error -> warning -> success, i.e. red at
- * constant chroma opening into green. If any of those three tokens move,
- * re-derive these by hand — src/theme/colors.test.ts enforces the lockstep and
- * will fail until you do.
+ *   unavailable = --text-muted verbatim (#858585). This one IS chrome — "no metric
+ *                 for this image" is an absence, not a quality band, so it uses the
+ *                 muted token and is pinned to it in src/theme/colors.test.ts.
+ *   red/orange/yellow/green = saturated encoding stops, tuned for separation on
+ *                 the dark canvas rather than for family resemblance.
  */
 export const SPLAT_PSNR_UNAVAILABLE_COLOR = '#858585';
-export const SPLAT_PSNR_RED = '#b86b6b';
-export const SPLAT_PSNR_ORANGE = '#b8836b';
-export const SPLAT_PSNR_YELLOW = '#b89b6b';
-export const SPLAT_PSNR_GREEN = '#6b9b6b';
+export const SPLAT_PSNR_RED = '#ef4444';
+export const SPLAT_PSNR_ORANGE = '#fb923c';
+export const SPLAT_PSNR_YELLOW = '#facc15';
+export const SPLAT_PSNR_GREEN = '#22c55e';
 
 export interface SplatMetricColorScale {
   min: number;
