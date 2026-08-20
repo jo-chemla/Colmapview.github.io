@@ -4,11 +4,18 @@ This document describes the compatibility between COLMAP camera models and the r
 
 ## Overview
 
-COLMAP supports 12 camera models split into two families:
-- **Perspective models** (0-4, 6-7): Standard pinhole projection
-- **Fisheye models** (5, 8-11): Equidistant fisheye projection
+COLMAP supports 18 camera models (ids 0-17), split into three families:
+- **Perspective models** (0-4, 6-7, 12-13, 16): Standard pinhole projection
+- **Fisheye models** (5, 8-11, 14-15): Equidistant fisheye projection
+- **Spherical models** (17): 360° equirectangular panoramas, with no planar model to convert to or from
 
 Conversions between families are **never exact** due to fundamentally different projection formulas.
+
+This document covers the classic twelve models (0-11), which are the only ones the
+converter implements pairs for. The COLMAP 4.1 additions - SIMPLE_DIVISION (12),
+DIVISION (13), SIMPLE_FISHEYE (14), FISHEYE (15), EUCM (16), and EQUIRECTANGULAR
+(17) - are parsed, rendered, and undistorted, but have no conversion pairs, so any
+conversion into or out of them reports **incompatible**.
 
 ## Model Summary
 
@@ -99,6 +106,8 @@ Direct array copying will produce incorrect results!
 - ≈ = Approximate/lossy (may lose precision or information)
 - ✗ = Incompatible (fundamentally different models)
 - — = Same model
+
+The matrix lists models 0-11 only; every pair involving models 12-17 is incompatible (see Overview).
 
 ## Valid Conversion Chains
 
