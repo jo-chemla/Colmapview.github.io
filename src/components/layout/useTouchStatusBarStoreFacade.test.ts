@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useReconstructionStore } from '../../store/reconstructionStore';
 import { useUIStore } from '../../store/stores/uiStore';
@@ -45,6 +45,17 @@ describe('useTouchStatusBarStoreFacade', () => {
       showAutoHideEditor: true,
       urlLoading: true,
       reconstruction,
+      setShowHotkeyHelp: useUIStore.getState().setShowHotkeyHelp,
     });
+  });
+
+  it('routes the help entry back to the ui store', () => {
+    const { result } = renderHook(() => useTouchStatusBarStoreFacade());
+
+    act(() => {
+      result.current.setShowHotkeyHelp(true);
+    });
+
+    expect(useUIStore.getState().showHotkeyHelp).toBe(true);
   });
 });

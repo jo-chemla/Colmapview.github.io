@@ -1,4 +1,7 @@
 import {
+  TOUCH_STATUS_BAR_HELP_BUTTON_CLASS,
+  TOUCH_STATUS_BAR_HELP_LABEL,
+  TOUCH_STATUS_BAR_HELP_TITLE,
   formatStatusBarFps,
   getTouchEmptyStatusText,
   shouldShowTouchStatusBar,
@@ -8,9 +11,13 @@ import { useTouchStatusBarStoreFacade } from './useTouchStatusBarStoreFacade';
 
 /**
  * Simplified status bar for touch mode.
- * Shows only FPS - removes histograms, cache stats, and links.
+ * Shows FPS and the Help entry - removes histograms, cache stats, and links.
  * Height: 24px (vs 40px desktop status bar)
  * Visibility controlled by touchUI.statusBar.
+ *
+ * The Help entry is this layout's only pointer route into HotkeyHelpModal: the
+ * desktop status bar that carries the ⌨ Shortcuts entry is not rendered in
+ * touch mode, and the panel's I / Shift+? bindings need a keyboard.
  */
 export function TouchStatusBar() {
   const {
@@ -21,6 +28,7 @@ export function TouchStatusBar() {
     showAutoHideEditor,
     urlLoading,
     reconstruction,
+    setShowHotkeyHelp,
   } = useTouchStatusBarStoreFacade();
   const emptyStatusText = getTouchEmptyStatusText({
     hasReconstruction: Boolean(reconstruction),
@@ -39,6 +47,15 @@ export function TouchStatusBar() {
           {emptyStatusText}
         </span>
       )}
+      <button
+        type="button"
+        onClick={() => setShowHotkeyHelp(true)}
+        className={TOUCH_STATUS_BAR_HELP_BUTTON_CLASS}
+        title={TOUCH_STATUS_BAR_HELP_TITLE}
+        aria-label={TOUCH_STATUS_BAR_HELP_TITLE}
+      >
+        {TOUCH_STATUS_BAR_HELP_LABEL}
+      </button>
     </footer>
   );
 }

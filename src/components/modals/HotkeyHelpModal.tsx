@@ -141,7 +141,8 @@ function HotkeyHelpTabs() {
  * long list no longer floods the page (revision 2026-07-10). The first tab,
  * Essentials, curates the most-used shortcuts and is re-selected every time the
  * panel opens. Toggle with Shift+? (question mark) or I; also opened by the
- * status bar's ⌨ Shortcuts entry, which owns the pointer path into this panel.
+ * desktop status bar's ⌨ Shortcuts entry and, in touch mode where no keyboard
+ * is available, the touch status bar's Help entry — the two pointer paths in.
  *
  * The component renders nothing at all while the panel is closed.
  */

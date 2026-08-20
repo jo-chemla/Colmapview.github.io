@@ -9,6 +9,9 @@ import {
   STATUS_BAR_SHORTCUTS_BUTTON_CLASS,
   STATUS_BAR_SHORTCUTS_LABEL,
   STATUS_BAR_SHORTCUTS_TITLE,
+  TOUCH_STATUS_BAR_HELP_BUTTON_CLASS,
+  TOUCH_STATUS_BAR_HELP_LABEL,
+  TOUCH_STATUS_BAR_HELP_TITLE,
   formatStatusBarFps,
   getDesktopEmptyStatusText,
   getStatusBarContainerClassName,
@@ -82,6 +85,19 @@ describe('status bar view model', () => {
     expect(STATUS_BAR_SHORTCUTS_TITLE).toBe('Help & keyboard shortcuts (I)');
     expect(STATUS_BAR_SHORTCUTS_BUTTON_CLASS).toBe(
       'text-ds-secondary hover-ds-text-primary cursor-pointer transition-colors'
+    );
+  });
+
+  it('offers touch mode its own entry point into the same panel', () => {
+    // Touch mode drops the desktop status bar entirely, so this is the only
+    // pointer route into HotkeyHelpModal on a phone or tablet.
+    expect(TOUCH_STATUS_BAR_HELP_LABEL).toBe('? Help');
+    expect(TOUCH_STATUS_BAR_HELP_TITLE).toBe(HOTKEY_HELP_TITLE);
+    // No (I) suffix: the hotkey it names is unreachable without a keyboard.
+    expect(TOUCH_STATUS_BAR_HELP_TITLE).not.toContain('(');
+    // 44px tap box over a 24px bar, on top of the desktop entry's text styling.
+    expect(TOUCH_STATUS_BAR_HELP_BUTTON_CLASS).toBe(
+      `relative touch-hit-44 ${STATUS_BAR_SHORTCUTS_BUTTON_CLASS}`
     );
   });
 
