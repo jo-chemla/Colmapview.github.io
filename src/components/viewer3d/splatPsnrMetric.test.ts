@@ -31,28 +31,32 @@ describe('splatPsnrMetric helpers', () => {
     expect(formatSplatPsnrMetric(31.24)).toBe('31.2 dB PSNR');
     expect(formatSplatPsnrValue(Infinity)).toBe('99+');
 
-    expect(getSplatPsnrColor(undefined)).toBe('#6b7280');
-    expect(getSplatPsnrColor(8)).toBe('#ef4444');
-    expect(getSplatPsnrColor(30)).toBe('#22c55e');
-    expect(getSplatPsnrColor(100)).toBe('#22c55e');
+    // The hexes below are the ds semantic tokens, not arbitrary swatches:
+    // #858585 --text-muted, #b86b6b --error, #b8836b (error/warning midpoint),
+    // #b89b6b --warning, #6b9b6b --success. src/theme/colors.test.ts pins each
+    // one against :root, so a token move fails there and is fixed here.
+    expect(getSplatPsnrColor(undefined)).toBe('#858585');
+    expect(getSplatPsnrColor(8)).toBe('#b86b6b');
+    expect(getSplatPsnrColor(30)).toBe('#6b9b6b');
+    expect(getSplatPsnrColor(100)).toBe('#6b9b6b');
 
     expect(formatSplatSsimValue(undefined)).toBe('--');
     expect(formatSplatSsimMetric(0.9428)).toBe('0.943 SSIM');
-    expect(getSplatSsimColor(undefined)).toBe('#6b7280');
-    expect(getSplatSsimColor(0.4)).toBe('#ef4444');
-    expect(getSplatSsimColor(0.95)).toBe('#22c55e');
+    expect(getSplatSsimColor(undefined)).toBe('#858585');
+    expect(getSplatSsimColor(0.4)).toBe('#b86b6b');
+    expect(getSplatSsimColor(0.95)).toBe('#6b9b6b');
   });
 
   it('maps metric frustum colors across the active min-max range', () => {
     const scale = computeSplatMetricColorScale([10, 20, 30, 40]);
 
     expect(scale).toEqual({ min: 10, max: 40 });
-    expect(getSplatMetricScaleColor(undefined, scale)).toBe('#6b7280');
-    expect(getSplatMetricScaleColor(10, scale)).toBe('#ef4444');
-    expect(getSplatMetricScaleColor(20, scale)).toBe('#fb923c');
-    expect(getSplatMetricScaleColor(30, scale)).toBe('#facc15');
-    expect(getSplatMetricScaleColor(40, scale)).toBe('#22c55e');
-    expect(getSplatMetricScaleColor(50, scale)).toBe('#22c55e');
+    expect(getSplatMetricScaleColor(undefined, scale)).toBe('#858585');
+    expect(getSplatMetricScaleColor(10, scale)).toBe('#b86b6b');
+    expect(getSplatMetricScaleColor(20, scale)).toBe('#b8836b');
+    expect(getSplatMetricScaleColor(30, scale)).toBe('#b89b6b');
+    expect(getSplatMetricScaleColor(40, scale)).toBe('#6b9b6b');
+    expect(getSplatMetricScaleColor(50, scale)).toBe('#6b9b6b');
   });
 
   it('uses full-resolution render dimensions by default', () => {

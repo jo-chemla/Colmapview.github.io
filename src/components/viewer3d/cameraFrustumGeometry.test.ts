@@ -79,7 +79,7 @@ describe('camera frustum geometry helpers', () => {
       imageFrameIndexMap,
       '#123456',
       new Map([[frameA0.imageId, { psnr: 30 }]])
-    )).toBe('#22c55e');
+    )).toBe('#6b9b6b');
     expect(getFrustumBaseColor(
       'splatSsim',
       true,
@@ -88,7 +88,7 @@ describe('camera frustum geometry helpers', () => {
       imageFrameIndexMap,
       '#123456',
       new Map([[frameA0.imageId, { psnr: 30, ssim: 0.95 }]])
-    )).toBe('#22c55e');
+    )).toBe('#6b9b6b');
 
     const psnrMetrics = new Map([
       [frameA0.imageId, { psnr: 20 }],
@@ -111,7 +111,7 @@ describe('camera frustum geometry helpers', () => {
       '#123456',
       psnrMetrics,
       psnrScale
-    )).toBe('#ef4444');
+    )).toBe('#b86b6b');
     expect(getFrustumBaseColor(
       'splatPsnr',
       true,
@@ -121,7 +121,7 @@ describe('camera frustum geometry helpers', () => {
       '#123456',
       psnrMetrics,
       psnrScale
-    )).toBe('#22c55e');
+    )).toBe('#6b9b6b');
 
     const ssimMetrics = new Map([
       [frameA0.imageId, { psnr: 20, ssim: 0.82 }],
@@ -142,7 +142,7 @@ describe('camera frustum geometry helpers', () => {
       '#123456',
       ssimMetrics,
       ssimScale
-    )).toBe('#ef4444');
+    )).toBe('#b86b6b');
     expect(getFrustumBaseColor(
       'splatSsim',
       true,
@@ -152,7 +152,7 @@ describe('camera frustum geometry helpers', () => {
       '#123456',
       ssimMetrics,
       ssimScale
-    )).toBe('#22c55e');
+    )).toBe('#6b9b6b');
   });
 
   it('builds renderable frustum items from reconstruction data', () => {

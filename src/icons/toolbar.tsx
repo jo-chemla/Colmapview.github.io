@@ -288,6 +288,22 @@ export function ColorTrackIcon({ className }: IconProps) {
   );
 }
 
+/**
+ * Splat-blob icon art.
+ *
+ * DELIBERATE EXEMPTION from the ds palette. The hexes below (#f472b6, #60a5fa,
+ * #facc15, plus the rainbow points) are ILLUSTRATIVE, not semantic: three
+ * overlapping anisotropic blobs in three different hues is what makes a 24px
+ * glyph read as "gaussian splats" rather than as a generic cloud. The colour
+ * carries the icon's meaning, so routing it through --success/--info/--warning
+ * would both misuse status tokens and destroy the thing the icon depicts —
+ * greyed to one hue, these are three ellipses.
+ *
+ * They are also not on any surface the palette governs: each blob is drawn at
+ * 0.18/0.34/0.6 opacity over the toolbar button, so they read as tinted
+ * translucency, never as a flat brand colour. Same reasoning as
+ * LINK_COLORS in src/theme/colors.ts — scoped exemption, stated in place.
+ */
 interface SplatBlobProps {
   cx: number;
   cy: number;

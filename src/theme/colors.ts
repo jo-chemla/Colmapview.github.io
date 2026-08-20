@@ -134,7 +134,18 @@ export const CANVAS_COLORS = {
   white: '#ffffff',
 } as const;
 
-// Per-link hover colors for the help panel's About tab (brand-specific)
+/**
+ * Per-link hover colors for the help panel's About tab.
+ *
+ * DELIBERATE EXEMPTION from the ds palette, and the only one in this file that is
+ * not a mirror of a token. These are per-DESTINATION brand hues — GitHub yellow,
+ * bug-tracker red, COLMAP blue — not status. The link's rest state is already
+ * `text-ds-secondary` (see hotkeyHelpViewModel.ABOUT_PANEL_CLASS); the brand hue
+ * exists only to identify where the link goes on hover. Routing them through
+ * --warning/--error/--info would make three destinations that look nothing alike
+ * render as the app's three status colours, which is the opposite of the signal.
+ * colors.test.ts pins the token MIRRORS and leaves these alone on purpose.
+ */
 export const LINK_COLORS = {
   github: '#facc15',
   bugs: '#ef4444',
