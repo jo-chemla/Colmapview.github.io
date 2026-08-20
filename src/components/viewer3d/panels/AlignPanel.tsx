@@ -35,12 +35,18 @@ export const AlignPanel = memo(function AlignPanel({
   const {
     data: { reconstruction },
     pointPicking: { pickingMode, setPickingMode },
-    pointCloud: { showPointCloud, colorMode, setShowPointCloud, setColorMode },
+    pointCloud: { getPointCloudSnapshot, setShowPointCloud, setColorMode },
   } = useAlignPanelStoreFacade();
 
   const panelState = getAlignPanelState(pickingMode);
 
-  const armPickingMode = useCallback((nextMode: PointPickingMode) => {
+  // Deliberately not memoised: every tool row hands a fresh arrow
+  // (`() => armPickingMode(...)`) to a plain <button>, so a stable identity here
+  // would have no consumer to spare a render.
+  const armPickingMode = (nextMode: PointPickingMode) => {
+    // Read at click time. The panel does not subscribe to point-cloud state, so
+    // this is the freshest answer and costs nothing while the tools sit idle.
+    const { showPointCloud, colorMode } = getPointCloudSnapshot();
     const activation = getAlignPickingActivation({ nextMode, showPointCloud, colorMode });
 
     if (activation.showPointCloud !== null) {
@@ -51,7 +57,7 @@ export const AlignPanel = memo(function AlignPanel({
     }
 
     setPickingMode(activation.pickingMode);
-  }, [colorMode, setColorMode, setPickingMode, setShowPointCloud, showPointCloud]);
+  };
 
   const cancelPicking = useCallback(() => setPickingMode('off'), [setPickingMode]);
 

@@ -2,6 +2,7 @@ import {
   usePointCloudStore,
   usePointPickingStore,
   useReconstructionStore,
+  type ColorMode,
   type PointCloudState,
   type PointPickingState,
 } from '../../../store';
@@ -16,11 +17,28 @@ interface AlignPanelPointPickingFacade {
   setPickingMode: PointPickingState['setPickingMode'];
 }
 
-interface AlignPanelPointCloudFacade {
+export interface AlignPanelPointCloudSnapshot {
   showPointCloud: boolean;
-  colorMode: PointCloudState['colorMode'];
+  colorMode: ColorMode;
+}
+
+interface AlignPanelPointCloudFacade {
+  /**
+   * Read on demand rather than subscribed. The panel needs these two values
+   * only inside its arm-a-tool handler, and subscribing re-rendered the whole
+   * toolbar entry every time point-cloud visibility or the color mode changed
+   * anywhere else in the app.
+   */
+  getPointCloudSnapshot: () => AlignPanelPointCloudSnapshot;
   setShowPointCloud: PointCloudState['setShowPointCloud'];
   setColorMode: PointCloudState['setColorMode'];
+}
+
+// Module scope, so the identity is stable across renders and handlers closing
+// over it need no dependency on it.
+function getPointCloudSnapshot(): AlignPanelPointCloudSnapshot {
+  const { showPointCloud, colorMode } = usePointCloudStore.getState();
+  return { showPointCloud, colorMode };
 }
 
 export interface AlignPanelStoreFacade {
@@ -35,8 +53,6 @@ export function useAlignPanelStoreFacade(): AlignPanelStoreFacade {
   const pickingMode = usePointPickingStore((s) => s.pickingMode);
   const setPickingMode = usePointPickingStore((s) => s.setPickingMode);
 
-  const showPointCloud = usePointCloudStore((s) => s.showPointCloud);
-  const colorMode = usePointCloudStore((s) => s.colorMode);
   const setShowPointCloud = usePointCloudStore((s) => s.setShowPointCloud);
   const setColorMode = usePointCloudStore((s) => s.setColorMode);
 
@@ -49,8 +65,7 @@ export function useAlignPanelStoreFacade(): AlignPanelStoreFacade {
       setPickingMode,
     },
     pointCloud: {
-      showPointCloud,
-      colorMode,
+      getPointCloudSnapshot,
       setShowPointCloud,
       setColorMode,
     },

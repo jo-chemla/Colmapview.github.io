@@ -25,10 +25,42 @@ describe('useAlignPanelStoreFacade', () => {
 
     expect(result.current.data.reconstruction).toBe(reconstruction);
     expect(result.current.pointPicking.pickingMode).toBe('origin-1pt');
-    expect(result.current.pointCloud).toMatchObject({
+    expect(result.current.pointCloud.getPointCloudSnapshot()).toEqual({
       showPointCloud: false,
       colorMode: 'splats',
     });
+  });
+
+  it('reads point-cloud state on demand instead of subscribing the panel to it', () => {
+    let renderCount = 0;
+    const { result } = renderHook(() => {
+      renderCount += 1;
+      return useAlignPanelStoreFacade();
+    });
+    const rendersAfterMount = renderCount;
+
+    act(() => {
+      usePointCloudStore.getState().setShowPointCloud(false);
+      usePointCloudStore.getState().setColorMode('splats');
+    });
+
+    // Point-cloud visibility and color mode change constantly elsewhere in the
+    // app; the align panel only consults them when a tool is armed.
+    expect(renderCount).toBe(rendersAfterMount);
+    expect(result.current.pointCloud.getPointCloudSnapshot()).toEqual({
+      showPointCloud: false,
+      colorMode: 'splats',
+    });
+  });
+
+  it('keeps the snapshot reader stable across renders', () => {
+    const { result, rerender } = renderHook(() => useAlignPanelStoreFacade());
+    const firstReader = result.current.pointCloud.getPointCloudSnapshot;
+    expect(typeof firstReader).toBe('function');
+
+    rerender();
+
+    expect(result.current.pointCloud.getPointCloudSnapshot).toBe(firstReader);
   });
 
   it('leaves the gizmo to the transform panel and exposes no UI slice', () => {
