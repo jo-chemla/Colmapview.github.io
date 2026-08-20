@@ -42,6 +42,15 @@ type ParseColmapFiles = typeof parseColmapFiles;
 type BuildColmapReconstruction = typeof buildColmapReconstruction;
 type ClearCaches = (options?: ClearAllOptions) => void;
 type PreloadSplatRuntime = () => Promise<unknown>;
+/**
+ * Whether the Spark runtime chunk (~5MB) is worth fetching for this drop. The
+ * renderer only needs it when the resolved backend is Spark, so the decision is
+ * the caller's: it owns the requested backend and the live availability that
+ * `shouldPreloadSparkSplatRuntime` reads. Left unset it returns `true`, because
+ * preloading a runtime that turns out to be unused only wastes bandwidth, while
+ * skipping one that is needed stalls the first splat frame behind the download.
+ */
+type ShouldPreloadSplatRuntime = () => boolean;
 type ClassifyPlyFile = typeof classifyPlyFile;
 
 interface PointCloudPlySource extends SplatFileSource {
@@ -64,6 +73,7 @@ export interface FileDropzoneWorkflowDeps {
   parseFiles?: ParseColmapFiles;
   classifyPlyFile?: ClassifyPlyFile;
   preloadSplatRuntime?: PreloadSplatRuntime;
+  shouldPreloadSplatRuntime?: ShouldPreloadSplatRuntime;
   resetView: () => void;
   setDroppedFiles: (files: Map<string, File>) => void;
   setError: (error: string | null) => void;
@@ -235,6 +245,7 @@ export async function processFileDropzoneFiles(
   const parseFiles = deps.parseFiles ?? parseColmapFiles;
   const buildReconstruction = deps.buildReconstruction ?? buildColmapReconstruction;
   const preloadSplatRuntime = deps.preloadSplatRuntime ?? preloadSparkModule;
+  const shouldPreloadSplatRuntime = deps.shouldPreloadSplatRuntime ?? (() => true);
   const classifyPly = deps.classifyPlyFile ?? classifyPlyFile;
   const getDecodeFailureCount = deps.getFailedImageCount ?? getFailedImageCount;
   const delay = deps.delay ?? ((ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms)));
@@ -278,7 +289,12 @@ export async function processFileDropzoneFiles(
     }));
   };
 
-  if (splatFile) {
+  // Head start on the Spark chunk, but only when Spark is the backend that will
+  // actually render this splat. Scene3D and SplatLayer gate their own preloads
+  // on the same policy; an ungated one here downloaded the whole bundle for
+  // WebGPU-backed splats that never touch it. This decides nothing about when
+  // the splat itself loads — that stays with the handoff below.
+  if (splatFile && shouldPreloadSplatRuntime()) {
     void preloadSplatRuntime().catch((error: unknown) => {
       logger.warn(
         `[Splats] Failed to preload Spark runtime: ${error instanceof Error ? error.message : String(error)}`

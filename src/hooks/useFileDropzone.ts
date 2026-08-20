@@ -4,12 +4,14 @@ import {
   useNotificationStore,
   usePointCloudStore,
   useReconstructionStore,
+  useSplatBackendStore,
   useUIStore,
 } from '../store';
 import { clearAllCaches } from '../cache';
 import { isArchiveFile, loadZipFromFile, setActiveZipArchive } from '../utils/zipLoader';
 import { scanDirectoryHandle, scanEntry } from '../utils/fileScanning';
 import { appLogger } from '../utils/logger';
+import { shouldPreloadSparkSplatRuntime } from '../utils/splatBackendPolicy';
 import { collectDroppedFiles, collectFileDropPayload, isFileDrop } from './fileDropzoneDropPayload';
 import { loadBrowsedDirectory, loadDropPayload, loadLocalZipFile } from './fileDropzoneLocalSources';
 import { processFileDropzoneFiles, type FileDropzoneWorkflowOptions } from './fileDropzoneWorkflow';
@@ -57,6 +59,13 @@ export function useFileDropzone() {
       setUrlLoading,
       setUrlProgress,
       setWasmReconstruction,
+      // Read at drop time, not at hook render: the WebGPU renderer flips
+      // availability to 'ready' asynchronously, so the freshest answer is the
+      // one taken the moment a splat actually arrives.
+      shouldPreloadSplatRuntime: () => {
+        const { requestedBackend, availability } = useSplatBackendStore.getState();
+        return shouldPreloadSparkSplatRuntime(requestedBackend, availability);
+      },
     }, {
       progressRange,
       onSceneReplaced: options.onSceneReplaced,

@@ -352,6 +352,36 @@ describe('file dropzone workflow', () => {
     expect(deps.setUrlLoading).not.toHaveBeenCalledWith(false);
   });
 
+  it('skips the spark runtime preload when the caller says the backend will not use it', async () => {
+    const parseFiles = vi.fn();
+    const spz = new File(['xx'], 'webgpu.spz');
+    const deps = createDeps({
+      getLoadedFiles: vi.fn(() => null),
+      parseFiles,
+      shouldPreloadSplatRuntime: vi.fn(() => false),
+    });
+
+    const result = await processFileDropzoneFiles(new Map([['webgpu.spz', spz]]), deps);
+
+    expect(result).toBe(true);
+    expect(deps.shouldPreloadSplatRuntime).toHaveBeenCalledTimes(1);
+    expect(deps.preloadSplatRuntime).not.toHaveBeenCalled();
+    // Only the runtime download is skipped: the splat itself loads on exactly the
+    // same schedule, with the same handoff to the renderer's own progress.
+    expect(deps.setLoadedFiles).toHaveBeenCalledWith(expect.objectContaining({
+      splatFile: spz,
+      splatFiles: [spz],
+      splatFileSources: [{ id: 'webgpu.spz', path: 'webgpu.spz', file: spz }],
+    }));
+    expect(deps.setUrlProgress).toHaveBeenCalledWith({
+      percent: 60,
+      message: 'Preparing splat renderer...',
+      currentFile: 'webgpu.spz',
+    });
+    expect(deps.setUrlLoading).toHaveBeenCalledWith(true);
+    expect(deps.setUrlLoading).not.toHaveBeenCalledWith(false);
+  });
+
   it('loads a generic PLY point cloud as points3D instead of a splat', async () => {
     const logger = createLogger();
     const parseFiles = vi.fn();
