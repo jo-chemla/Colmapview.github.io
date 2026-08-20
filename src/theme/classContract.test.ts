@@ -185,3 +185,129 @@ describe('utility class contract', () => {
     expect(css).toContain(`--tap-target-min: ${TOUCH.minTapTarget}px`);
   });
 });
+
+/**
+ * Contract: spacing utilities read the --sp-* ladder, and the compact tier
+ * scales the LADDER rather than listing the utilities that ride it.
+ *
+ * The `@media (max-width: 1520px)` tier used to compact panels by naming every
+ * padding/margin/gap utility a panel happened to contain. That list is open —
+ * it grows with the UI — and it had already fallen behind twice: four utilities
+ * were retro-fitted once, and `ml-1`, `px-3` and `pr-6` were still sitting at
+ * desktop size inside compacted panels when this contract was written. Custom
+ * properties inherit, so re-declaring the rungs on the two panel roots compacts
+ * every spacing utility inside them, including ones added later. The assertions
+ * below keep both halves of that mechanism honest: no utility may inline a
+ * literal (a literal is invisible to the tier), and the tier may not re-grow
+ * the list it replaced.
+ */
+describe('spacing ladder contract', () => {
+  const rawCss = readFileSync(CSS_PATH, 'utf8');
+  const ROOT_FONT_SIZE = 16;
+
+  const SPACING_UTILITY = /^-?(?:p|px|py|pt|pr|pb|pl|m|mx|my|mt|mr|mb|ml|gap|gap-x|gap-y|space-x|space-y)-/;
+  const SPACING_DECLARATION =
+    /(?:^|[;{])\s*((?:padding|margin)(?:-top|-right|-bottom|-left)?|gap|row-gap|column-gap)\s*:\s*([^;}]+)/g;
+  const LADDER_REFERENCE = /^var\((--sp-(?:[\w-]|\\.)+)\)$/;
+  const NEGATED_LADDER_REFERENCE = /^calc\(var\((--sp-(?:[\w-]|\\.)+)\) \* -1\)$/;
+
+  const unescape = (name: string): string => name.replace(/\\(.)/g, '$1');
+
+  /** The hand-written utility block, from the padding heading to the sizing one. */
+  function spacingSection(): string {
+    const start = rawCss.indexOf('/* Padding */');
+    const end = rawCss.indexOf('SIZING UTILITIES');
+    if (start < 0 || end <= start) throw new Error('spacing utility section not found');
+    return rawCss.slice(start, end);
+  }
+
+  /** Balanced-brace body of the compact tier's media query. */
+  function compactTier(): string {
+    const opener = '@media (max-width: 1520px) {';
+    const start = rawCss.indexOf(opener);
+    if (start < 0) throw new Error('compact tier media query not found');
+    let depth = 0;
+    for (let i = start + opener.length - 1; i < rawCss.length; i += 1) {
+      if (rawCss[i] === '{') depth += 1;
+      else if (rawCss[i] === '}') {
+        depth -= 1;
+        if (depth === 0) return rawCss.slice(start, i);
+      }
+    }
+    throw new Error('compact tier media query is unbalanced');
+  }
+
+  /** :root spacing rungs, in px. Escaped names are resolved (`--sp-1\.5`). */
+  function rootLadder(): Map<string, number> {
+    const root = /:root\s*\{([^}]*)\}/.exec(rawCss.replace(/\/\*[\s\S]*?\*\//g, ' '));
+    if (!root) throw new Error(`no :root block found in ${CSS_PATH}`);
+    const ladder = new Map<string, number>();
+    for (const match of root[1].matchAll(/(--sp-(?:[\w-]|\\.)+)\s*:\s*([^;]+);/g)) {
+      const value = match[2].trim();
+      const rem = value.match(/^([\d.]+)rem$/);
+      const px = value.match(/^([\d.]+)px$/);
+      const pixels = rem
+        ? Number(rem[1]) * ROOT_FONT_SIZE
+        : px ? Number(px[1]) : value === '0' ? 0 : NaN;
+      ladder.set(unescape(match[1]), pixels);
+    }
+    return ladder;
+  }
+
+  const ladder = rootLadder();
+
+  it('parses a full ladder out of :root', () => {
+    // Guards the parser itself: an empty map would make everything below vacuous.
+    expect(ladder.size).toBeGreaterThan(20);
+    expect(ladder.get('--sp-4')).toBe(16);
+    expect(ladder.get('--sp-1.5')).toBe(6);
+  });
+
+  it('never inlines a spacing literal in the utility layer', () => {
+    const inlined: string[] = [];
+    for (const match of spacingSection().matchAll(SPACING_DECLARATION)) {
+      const value = match[2].trim();
+      if (value === 'auto') continue;
+      if (LADDER_REFERENCE.test(value) || NEGATED_LADDER_REFERENCE.test(value)) continue;
+      inlined.push(`${match[1]}: ${value}`);
+    }
+    expect(inlined).toEqual([]);
+  });
+
+  it('references only rungs that :root declares', () => {
+    const dangling: string[] = [];
+    for (const match of spacingSection().matchAll(SPACING_DECLARATION)) {
+      const value = match[2].trim();
+      const reference = LADDER_REFERENCE.exec(value) ?? NEGATED_LADDER_REFERENCE.exec(value);
+      if (!reference) continue;
+      const name = unescape(reference[1]);
+      if (!ladder.has(name)) dangling.push(name);
+    }
+    expect([...new Set(dangling)].sort()).toEqual([]);
+  });
+
+  it('compacts panels by re-declaring the ladder, at or below the desktop rung', () => {
+    const declared = new Map<string, number>();
+    for (const match of compactTier().matchAll(/(--sp-(?:[\w-]|\\.)+)\s*:\s*([\d.]+)px\s*;/g)) {
+      declared.set(unescape(match[1]), Number(match[2]));
+    }
+    // The rungs the retired enumeration covered — the tier must still reach them.
+    expect([...declared.keys()]).toEqual(
+      expect.arrayContaining(['--sp-1', '--sp-1.5', '--sp-2', '--sp-3', '--sp-4'])
+    );
+    const grown = [...declared].filter(([name, value]) => !(value <= (ladder.get(name) ?? -1)));
+    expect(grown).toEqual([]);
+  });
+
+  it('keeps the tier free of per-utility spacing overrides, bar the documented one', () => {
+    // `py-1` opts out on purpose: the panel action buttons keep a real 4px hit
+    // area (index.css spells out why). Anything else showing up here means the
+    // enumeration the ladder replaced is growing back.
+    const overridden = new Set<string>();
+    for (const match of compactTier().matchAll(/\.(?:hover-panel|tool-modal)-responsive\s+\.((?:[\w-]|\\.)+)/g)) {
+      const token = unescape(match[1]);
+      if (SPACING_UTILITY.test(token)) overridden.add(token);
+    }
+    expect([...overridden].sort()).toEqual(['py-1']);
+  });
+});
