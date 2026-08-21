@@ -54,7 +54,6 @@ export function runSplatOnlyLoad({
     splatFile,
     splatFiles,
     splatFileSources,
-    databaseFile: undefined,
     rigsFile: undefined,
     framesFile: undefined,
     imageFiles: new Map(),

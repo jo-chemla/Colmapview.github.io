@@ -23,10 +23,8 @@ import type { ImageId } from '../../types/colmap';
 import { getCameraColor } from '../../theme';
 import {
   SPLAT_PSNR_GREEN,
-  SPLAT_PSNR_ORANGE,
   SPLAT_PSNR_RED,
   SPLAT_PSNR_UNAVAILABLE_COLOR,
-  SPLAT_PSNR_YELLOW,
 } from './splatPsnrMetric';
 
 function buildFrustumGeometryItem({

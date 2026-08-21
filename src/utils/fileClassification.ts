@@ -17,7 +17,6 @@ export interface ColmapFileSelection {
   camerasFile?: File;
   imagesFile?: File;
   points3DFile?: File;
-  databaseFile?: File;
   rigsFile?: File;
   framesFile?: File;
 }
@@ -65,7 +64,6 @@ function findColmapFilesInternal(
     camerasFile: selection.cameras ? files.get(selection.cameras) : undefined,
     imagesFile: selection.images ? files.get(selection.images) : undefined,
     points3DFile: selection.points3D ? files.get(selection.points3D) : undefined,
-    databaseFile: selection.database ? files.get(selection.database) : undefined,
     rigsFile: selection.rigs ? files.get(selection.rigs) : undefined,
     framesFile: selection.frames ? files.get(selection.frames) : undefined,
   };

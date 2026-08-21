@@ -55,7 +55,6 @@ export async function runPointCloudOnlyLoad({
     splatFile: undefined,
     splatFiles: [],
     splatFileSources: [],
-    databaseFile: undefined,
     rigsFile: undefined,
     framesFile: undefined,
     imageFiles: new Map(),

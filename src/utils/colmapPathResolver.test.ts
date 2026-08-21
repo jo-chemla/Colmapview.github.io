@@ -53,7 +53,7 @@ describe('resolveColmapPaths', () => {
     expect(sel?.points3D).toBe('sparse/0/points3D.txt');
   });
 
-  it('captures optional database, rigs and frames files', () => {
+  it('captures optional rigs and frames files and ignores a database.db', () => {
     const sel = resolveColmapPaths([
       'sparse/0/cameras.bin',
       'sparse/0/images.bin',
@@ -62,7 +62,6 @@ describe('resolveColmapPaths', () => {
       'sparse/0/rigs.bin',
       'sparse/0/frames.bin',
     ]);
-    expect(sel?.database).toBe('sparse/0/database.db');
     expect(sel?.rigs).toBe('sparse/0/rigs.bin');
     expect(sel?.frames).toBe('sparse/0/frames.bin');
   });

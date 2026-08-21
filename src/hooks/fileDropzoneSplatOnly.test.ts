@@ -53,7 +53,6 @@ describe('file dropzone splat-only load helper', () => {
       splatFile,
       splatFiles,
       splatFileSources,
-      databaseFile: undefined,
       rigsFile: undefined,
       framesFile: undefined,
       imageFiles: new Map(),

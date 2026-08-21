@@ -40,7 +40,6 @@ describe('file dropzone point-cloud-only load helper', () => {
       splatFile: undefined,
       splatFiles: [],
       splatFileSources: [],
-      databaseFile: undefined,
       rigsFile: undefined,
       framesFile: undefined,
       imageFiles: new Map(),

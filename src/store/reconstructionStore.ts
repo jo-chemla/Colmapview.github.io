@@ -584,7 +584,6 @@ function isSplatFileSwitchWithinLoadedDataset(
   return previousLoadedFiles.camerasFile === nextLoadedFiles.camerasFile
     && previousLoadedFiles.imagesFile === nextLoadedFiles.imagesFile
     && previousLoadedFiles.points3DFile === nextLoadedFiles.points3DFile
-    && previousLoadedFiles.databaseFile === nextLoadedFiles.databaseFile
     && previousLoadedFiles.rigsFile === nextLoadedFiles.rigsFile
     && previousLoadedFiles.framesFile === nextLoadedFiles.framesFile
     && previousLoadedFiles.imageFiles === nextLoadedFiles.imageFiles

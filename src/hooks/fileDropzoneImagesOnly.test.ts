@@ -54,7 +54,6 @@ describe('file dropzone images-only load helper', () => {
       splatFile,
       splatFiles,
       splatFileSources,
-      databaseFile: undefined,
       rigsFile: undefined,
       framesFile: undefined,
       imageFiles,

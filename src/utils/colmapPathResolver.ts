@@ -12,12 +12,11 @@ export interface ColmapPathSelection {
   cameras?: string;
   images?: string;
   points3D?: string;
-  database?: string;
   rigs?: string;
   frames?: string;
 }
 
-type ColmapRole = 'cameras' | 'images' | 'points3D' | 'database' | 'rigs' | 'frames';
+type ColmapRole = 'cameras' | 'images' | 'points3D' | 'rigs' | 'frames';
 
 type ColmapDirectory = Partial<Record<ColmapRole, string>>;
 
@@ -45,9 +44,6 @@ function getColmapRole(filename: string): ColmapRole | null {
     case 'points3d.bin':
     case 'points3d.txt':
       return 'points3D';
-    case 'database.db':
-    case 'colmap.db':
-      return 'database';
     case 'rigs.bin':
     case 'rigs.txt':
       return 'rigs';
@@ -59,7 +55,7 @@ function getColmapRole(filename: string): ColmapRole | null {
   }
 }
 
-/** Within a role, prefer a binary file over a text file (database has no .txt form). */
+/** Within a role, prefer a binary file over a text file. */
 function choosePreferredPath(current: string | undefined, candidate: string): string {
   if (!current) {
     return candidate;
@@ -114,9 +110,7 @@ export function resolveColmapPaths(
     }
     const dir = getParentDir(rawPath);
     const entry = directories.get(dir) ?? {};
-    entry[role] = role === 'database'
-      ? (entry[role] ?? rawPath)
-      : choosePreferredPath(entry[role], rawPath);
+    entry[role] = choosePreferredPath(entry[role], rawPath);
     directories.set(dir, entry);
   }
 
@@ -142,7 +136,6 @@ export function resolveColmapPaths(
     cameras: best.entry.cameras,
     images: best.entry.images,
     points3D: best.entry.points3D,
-    database: best.entry.database,
     rigs: best.entry.rigs,
     frames: best.entry.frames,
   };

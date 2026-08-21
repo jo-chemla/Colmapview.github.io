@@ -92,7 +92,6 @@ export default defineConfig(({ command, mode }) => {
     },
 
     optimizeDeps: {
-      exclude: ['sql.js'],
       include: ['react', 'react-dom', 'three'],
     },
 

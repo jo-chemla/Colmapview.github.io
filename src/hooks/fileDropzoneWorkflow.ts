@@ -341,14 +341,13 @@ export async function processFileDropzoneFiles(
       }
     }
 
-    let { camerasFile, imagesFile, points3DFile, databaseFile, rigsFile, framesFile } = findColmapFiles(files);
+    let { camerasFile, imagesFile, points3DFile, rigsFile, framesFile } = findColmapFiles(files);
     if ((!camerasFile || !imagesFile || !points3DFile) && pointCloudFile) {
       const cameraImageFiles = findColmapCameraImageFiles(files);
       if (cameraImageFiles.camerasFile && cameraImageFiles.imagesFile) {
         camerasFile = cameraImageFiles.camerasFile;
         imagesFile = cameraImageFiles.imagesFile;
         points3DFile = pointCloudFile;
-        databaseFile = cameraImageFiles.databaseFile;
         rigsFile = cameraImageFiles.rigsFile;
         framesFile = cameraImageFiles.framesFile;
       }
@@ -423,7 +422,6 @@ export async function processFileDropzoneFiles(
       splatFile,
       splatFiles,
       splatFileSources,
-      databaseFile,
       rigsFile,
       framesFile,
       imageFiles,

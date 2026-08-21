@@ -123,7 +123,6 @@ export interface LoadedFiles {
   imagesFile?: File;
   points3DFile?: File;
   splatFile?: File;
-  databaseFile?: File;
   rigsFile?: File;
   framesFile?: File;
   imageFiles: Map<string, File>;

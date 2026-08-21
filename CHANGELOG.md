@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Text labels drawn inside the 3D scene now use the interface typeface once fonts finish loading, instead of staying on a system fallback.
 - Floating tool windows no longer drift upward in the stacking order across a long session; the counter resets once the last window closes.
 - The "unavailable" marker in the cache-statistics tooltip is visible again.
+- COLMAP's `database.db` is no longer picked up when a folder is dropped. Nothing ever read it — the viewer works from the sparse model files — but the memory tooltip listed it as a loaded "Database" resource and added its size to the JS memory total, which overstated the figure by the whole file (routinely hundreds of megabytes). The unused SQLite reader that went with it, and the 644 KB WebAssembly binary it shipped in every build, are gone too.
 
 ### Notes
 

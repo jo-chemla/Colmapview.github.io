@@ -33,7 +33,6 @@ interface LoadedFilesBuilderOptions {
   imagesFile?: File;
   points3DFile?: File;
   splatFile?: File;
-  databaseFile?: File;
   rigsFile?: File;
   framesFile?: File;
   splatFiles?: File[];
@@ -186,7 +185,6 @@ export function buildLoadedFiles(options: LoadedFilesBuilderOptions = {}): Loade
     imagesFile: options.imagesFile,
     points3DFile: options.points3DFile,
     splatFile: options.splatFile,
-    databaseFile: options.databaseFile,
     rigsFile: options.rigsFile,
     framesFile: options.framesFile,
     splatFiles: options.splatFiles ?? (options.splatFile ? [options.splatFile] : undefined),

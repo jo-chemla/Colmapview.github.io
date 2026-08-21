@@ -97,7 +97,7 @@ export interface DatasetMemoryStats {
   points3D: ResourceInfo;
   /** 2D keypoints per image - in WASM or JS memory */
   points2D: ResourceInfo;
-  /** Feature matches (if database loaded) */
+  /** Feature matches - derived from point3D track observations */
   matches: ResourceInfo;
   /** Camera models - always in JS memory */
   cameras: ResourceInfo;
@@ -109,8 +109,6 @@ export interface DatasetMemoryStats {
   maskFiles: ResourceInfo;
   /** Images decoded and loaded to JS RAM (thumbnails + frustum textures) */
   imagesDecoded: ResourceInfo;
-  /** Database file reference */
-  database: ResourceInfo;
   /** Rig definitions */
   rigs: ResourceInfo;
   /** Gaussian splat file reference */

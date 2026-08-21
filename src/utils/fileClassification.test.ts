@@ -46,7 +46,6 @@ describe('file classification helpers', () => {
       camerasFile: sparseCamerasBin,
       imagesFile: sparseImages,
       points3DFile: sparsePoints,
-      databaseFile: sparseDatabase,
       rigsFile: sparseRigs,
       framesFile: sparseFrames,
     });
@@ -78,7 +77,6 @@ describe('file classification helpers', () => {
       camerasFile: cameras,
       imagesFile: images,
       points3DFile: undefined,
-      databaseFile: undefined,
       rigsFile: rigs,
       framesFile: undefined,
     });

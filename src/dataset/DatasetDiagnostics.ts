@@ -101,7 +101,6 @@ export class DatasetDiagnostics {
     const imageCount = reconstruction?.images.size ?? 0;
     const imagePosesBytes = imageCount * 200;
 
-    const hasDatabase = !!loadedFiles?.databaseFile;
     const matchCount = reconstruction?.globalStats?.totalObservations ?? 0;
     const matchesBytes = matchCount * 12;
 
@@ -129,8 +128,6 @@ export class DatasetDiagnostics {
     const decodedImagesCount = thumbnailStats.count + frustumStats.bitmaps;
     const decodedImagesBytes = (thumbnailStats.count * 75000) + (frustumStats.bitmaps * 65000);
 
-    const databaseBytes = hasDatabase ? loadedFiles!.databaseFile!.size : 0;
-
     const hasRigs = !!loadedFiles?.rigsFile;
     const rigsBytes = hasRigs ? loadedFiles!.rigsFile!.size : 0;
 
@@ -147,7 +144,7 @@ export class DatasetDiagnostics {
       + camerasBytes
       + imagePosesBytes
       + matchesBytes;
-    const totalJsBytes = jsReconstructionBytes + databaseBytes + rigsBytes + splatsBytes;
+    const totalJsBytes = jsReconstructionBytes + rigsBytes + splatsBytes;
 
     return {
       points3D: this.resource(points3DCount > 0, 'memory', useWasm ? 'wasm' : 'js', points3DCount, points3DBytes),
@@ -176,7 +173,6 @@ export class DatasetDiagnostics {
         decodedImagesCount,
         decodedImagesBytes,
       ),
-      database: this.resource(hasDatabase, 'memory', 'js', hasDatabase ? 1 : 0, databaseBytes),
       rigs: this.resource(hasRigs, 'memory', 'js', hasRigs ? 1 : 0, rigsBytes),
       splats: this.resource(hasSplats, 'memory', 'js', hasSplats ? 1 : 0, splatsBytes),
       zipArchive: this.resource(isZipSource && zipArchiveBytes > 0, 'memory', 'js', 1, zipArchiveBytes),

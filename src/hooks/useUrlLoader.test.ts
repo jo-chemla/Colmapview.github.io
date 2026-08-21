@@ -31,7 +31,6 @@ function createSplatLoadedFiles(splatFile: File): LoadedFiles {
     splatFile,
     splatFiles: [splatFile],
     splatFileSources: [{ id: splatFile.name, path: splatFile.name, file: splatFile }],
-    databaseFile: undefined,
     rigsFile: undefined,
     framesFile: undefined,
     imageFiles: new Map(),

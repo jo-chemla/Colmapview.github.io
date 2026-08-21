@@ -89,10 +89,9 @@ describe('DatasetDiagnostics', () => {
     expect(stats.imageFiles.memory).toMatchObject({ count: 2, sizeBytes: 3000 });
     expect(stats.imageFiles.strategy).toBe('memory');
     expect(stats.imagesDecoded.memory).toMatchObject({ count: 3, sizeBytes: 215000 });
-    expect(stats.database.memory).toMatchObject({ count: 1, sizeBytes: 12 });
     expect(stats.rigs.memory).toMatchObject({ count: 1, sizeBytes: 8 });
     expect(stats.splats.memory).toMatchObject({ count: 1, sizeBytes: 9 });
-    expect(stats.totalJs.sizeBytes).toBe(80 + 80 + 400 + 400 + 108 + 12 + 8 + 9);
+    expect(stats.totalJs.sizeBytes).toBe(80 + 80 + 400 + 400 + 108 + 8 + 9);
   });
 });
 
@@ -123,7 +122,6 @@ function buildDiagnosticsReconstruction(): Reconstruction {
 
 function buildLoadedFiles(): LoadedFiles {
   return {
-    databaseFile: new File(['database-bin'], 'database.db'),
     rigsFile: new File(['rigs-bin'], 'rigs.bin'),
     splatFile: new File(['splat-bin'], 'scene.ply'),
     imageFiles: new Map([['image.jpg', new File(['image'], 'image.jpg')]]),

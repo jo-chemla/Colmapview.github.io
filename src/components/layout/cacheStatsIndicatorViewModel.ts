@@ -93,10 +93,6 @@ export function buildDatasetResourceRows(stats: DatasetMemoryStats): CacheStatsR
     getResourceRow('Camera Poses', stats.imagePoses),
   ];
 
-  if (stats.database.available) {
-    rows.push(getResourceRow('Database', stats.database));
-  }
-
   if (stats.splats.available) {
     rows.push(getResourceRow('Splat PLY', stats.splats));
   }

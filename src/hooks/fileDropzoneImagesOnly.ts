@@ -55,7 +55,6 @@ export function runImagesOnlyLoad({
     splatFile,
     splatFiles,
     splatFileSources,
-    databaseFile: undefined,
     rigsFile: undefined,
     framesFile: undefined,
     imageFiles,

@@ -40,10 +40,9 @@ describe('cache stats indicator view model', () => {
     expect(getEffectiveResourceStrategy(false, 'memory')).toBe('unavailable');
   });
 
-  it('builds dataset table rows with rig and database policy', () => {
+  it('builds dataset table rows with rig and splat policy', () => {
     const stats = createStats({
       rigs: resource({ available: true, count: 2, sizeBytes: 128 }),
-      database: resource({ available: true, count: 1, sizeBytes: 4096 }),
       splats: resource({ available: true, count: 1, sizeBytes: 5 * 1024 * 1024 }),
     });
 
@@ -53,12 +52,11 @@ describe('cache stats indicator view model', () => {
       expect.objectContaining({ label: 'Matches', available: false }),
       expect.objectContaining({ label: 'Cameras/Rigs', count: 5, size: '256 B' }),
       expect.objectContaining({ label: 'Camera Poses', count: 4 }),
-      expect.objectContaining({ label: 'Database', count: 1, size: '4.00 KB' }),
       expect.objectContaining({ label: 'Splat PLY', count: 1, size: '5.00 MB' }),
     ]);
   });
 
-  it('omits unavailable database rows and leaves camera rows uncombined without rigs', () => {
+  it('omits unavailable rows and leaves camera rows uncombined without rigs', () => {
     const rows = buildDatasetResourceRows(createStats());
 
     expect(rows.map((row) => row.label)).toEqual([
@@ -121,7 +119,6 @@ function createStats(overrides: Partial<DatasetMemoryStats> = {}): DatasetMemory
     imageFiles: resource({ strategy: 'lazy', count: 5, sizeBytes: 250 }),
     maskFiles: resource({ available: false, strategy: 'lazy' }),
     imagesDecoded: resource({ strategy: 'lazy', count: 1, sizeBytes: 1024 }),
-    database: resource({ available: false }),
     rigs: resource({ available: false }),
     splats: resource({ available: false }),
     zipArchive: resource({ available: false }),
