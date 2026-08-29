@@ -18,12 +18,13 @@ export const STATUS_BAR_SHORTCUTS_BUTTON_CLASS =
 // that nothing on a touch device can press.
 export const TOUCH_STATUS_BAR_HELP_LABEL = '? Help';
 export const TOUCH_STATUS_BAR_HELP_TITLE = 'Help';
-// The desktop entry's muted-to-bright text treatment plus the shared 44px tap
-// box (`relative` anchors the touch-hit-44 ::before in index.css), because the
-// touch bar itself is only 24px tall. The button stays a leaf target, which
-// that utility requires.
-export const TOUCH_STATUS_BAR_HELP_BUTTON_CLASS =
-  `relative touch-hit-44 ${STATUS_BAR_SHORTCUTS_BUTTON_CLASS}`;
+// No synthetic tap box: the touch bar itself is 44px tall (h-11 in
+// TouchStatusBar) and the button stretches to fill it (self-stretch, applied
+// at the usage site), so the button's real box meets the tap minimum.
+// touch-hit-44 is BANNED here — centered on a bottom-of-screen bar it can
+// only overhang upward, over the live canvas, where it steals orbit
+// gestures (found by adversarial review 2026-08-29).
+export const TOUCH_STATUS_BAR_HELP_BUTTON_CLASS = STATUS_BAR_SHORTCUTS_BUTTON_CLASS;
 
 export function formatStatusBarFps(fps: number): string {
   return `${fps} FPS`;
