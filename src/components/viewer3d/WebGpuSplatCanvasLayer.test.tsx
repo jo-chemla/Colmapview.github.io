@@ -278,7 +278,7 @@ describe('WebGpuSplatCanvasLayer', () => {
       requested: 'auto',
       backend: 'spark',
       gpuPsnr: false,
-      reason: 'Spark compatibility renderer active while WebGPU initializes',
+      reason: 'Spark fallback selected because WebGPU is unsupported',
     };
 
     expect(shouldSyncWebGpuSplatCanvasFrame(true, false, preparingResolution)).toBe(true);
@@ -1406,7 +1406,7 @@ describe('WebGpuSplatCanvasLayer', () => {
     }
   });
 
-  it('keeps Spark visible until the hidden WebGPU renderer reports its first frame', async () => {
+  it('stays pending rather than Spark until the hidden WebGPU renderer reports its first frame', async () => {
     const file = new File(['x'], 'scene.spz');
     const renderer = {
       loadCloud: vi.fn(),
@@ -1456,7 +1456,9 @@ describe('WebGpuSplatCanvasLayer', () => {
     expect(removeNotification).not.toHaveBeenCalled();
     expect(setUrlLoading).not.toHaveBeenCalled();
     expect(setUrlProgress).not.toHaveBeenCalled();
-    expect(screen.getByTestId('auto-backend-state')).toHaveTextContent('spark');
+    // Spark is loaded here, but auto no longer bridges the WebGPU-init window
+    // with it: the honest state until the first frame is "preparing".
+    expect(screen.getByTestId('auto-backend-state')).toHaveTextContent('unavailable');
     expect(screen.getByTestId('auto-webgpu-mounted-state')).toHaveTextContent('true');
     expect(screen.getByTestId('auto-webgpu-visible-state')).toHaveTextContent('false');
     expect(screen.getByTestId('webgpu-splat-canvas').className).toContain('opacity-0');
@@ -1532,7 +1534,7 @@ describe('WebGpuSplatCanvasLayer', () => {
     await waitFor(() => {
       expect(renderer.loadCloud).toHaveBeenCalledTimes(1);
     });
-    expect(screen.getByTestId('auto-backend-state')).toHaveTextContent('spark');
+    expect(screen.getByTestId('auto-backend-state')).toHaveTextContent('unavailable');
     expect(addNotification).not.toHaveBeenCalled();
     expect(setUrlLoading).not.toHaveBeenCalled();
     expect(setUrlProgress).not.toHaveBeenCalled();
@@ -1602,7 +1604,7 @@ describe('WebGpuSplatCanvasLayer', () => {
     await waitFor(() => {
       expect(renderer.loadCloud).toHaveBeenCalledTimes(1);
     });
-    expect(screen.getByTestId('auto-backend-state')).toHaveTextContent('spark');
+    expect(screen.getByTestId('auto-backend-state')).toHaveTextContent('unavailable');
     expect(addNotification).not.toHaveBeenCalled();
     expect(setUrlLoading).not.toHaveBeenCalled();
     expect(setUrlProgress).not.toHaveBeenCalled();
@@ -1611,9 +1613,12 @@ describe('WebGpuSplatCanvasLayer', () => {
       useSplatBackendStore.getState().setRequestedBackend('webgpu');
     });
 
+    // Auto already reads 'unavailable' before the switch, so wait on the
+    // takeover's own first effect rather than on an unchanged backend label.
     await waitFor(() => {
-      expect(screen.getByTestId('auto-backend-state')).toHaveTextContent('unavailable');
+      expect(setUrlLoading).toHaveBeenCalledWith(true);
     });
+    expect(screen.getByTestId('auto-backend-state')).toHaveTextContent('unavailable');
     expect(screen.getByTestId('auto-webgpu-mounted-state')).toHaveTextContent('true');
     expect(screen.getByTestId('auto-webgpu-visible-state')).toHaveTextContent('false');
     expect(addNotification).toHaveBeenCalledWith('info', 'Loading splat: scene.spz', 0);

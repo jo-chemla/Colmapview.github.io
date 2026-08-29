@@ -206,14 +206,13 @@ export function SplatLayer({
   const progressStartRef = useRef<{ file: File; percent: number } | null>(null);
   const shouldUseSparkBackend = splatBackendResolution.status === 'resolved'
     && splatBackendResolution.backend === 'spark';
-  const shouldReportSparkPreloadFailure = requestedBackend === 'spark'
-    || (
-      requestedBackend === 'auto'
-      && (
-        splatBackendAvailability.webGpu === 'unsupported'
-        || splatBackendAvailability.webGpu === 'failed'
-      )
-    );
+  // Same predicate as the preload gate below, by construction: a preload only
+  // runs where Spark is the committed fallback, so any failure of it is one the
+  // user is actually waiting on. Kept as one call so the two cannot drift.
+  const shouldReportSparkPreloadFailure = shouldPreloadSparkSplatRuntime(
+    requestedBackend,
+    splatBackendAvailability
+  );
   const activeLoadedSplat = loadedSplat?.file === splatFile ? loadedSplat : null;
   const hasLoadedSplat = activeLoadedSplat !== null;
   const showLoadedSplat = visible && showSplats && hasLoadedSplat;

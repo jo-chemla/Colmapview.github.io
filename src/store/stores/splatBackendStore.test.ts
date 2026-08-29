@@ -9,14 +9,14 @@ describe('splat backend store', () => {
     useSplatBackendStore.getState().setSparkBackendAvailable(false);
   });
 
-  it('uses Spark in auto mode while WebGPU is still preparing', () => {
+  it('stays pending in auto mode while WebGPU is still preparing', () => {
     useSplatBackendStore.getState().setSparkBackendAvailable(true);
 
     expect(useSplatBackendStore.getState().resolution).toMatchObject({
-      status: 'resolved',
-      backend: 'spark',
+      status: 'unavailable',
+      backend: null,
       gpuPsnr: false,
-      reason: 'Spark compatibility renderer active while WebGPU initializes',
+      reason: 'Preparing WebGPU splat renderer',
     });
   });
 
@@ -29,15 +29,15 @@ describe('splat backend store', () => {
     expect(useSplatBackendStore.getState()).toBe(readyState);
   });
 
-  it('preserves adapter-unavailable details while selecting Spark in auto mode', () => {
+  it('preserves adapter-unavailable details while staying pending in auto mode', () => {
     useSplatBackendStore.getState().setSparkBackendAvailable(true);
     useSplatBackendStore.getState().setWebGpuBackendState('unavailable', 'WebGPU adapter is unavailable');
 
     expect(useSplatBackendStore.getState().resolution).toMatchObject({
-      status: 'resolved',
-      backend: 'spark',
+      status: 'unavailable',
+      backend: null,
       gpuPsnr: false,
-      reason: 'Spark compatibility renderer active because WebGPU adapter is unavailable',
+      reason: 'WebGPU adapter is unavailable',
     });
     expect(useSplatBackendStore.getState().availability.webGpuFailureReason)
       .toBe('WebGPU adapter is unavailable');

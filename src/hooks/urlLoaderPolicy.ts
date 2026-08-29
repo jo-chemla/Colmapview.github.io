@@ -575,11 +575,14 @@ export interface ByteLessSplatLoaderInputs {
  *  - the WebGPU state permanently resolves to the Spark fallback ('unsupported',
  *    'failed') - these can never seed the decode cache, so they stay off even
  *    before Spark finishes loading (spark availability alone can't catch them);
- *  - the CURRENT backend resolution already picks Spark. In auto mode with the
- *    Spark module loaded, `resolveSplatBackend` selects Spark the moment WebGPU
- *    is still 'unavailable' (initializing) - so a placeholder would meet the
- *    visible Spark renderer immediately. We defer to the real resolver here
- *    rather than duplicate its Spark-selection condition (which would drift).
+ *  - auto mode has the Spark module loaded while WebGPU is not yet 'ready'. The
+ *    resolver stays pending through that window rather than naming Spark, but
+ *    the window can still END in 'failed', which hands the file to Spark - and
+ *    Spark would meet the zero-byte placeholder. Byte-less asks "could Spark
+ *    still read these bytes?", which is broader than the resolver's "which
+ *    renderer is committed now", so it is stated directly;
+ *  - the CURRENT backend resolution already picks Spark (still consulted, so
+ *    any future Spark-selection path is covered without duplicating it).
  *
  * 'ready' is deliberately NOT required - the WebGPU renderer only reports ready
  * after its canvas mounts, which happens after a splat activates, so on a fresh
@@ -606,9 +609,23 @@ export function canUseByteLessSplatLoader({
   if (webGpuAvailability !== 'ready' && webGpuAvailability !== 'unavailable') {
     return false;
   }
-  // Off whenever the current resolution already picks Spark (auto mode + Spark
-  // loaded while WebGPU initializes). Shared with resolveSplatBackend to stay in
-  // lockstep with the renderer that will actually read the placeholder's bytes.
+  // Off in auto mode whenever the Spark module is already loaded and WebGPU has
+  // not proven itself ready. resolveSplatBackend answers "which renderer is
+  // committed RIGHT NOW", and it deliberately no longer names Spark during the
+  // WebGPU-init window (it waits for 'ready'/'failed' - see
+  // shouldPreloadSparkSplatRuntime). Byte-less needs the forward-looking
+  // question instead - "could Spark still end up streaming these bytes?" - and
+  // here it can: if that init ends in 'failed', Spark takes over and meets a
+  // zero-byte placeholder, rendering EMPTY. So this condition is intentionally
+  // stated directly rather than derived from the resolver.
+  if (
+    requestedBackend === 'auto'
+    && sparkBackendAvailable
+    && webGpuAvailability !== 'ready'
+  ) {
+    return false;
+  }
+  // Whatever the resolver commits to now must not be Spark either.
   const resolution = resolveSplatBackend(requestedBackend, {
     webGpu: webGpuAvailability,
     spark: sparkBackendAvailable,

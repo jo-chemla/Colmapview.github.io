@@ -197,7 +197,16 @@ export function resolveSplatBackend(
     };
   }
 
-  if (availability.spark) {
+  // Spark bridges auto mode only where WebGPU cannot work. 'unavailable' is
+  // capable-but-not-yet-initialized: the WebGPU canvas is already mounted for
+  // that state (shouldMountWebGpuSplatCanvas) and settles on 'ready' or
+  // 'failed', while the Spark runtime is deliberately not preloaded there (see
+  // shouldPreloadSparkSplatRuntime). Resolving to Spark anyway would promise a
+  // renderer that can never receive a module — the WebGPU canvas stops drawing
+  // because the resolved backend is no longer 'webgpu', the Spark layer never
+  // mounts, and the user gets a blank viewport under a "while WebGPU
+  // initializes" notice that cannot come true. Wait for the real outcome.
+  if (availability.spark && availability.webGpu !== 'unavailable') {
     return {
       status: 'resolved',
       requested,
@@ -233,6 +242,13 @@ export function shouldPreloadSparkSplatRuntime(
   // AFTER a successful init now starts the Spark download cold at failure
   // time — accepted, because prefetching against a healthy WebGPU defeats
   // the gate's whole purpose.
+  //
+  // Second deliberate tradeoff: Spark no longer bridges the WebGPU-init
+  // window even when its module happens to be loaded already (e.g. after a
+  // splatBackend=spark session switches to auto). resolveSplatBackend matches
+  // this by refusing to resolve 'spark' while WebGPU is 'unavailable', so the
+  // two stay complements of each other; the honest state during init is
+  // "preparing", not a Spark frame that the gate has no intention of feeding.
   return requested === 'spark'
     || (
       requested === 'auto'

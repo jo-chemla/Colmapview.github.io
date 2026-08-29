@@ -109,6 +109,9 @@ describe('useViewerControlsStoreFacade', () => {
       loadedFiles: buildLoadedFiles({ splatFile: activeSplatFile }),
     });
     useSplatBackendStore.getState().setSparkBackendAvailable(true);
+    // Spark must actually win the resolution for its CPU metrics to be the
+    // only ones on offer; auto + 'unavailable' now stays pending instead.
+    useSplatBackendStore.getState().setWebGpuBackendState('unsupported');
     useSplatBackendStore.getState().setWebGpuMetricState('ready');
 
     const { result } = renderHook(() => useViewerControlsStoreFacade());

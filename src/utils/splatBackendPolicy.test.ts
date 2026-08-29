@@ -82,15 +82,19 @@ describe('splat backend policy', () => {
     })).toBeNull();
   });
 
-  it('uses Spark while auto WebGPU is still preparing', () => {
+  it('stays pending rather than resolving Spark while auto WebGPU is still preparing', () => {
+    // Even with Spark already loaded, auto must not claim a Spark frame during
+    // the init window: the WebGPU canvas is mounted and stops drawing once the
+    // resolved backend is not 'webgpu', while the Spark runtime is not
+    // preloaded for this state — so "resolved spark" would render nothing.
     expect(resolveSplatBackend('auto', {
       webGpu: 'unavailable',
       spark: true,
     })).toMatchObject({
-      status: 'resolved',
-      backend: 'spark',
+      status: 'unavailable',
+      backend: null,
       gpuPsnr: false,
-      reason: 'Spark compatibility renderer active while WebGPU initializes',
+      reason: 'Preparing WebGPU splat renderer',
     });
   });
 
@@ -107,16 +111,16 @@ describe('splat backend policy', () => {
     expect(shouldPreloadSparkSplatRuntime('webgpu', { webGpu: 'unsupported' })).toBe(false);
   });
 
-  it('uses Spark for concrete auto WebGPU unavailability when Spark is available', () => {
+  it('surfaces concrete auto WebGPU unavailability detail while staying pending', () => {
     expect(resolveSplatBackend('auto', {
       webGpu: 'unavailable',
       webGpuFailureReason: 'WebGPU adapter is unavailable',
       spark: true,
     })).toMatchObject({
-      status: 'resolved',
-      backend: 'spark',
+      status: 'unavailable',
+      backend: null,
       gpuPsnr: false,
-      reason: 'Spark compatibility renderer active because WebGPU adapter is unavailable',
+      reason: 'WebGPU adapter is unavailable',
     });
   });
 
