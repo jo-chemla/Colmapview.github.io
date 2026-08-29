@@ -38,10 +38,10 @@ describe('useFileDropzone', () => {
     expect(deps.shouldPreloadSplatRuntime?.()).toBe(false);
   });
 
-  it('preloads the spark runtime while the webgpu renderer is still undecided', async () => {
+  it('preloads the spark runtime when webgpu cannot work in this browser', async () => {
     useSplatBackendStore.setState({
       requestedBackend: 'auto',
-      availability: { webGpu: 'unavailable', webGpuFailureReason: null, spark: false },
+      availability: { webGpu: 'unsupported', webGpuFailureReason: null, spark: false },
     });
 
     const deps = await captureWorkflowDeps();
@@ -49,10 +49,24 @@ describe('useFileDropzone', () => {
     expect(deps.shouldPreloadSplatRuntime?.()).toBe(true);
   });
 
-  it('reads the backend at drop time, not at hook render time', async () => {
+  it('does not preload the spark runtime while the webgpu renderer is still undecided', async () => {
+    // A fresh page on a WebGPU-capable machine reports 'unavailable' until a
+    // splat canvas mounts, so preloading here cost a 5 MB download on the
+    // first drop of every session.
     useSplatBackendStore.setState({
       requestedBackend: 'auto',
       availability: { webGpu: 'unavailable', webGpuFailureReason: null, spark: false },
+    });
+
+    const deps = await captureWorkflowDeps();
+
+    expect(deps.shouldPreloadSplatRuntime?.()).toBe(false);
+  });
+
+  it('reads the backend at drop time, not at hook render time', async () => {
+    useSplatBackendStore.setState({
+      requestedBackend: 'auto',
+      availability: { webGpu: 'unsupported', webGpuFailureReason: null, spark: false },
     });
 
     const deps = await captureWorkflowDeps();

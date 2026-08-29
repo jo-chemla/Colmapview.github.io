@@ -433,7 +433,11 @@ describe('SplatLayer', () => {
     }
   });
 
-  it('preloads Spark while auto mode is preparing WebGPU', () => {
+  it('does not preload Spark while auto mode is preparing WebGPU', () => {
+    // 'unavailable' is a capable-but-not-yet-initialized WebGPU machine — the
+    // state every fresh page reports until a splat canvas mounts. Preloading
+    // here downloaded the 5 MB Spark fallback on the first drop of every
+    // session, so the gate now waits for 'unsupported'/'failed'.
     preloadSparkModuleMock.mockReturnValue(new Promise(() => undefined));
     const facade = createFacade({
       splatBackendAvailability: {
@@ -452,15 +456,16 @@ describe('SplatLayer', () => {
 
     render(<SplatLayer />);
 
-    expect(preloadSparkModuleMock).toHaveBeenCalledTimes(1);
+    expect(preloadSparkModuleMock).not.toHaveBeenCalled();
     expect(facade.actions.addNotification).not.toHaveBeenCalled();
+    expect(facade.actions.setUrlLoading).not.toHaveBeenCalledWith(false);
   });
 
-  it('does not fail global splat loading when auto Spark preload fails while WebGPU can still warm up', async () => {
+  it('preloads Spark and records unavailability when auto WebGPU has already failed', async () => {
     preloadSparkModuleMock.mockRejectedValue(new Error('spark unavailable'));
     const facade = createFacade({
       splatBackendAvailability: {
-        webGpu: 'unavailable',
+        webGpu: 'failed',
         spark: false,
       },
       splatBackendResolution: {
@@ -468,7 +473,7 @@ describe('SplatLayer', () => {
         requested: 'auto',
         backend: null,
         gpuPsnr: false,
-        reason: 'Preparing WebGPU splat renderer',
+        reason: 'WebGPU splat renderer failed to initialize',
       },
     });
     useSplatLayerStoreFacadeMock.mockReturnValue(facade);
@@ -477,14 +482,10 @@ describe('SplatLayer', () => {
     try {
       render(<SplatLayer />);
 
+      expect(preloadSparkModuleMock).toHaveBeenCalledTimes(1);
       await waitFor(() => {
         expect(facade.actions.setSparkBackendAvailable).toHaveBeenCalledWith(false);
       });
-      expect(facade.actions.addNotification).not.toHaveBeenCalledWith(
-        'warning',
-        'Failed to load splat: scene.ply'
-      );
-      expect(facade.actions.setUrlLoading).not.toHaveBeenCalledWith(false);
       expect(warn).toHaveBeenCalledWith(expect.stringContaining('spark unavailable'));
     } finally {
       warn.mockRestore();

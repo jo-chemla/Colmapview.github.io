@@ -224,10 +224,19 @@ export function shouldPreloadSparkSplatRuntime(
   requested: SplatBackendPreference,
   availability: Pick<SplatBackendAvailability, 'webGpu'>
 ): boolean {
+  // Preload only when Spark is certain to be needed: requested outright, or
+  // auto on a browser where WebGPU cannot work ('unsupported') or has already
+  // failed. 'unavailable' means capable-but-not-initialized — it is every
+  // fresh page's state on a WebGPU machine ('ready' only arrives once a splat
+  // canvas mounts), and preloading against it re-downloaded the 5 MB fallback
+  // on the first drop of every session. Deliberate tradeoff: a device loss
+  // AFTER a successful init now starts the Spark download cold at failure
+  // time — accepted, because prefetching against a healthy WebGPU defeats
+  // the gate's whole purpose.
   return requested === 'spark'
     || (
       requested === 'auto'
-      && availability.webGpu !== 'ready'
+      && (availability.webGpu === 'unsupported' || availability.webGpu === 'failed')
     );
 }
 

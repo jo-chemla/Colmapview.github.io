@@ -94,8 +94,12 @@ describe('splat backend policy', () => {
     });
   });
 
-  it('preloads Spark when requested or when auto WebGPU is not ready', () => {
-    expect(shouldPreloadSparkSplatRuntime('auto', { webGpu: 'unavailable' })).toBe(true);
+  it('preloads Spark when requested, or when auto WebGPU cannot work', () => {
+    // 'unavailable' = capable browser, renderer just not initialized yet (it
+    // only flips to 'ready' once a splat canvas mounts) — every fresh page on
+    // a WebGPU machine reports it, so preloading here re-downloaded the 5 MB
+    // fallback on the first drop of every session.
+    expect(shouldPreloadSparkSplatRuntime('auto', { webGpu: 'unavailable' })).toBe(false);
     expect(shouldPreloadSparkSplatRuntime('auto', { webGpu: 'ready' })).toBe(false);
     expect(shouldPreloadSparkSplatRuntime('auto', { webGpu: 'unsupported' })).toBe(true);
     expect(shouldPreloadSparkSplatRuntime('auto', { webGpu: 'failed' })).toBe(true);
@@ -175,9 +179,9 @@ describe('splat backend policy', () => {
     });
   });
 
-  it('preloads Spark for forced Spark or auto fallback paths', () => {
+  it('preloads Spark for forced Spark or auto fallback paths, ignoring the spark flag', () => {
     expect(shouldPreloadSparkSplatRuntime('auto', {
-      webGpu: 'unavailable',
+      webGpu: 'unsupported',
       spark: false,
     })).toBe(true);
     expect(shouldPreloadSparkSplatRuntime('spark', {
@@ -185,7 +189,7 @@ describe('splat backend policy', () => {
       spark: false,
     })).toBe(true);
     expect(shouldPreloadSparkSplatRuntime('auto', {
-      webGpu: 'unavailable',
+      webGpu: 'unsupported',
       spark: true,
     })).toBe(true);
     expect(shouldPreloadSparkSplatRuntime('spark', {
@@ -194,6 +198,16 @@ describe('splat backend policy', () => {
     })).toBe(true);
     expect(shouldPreloadSparkSplatRuntime('auto', {
       webGpu: 'ready',
+      spark: true,
+    })).toBe(false);
+    // Capable-but-not-yet-initialized is not a fallback path, whether or not
+    // Spark already happens to be loaded.
+    expect(shouldPreloadSparkSplatRuntime('auto', {
+      webGpu: 'unavailable',
+      spark: false,
+    })).toBe(false);
+    expect(shouldPreloadSparkSplatRuntime('auto', {
+      webGpu: 'unavailable',
       spark: true,
     })).toBe(false);
   });
