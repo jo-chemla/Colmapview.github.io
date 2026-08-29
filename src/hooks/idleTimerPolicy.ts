@@ -37,13 +37,19 @@ export const IDLE_WAKE_TAP_MAX_MOVE_PX = 10;
 
 /**
  * A completed touch TAP — on anything, bare canvas included — wakes hidden
- * chrome. Touch has no equivalent of the desktop wake paths (Tab, or mousing
- * over the still-hit-testable opacity-0 status bar): while idle, every
- * idle-hideable is visibility:hidden and unhittable and the touch status bar
- * unmounts entirely, so without this a touch session that goes idle once can
- * never reach chrome again. Taps only: orbit/pinch gestures travel past the
- * threshold and keep chrome hidden while the scene is being driven, matching
- * the desktop rule that scene interaction does not postpone hiding.
+ * chrome. Desktop has two discoverable wake paths: Tab, and mousing over the
+ * opacity-0 status bar, which stays hit-testable. Touch has neither, and the
+ * one path it does have is undiscoverable: an idle .idle-hideable keeps a
+ * hit-testable ::before hot-zone (src/index.css) and is the first entry of
+ * IDLE_PAUSE_TARGET_SELECTOR, so a tap landing on a faded control's box
+ * already woke chrome — but that box is invisible, so reaching it means blind-
+ * tapping where a control used to be. Everything else fails: the bare canvas
+ * covering most of the screen matches no pause selector, and the touch status
+ * bar unmounts entirely (TouchStatusBar returns null), leaving no box to aim
+ * at where desktop keeps one. Waking on any tap replaces that guesswork.
+ * Taps only: orbit/pinch gestures travel past the threshold and keep chrome
+ * hidden while the scene is being driven, matching the desktop rule that scene
+ * interaction does not postpone hiding.
  */
 export function isIdleWakeTap(
   pointerType: string,

@@ -4,6 +4,7 @@ import {
   IDLE_HIDEABLE_SELECTOR,
   IDLE_IGNORE_SELECTOR,
   IDLE_PAUSE_TARGET_SELECTOR,
+  IDLE_WAKE_TAP_MAX_MOVE_PX,
   isIdleFocusPauseTarget,
   isIdleHideableTarget,
   isIdleIgnoredTarget,
@@ -124,6 +125,20 @@ describe('isIdleWakeTap', () => {
 
   it('ignores drags past the tap threshold so orbit gestures keep chrome hidden', () => {
     expect(isIdleWakeTap('touch', { x: 100, y: 100 }, { x: 130, y: 100 })).toBe(false);
+  });
+
+  it('treats travel exactly at the threshold as a tap and anything beyond it as a drag', () => {
+    expect(isIdleWakeTap(
+      'touch',
+      { x: 0, y: 0 },
+      { x: IDLE_WAKE_TAP_MAX_MOVE_PX, y: 0 }
+    )).toBe(true);
+
+    expect(isIdleWakeTap(
+      'touch',
+      { x: 0, y: 0 },
+      { x: IDLE_WAKE_TAP_MAX_MOVE_PX + 1, y: 0 }
+    )).toBe(false);
   });
 
   it('ignores a pointerup with no recorded down position', () => {
