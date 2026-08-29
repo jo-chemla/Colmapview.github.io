@@ -1758,9 +1758,9 @@ legend {
    context while everything inside Scene3D sits in an isolated context at
    z auto, so any overlap here wins the hit test over the canvas — and a band
    over live canvas turns orbit drags into gallery resizes (the collapsed
-   rule below drops these pseudos for exactly that hazard). The cost is that
-   the grip only lights when the pointer is on or past the divider, not on
-   approach from the viewer.
+   rule below drops these pseudos because a dead strip has nothing to drag).
+   The cost is that the grip only lights when the pointer is on or past the
+   divider, not on approach from the viewer.
    ::before, not ::after: an absolutely positioned ::before paints — and so
    hit-tests — BELOW the element's positioned children, so the collapse
    chevron keeps winning every event inside its own box. */
