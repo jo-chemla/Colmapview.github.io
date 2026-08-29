@@ -1,4 +1,3 @@
-export const IDLE_MOVE_THRESHOLD_PX = 20;
 export const IDLE_HIDEABLE_SELECTOR = '.idle-hideable';
 export const IDLE_IGNORE_SELECTOR = '[data-idle-ignore="true"]';
 export const IDLE_PAUSE_TARGET_SELECTOR = [
@@ -34,16 +33,28 @@ export function getIdleTimeoutDelayMs(timeoutSeconds: number): number | null {
   return timeoutSeconds * 1000;
 }
 
-export function hasDeliberateIdlePointerMove(
-  previousPosition: IdlePointerPosition | null,
-  nextPosition: IdlePointerPosition,
-  threshold = IDLE_MOVE_THRESHOLD_PX
-): boolean {
-  if (!previousPosition) return false;
+export const IDLE_WAKE_TAP_MAX_MOVE_PX = 10;
 
-  const dx = nextPosition.x - previousPosition.x;
-  const dy = nextPosition.y - previousPosition.y;
-  return dx * dx + dy * dy > threshold * threshold;
+/**
+ * A completed touch TAP — on anything, bare canvas included — wakes hidden
+ * chrome. Touch has no equivalent of the desktop wake paths (Tab, or mousing
+ * over the still-hit-testable opacity-0 status bar): while idle, every
+ * idle-hideable is visibility:hidden and unhittable and the touch status bar
+ * unmounts entirely, so without this a touch session that goes idle once can
+ * never reach chrome again. Taps only: orbit/pinch gestures travel past the
+ * threshold and keep chrome hidden while the scene is being driven, matching
+ * the desktop rule that scene interaction does not postpone hiding.
+ */
+export function isIdleWakeTap(
+  pointerType: string,
+  downPosition: IdlePointerPosition | null,
+  upPosition: IdlePointerPosition,
+  threshold = IDLE_WAKE_TAP_MAX_MOVE_PX
+): boolean {
+  if (pointerType !== 'touch' || !downPosition) return false;
+  const dx = upPosition.x - downPosition.x;
+  const dy = upPosition.y - downPosition.y;
+  return dx * dx + dy * dy <= threshold * threshold;
 }
 
 function isElementTarget(target: EventTarget | null): target is Element {

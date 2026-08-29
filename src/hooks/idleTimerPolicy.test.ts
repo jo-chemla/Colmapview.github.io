@@ -1,15 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   getIdleTimeoutDelayMs,
-  hasDeliberateIdlePointerMove,
   IDLE_HIDEABLE_SELECTOR,
   IDLE_IGNORE_SELECTOR,
   IDLE_PAUSE_TARGET_SELECTOR,
-  IDLE_MOVE_THRESHOLD_PX,
   isIdleFocusPauseTarget,
   isIdleHideableTarget,
   isIdleIgnoredTarget,
   isIdlePauseTarget,
+  isIdleWakeTap,
   shouldResumeIdleTimerAfterFocusOut,
   shouldResumeIdleTimerAfterMouseOut,
 } from './idleTimerPolicy';
@@ -19,27 +18,6 @@ describe('idle timer policy', () => {
     expect(getIdleTimeoutDelayMs(3)).toBe(3_000);
     expect(getIdleTimeoutDelayMs(0)).toBeNull();
     expect(getIdleTimeoutDelayMs(-1)).toBeNull();
-  });
-
-  it('does not treat the first pointer move as deliberate movement', () => {
-    expect(hasDeliberateIdlePointerMove(null, { x: 10, y: 10 })).toBe(false);
-  });
-
-  it('requires movement beyond the strict squared threshold', () => {
-    expect(hasDeliberateIdlePointerMove(
-      { x: 0, y: 0 },
-      { x: IDLE_MOVE_THRESHOLD_PX, y: 0 }
-    )).toBe(false);
-
-    expect(hasDeliberateIdlePointerMove(
-      { x: 0, y: 0 },
-      { x: IDLE_MOVE_THRESHOLD_PX + 1, y: 0 }
-    )).toBe(true);
-
-    expect(hasDeliberateIdlePointerMove(
-      { x: 0, y: 0 },
-      { x: 15, y: 16 }
-    )).toBe(true);
   });
 
   it('detects idle-hideable targets through ancestors', () => {
@@ -131,5 +109,24 @@ describe('idle timer policy', () => {
     expect(shouldResumeIdleTimerAfterFocusOut(button)).toBe(true);
     expect(shouldResumeIdleTimerAfterFocusOut(plain)).toBe(true);
     expect(shouldResumeIdleTimerAfterFocusOut(null)).toBe(true);
+  });
+});
+
+describe('isIdleWakeTap', () => {
+  it('wakes on a still touch tap', () => {
+    expect(isIdleWakeTap('touch', { x: 100, y: 100 }, { x: 104, y: 103 })).toBe(true);
+  });
+
+  it('never wakes for mouse or pen — desktop keeps its Tab/status-bar wake paths', () => {
+    expect(isIdleWakeTap('mouse', { x: 100, y: 100 }, { x: 100, y: 100 })).toBe(false);
+    expect(isIdleWakeTap('pen', { x: 100, y: 100 }, { x: 100, y: 100 })).toBe(false);
+  });
+
+  it('ignores drags past the tap threshold so orbit gestures keep chrome hidden', () => {
+    expect(isIdleWakeTap('touch', { x: 100, y: 100 }, { x: 130, y: 100 })).toBe(false);
+  });
+
+  it('ignores a pointerup with no recorded down position', () => {
+    expect(isIdleWakeTap('touch', null, { x: 100, y: 100 })).toBe(false);
   });
 });

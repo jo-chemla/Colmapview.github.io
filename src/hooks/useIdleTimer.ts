@@ -3,9 +3,12 @@ import { useUIStore } from '../store';
 import {
   getIdleTimeoutDelayMs,
   isIdleFocusPauseTarget,
+  isIdleIgnoredTarget,
   isIdlePauseTarget,
+  isIdleWakeTap,
   shouldResumeIdleTimerAfterFocusOut,
   shouldResumeIdleTimerAfterMouseOut,
+  type IdlePointerPosition,
 } from './idleTimerPolicy';
 
 /**
@@ -18,6 +21,7 @@ export function useIdleTimer() {
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const hoveringPauseTargetRef = useRef(false);
   const focusPauseTargetRef = useRef(false);
+  const touchDownPositionRef = useRef<IdlePointerPosition | null>(null);
   const timeoutRef = useRef(useUIStore.getState().idleHideTimeout);
 
   const isPausedByUi = useCallback(
@@ -77,6 +81,26 @@ export function useIdleTimer() {
       if (isIdlePauseTarget(e.target)) {
         resetTimer();
       }
+    };
+
+    // Touch tap-to-wake (see isIdleWakeTap). The generic activity handler above
+    // deliberately filters to pause targets; these wrappers add the one touch
+    // exception without loosening that filter for mouse/pen.
+    const onPointerDown = (e: PointerEvent) => {
+      touchDownPositionRef.current = e.pointerType === 'touch'
+        ? { x: e.clientX, y: e.clientY }
+        : null;
+      onPointerActivity(e);
+    };
+    const onPointerUp = (e: PointerEvent) => {
+      if (
+        !isIdleIgnoredTarget(e.target) &&
+        isIdleWakeTap(e.pointerType, touchDownPositionRef.current, { x: e.clientX, y: e.clientY })
+      ) {
+        resetTimer();
+      }
+      touchDownPositionRef.current = null;
+      onPointerActivity(e);
     };
 
     const onKeyDown = () => {
@@ -141,8 +165,8 @@ export function useIdleTimer() {
       if (e.key === 'Tab') resetTimer();
     };
 
-    el.addEventListener('pointerdown', onPointerActivity, { passive: true });
-    el.addEventListener('pointerup', onPointerActivity, { passive: true });
+    el.addEventListener('pointerdown', onPointerDown, { passive: true });
+    el.addEventListener('pointerup', onPointerUp, { passive: true });
     el.addEventListener('pointermove', onPointerActivity, { passive: true });
     el.addEventListener('keydown', onKeyDown, { passive: true });
     el.addEventListener('wheel', onPointerActivity, { passive: true });
@@ -155,8 +179,8 @@ export function useIdleTimer() {
 
     return () => {
       clearTimeout(timerRef.current);
-      el.removeEventListener('pointerdown', onPointerActivity);
-      el.removeEventListener('pointerup', onPointerActivity);
+      el.removeEventListener('pointerdown', onPointerDown);
+      el.removeEventListener('pointerup', onPointerUp);
       el.removeEventListener('pointermove', onPointerActivity);
       el.removeEventListener('keydown', onKeyDown);
       el.removeEventListener('wheel', onPointerActivity);
