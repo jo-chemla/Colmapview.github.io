@@ -71,4 +71,41 @@ test.describe('ImageGallery', () => {
     expect(hit.inHandle).toBe(false);
     expect(hit.inScene).toBe(true);
   });
+
+  test('collapse tab stays fully on-screen when the gallery is collapsed', async ({ page }) => {
+    await page.goto('/');
+    const closeButton = page.locator('button:has-text("×")').first();
+    if (await closeButton.isVisible({ timeout: 2000 })) {
+      await closeButton.click();
+    }
+    await loadTestDataset(page);
+    await expect(page.locator('text=Source:')).toBeVisible({ timeout: 45000 });
+
+    const tab = page.locator('.gallery-collapse-handle');
+    await tab.click(); // collapse — the gallery width animates for 300ms
+
+    const viewport = page.viewportSize();
+
+    // Poll the DIVIDER to the end of the collapse animation, not the tab's own
+    // right edge: expect.poll resolves on its first passing sample, and the
+    // very first sample lands at the start of the 300ms width transition, when
+    // the divider is still mid-row and the tab is trivially on-screen. The
+    // overhang only exists once the divider is flush against the layout row's
+    // clipped right edge, so wait for exactly that, then measure once.
+    await expect
+      .poll(async () => {
+        const box = await page.locator('.resize-handle').boundingBox();
+        return box ? Math.round(box.x + box.width) : -1;
+      }, { timeout: 2000 })
+      .toBe(viewport!.width);
+
+    const box = await tab.boundingBox();
+    // boundingBox() reports the unclipped border box, so this is the real
+    // overhang past the viewport, not what survives the ancestor clip.
+    expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width);
+    expect(box!.width).toBeGreaterThanOrEqual(11); // the full 12px tab, not a sliver
+
+    await tab.click(); // reopen
+    await expect(page.getByText('photo.jpg').first()).toBeVisible({ timeout: 5000 });
+  });
 });

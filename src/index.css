@@ -1843,20 +1843,15 @@ legend {
   content: none;
 }
 
-/* Gallery collapse handle — a chevron tab on the viewer↔gallery divider.
-   Anchored to the divider's right edge so its box overhangs LEFT, onto the
-   viewer, rather than into the gallery (whose wrapper is overflow-hidden and
-   clips to zero width while collapsed). Its 12px width is exactly the control
-   column's `right-3` inset, so it fills the gap beside the toolbar without
-   overlapping the buttons — and stays narrow over live canvas, where a wider
-   box would eat orbit drags along the viewer's right edge.
+/* Gallery collapse handle — a chevron tab straddling the viewer↔gallery
+   divider (translate(50%, -50%) centres it on the 1px line). Straddling
+   rather than hanging into the viewer: all 12px on the viewer side read as
+   attached to the control column sitting 12px from the same edge, while
+   centred the tab belongs to the divider it controls, clears those buttons
+   by 7px, and costs 6px over the gallery's left padding (user decision
+   2026-08-24: "middle"). The collapsed variant below is the exception.
    Not idle-hideable — the divider lives outside .scene-3d-container, which is
    where those fade rules are scoped. */
-/* Straddles the divider rather than hanging off its left side. Hanging left put
-   all 12px of the tab inside the viewer, where the control column sits 12px from
-   the same edge — a 1px gap that read as the tab being attached to the toolbar.
-   Centred, it belongs to the divider it actually controls and clears the buttons
-   by 7px, at the cost of 6px over the gallery's left padding. */
 .gallery-collapse-handle {
   position: absolute;
   top: 50%;
@@ -1881,6 +1876,19 @@ legend {
 .gallery-collapse-handle:hover {
   background-color: var(--bg-hover);
   color: var(--text-primary);
+}
+
+/* Collapsed, the divider sits flush against the layout row's overflow-hidden
+   edge, so a centred tab loses its right half to the clip — the reopen
+   affordance shrank to a ~6px sliver. Anchor the whole tab inward instead:
+   right: 0 with no X shift puts its right edge on the divider and the tab
+   itself over the viewer, where nothing clips. It is the only placement that
+   fits: the viewer is full width now, so its control column still ends 12px
+   short of the divider, leaving exactly the tab's width plus 1px. That 1px is
+   the toolbar adjacency the expanded straddle exists to avoid, accepted here
+   because a clipped sliver is the worse affordance. */
+.resize-handle[data-collapsed='true'] .gallery-collapse-handle {
+  transform: translate(0, -50%);
 }
 
 /* ============================================
