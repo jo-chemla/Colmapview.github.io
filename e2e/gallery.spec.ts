@@ -103,7 +103,8 @@ test.describe('ImageGallery', () => {
     // boundingBox() reports the unclipped border box, so this is the real
     // overhang past the viewport, not what survives the ancestor clip.
     expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width);
-    expect(box!.width).toBeGreaterThanOrEqual(11); // the full 12px tab, not a sliver
+    // Guards a "fix" that shrank the tab to fit; the clip itself is caught above.
+    expect(box!.width).toBeGreaterThanOrEqual(11);
 
     await tab.click(); // reopen
     await expect(page.getByText('photo.jpg').first()).toBeVisible({ timeout: 5000 });

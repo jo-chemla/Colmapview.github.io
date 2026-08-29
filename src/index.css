@@ -1740,11 +1740,12 @@ legend {
   --gallery-handle-height: 48px;
   --grip-clearance: 6px;
   position: relative;
-  /* The collapse tab straddles the divider, so 6px of it overhangs the gallery —
-     a later sibling whose thumbnail items are positioned and would otherwise
-     paint over it. The gallery's padding happens to clear the tab today, but
-     that is incidental spacing, not a guarantee. Stays below every layer on the
-     shared scale (controls: 10). */
+  /* Expanded, the collapse tab straddles the divider, so 6px of it overhangs
+     the gallery — a later sibling whose thumbnail items are positioned and
+     would otherwise paint over it. The gallery's padding happens to clear the
+     tab today, but that is incidental spacing, not a guarantee. (Collapsed,
+     the tab re-anchors fully onto the viewer and this stacking question does
+     not arise.) Stays below every layer on the shared scale (controls: 10). */
   z-index: 1;
   width: 1px;
   background-color: var(--border-color);
@@ -1882,9 +1883,9 @@ legend {
    edge, so a centred tab loses its right half to the clip — the reopen
    affordance shrank to a ~6px sliver. Anchor the whole tab inward instead:
    right: 0 with no X shift puts its right edge on the divider and the tab
-   itself over the viewer, where nothing clips. It is the only placement that
-   fits: the viewer is full width now, so its control column still ends 12px
-   short of the divider, leaving exactly the tab's width plus 1px. That 1px is
+   itself over the viewer, where nothing clips. There is nowhere else to put
+   it: the viewer is full width now, so its control column still ends 12px
+   short of the divider, leaving 1px of slack around a 12px tab. That 1px is
    the toolbar adjacency the expanded straddle exists to avoid, accepted here
    because a clipped sliver is the worse affordance. */
 .resize-handle[data-collapsed='true'] .gallery-collapse-handle {
