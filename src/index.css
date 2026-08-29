@@ -1752,18 +1752,25 @@ legend {
   flex-shrink: 0;
 }
 
-/* Grab strip: widens a 1px target to a comfortable 9px without adding width to
-   the flex row.
+/* Grab strip: widens the 1px target to 5px without adding width to the flex
+   row. It overhangs the GALLERY side only (left: 0 starts at the divider).
+   The viewer side must stay clear: this box lives in the root stacking
+   context while everything inside Scene3D sits in an isolated context at
+   z auto, so any overlap here wins the hit test over the canvas — and a band
+   over live canvas turns orbit drags into gallery resizes (the collapsed
+   rule below drops these pseudos for exactly that hazard). The cost is that
+   the grip only lights when the pointer is on or past the divider, not on
+   approach from the viewer.
    ::before, not ::after: an absolutely positioned ::before paints — and so
-   hit-tests — BELOW the element's positioned children, so the collapse chevron
-   keeps winning every event inside its own box. */
+   hit-tests — BELOW the element's positioned children, so the collapse
+   chevron keeps winning every event inside its own box. */
 .resize-handle::before {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
-  left: -4px;
-  width: 9px;
+  left: 0;
+  width: 5px;
   background-color: transparent;
   transition: background-color var(--transition-base);
 }
@@ -1804,7 +1811,7 @@ legend {
 
 /* Lit while reaching for the divider, and for the whole drag. data-resizing,
    not :active: Chrome drops :active as soon as the pointer leaves the element,
-   and a resize drag routinely leaves this 9px strip — past the width clamp the
+   and a resize drag routinely leaves this 5px strip — past the width clamp the
    divider stops tracking the cursor entirely — so :active went dark exactly
    when the feedback matters. AppLayout force-sets the body cursor for the same
    reason. */
@@ -1824,8 +1831,9 @@ legend {
    only edge control that can bring the panel back) but there is no longer a
    width to drag, so it must not advertise resizing. AppLayout detaches the
    mousedown in the same state. Dropping both pseudos removes the grip, the
-   tint AND the widened hit strip together — a dead 9px band over live canvas
-   would swallow orbit drags for a gesture that does nothing. */
+   tint AND the widened hit strip together — a dead strip has nothing to drag,
+   and the expanded-state rule above explains why a band over live canvas is
+   never acceptable. */
 .resize-handle[data-collapsed='true'] {
   cursor: default;
 }

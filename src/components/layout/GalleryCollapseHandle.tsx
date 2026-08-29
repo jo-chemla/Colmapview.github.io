@@ -27,7 +27,7 @@ export interface GalleryCollapseHandleProps {
  * toggles it.
  *
  * `data-resizing` is what keeps the grip lit for the whole drag: the pointer
- * leaves this 9px strip routinely (past the width clamp the divider stops
+ * leaves this 5px strip routinely (past the width clamp the divider stops
  * following the cursor), and CSS `:active` does not survive that.
  */
 export const GalleryCollapseHandle = memo(function GalleryCollapseHandle({

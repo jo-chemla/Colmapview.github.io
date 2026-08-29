@@ -68,7 +68,7 @@ describe('GalleryCollapseHandle', () => {
 
   it('marks the divider for the whole drag, not just while it is pressed', () => {
     // The CSS lit state hangs off this attribute because :active dies the
-    // moment the pointer leaves the 9px strip, which a resize drag always does.
+    // moment the pointer leaves the 5px strip, which a resize drag always does.
     const { container } = renderHandle(vi.fn(), false);
     expect(getDivider(container).dataset.resizing).toBeUndefined();
 
