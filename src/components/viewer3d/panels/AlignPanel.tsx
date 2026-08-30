@@ -8,6 +8,7 @@ import {
 } from '../ControlComponents';
 import {
   ALIGN_TOOLS,
+  applyAlignPickingActivation,
   getAlignPanelState,
   getAlignPickingActivation,
   getAlignPickingButtonState,
@@ -47,16 +48,10 @@ export const AlignPanel = memo(function AlignPanel({
     // Read at click time. The panel does not subscribe to point-cloud state, so
     // this is the freshest answer and costs nothing while the tools sit idle.
     const { showPointCloud, colorMode } = getPointCloudSnapshot();
-    const activation = getAlignPickingActivation({ nextMode, showPointCloud, colorMode });
-
-    if (activation.showPointCloud !== null) {
-      setShowPointCloud(activation.showPointCloud);
-    }
-    if (activation.colorMode !== null) {
-      setColorMode(activation.colorMode);
-    }
-
-    setPickingMode(activation.pickingMode);
+    applyAlignPickingActivation(
+      getAlignPickingActivation({ nextMode, showPointCloud, colorMode }),
+      { setShowPointCloud, setColorMode, setPickingMode }
+    );
   };
 
   const cancelPicking = useCallback(() => setPickingMode('off'), [setPickingMode]);

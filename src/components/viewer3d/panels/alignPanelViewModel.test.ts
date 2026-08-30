@@ -3,6 +3,7 @@ import {
   ALIGN_PANEL_IDLE_HINT,
   ALIGN_PANEL_IDLE_TOOLTIP,
   ALIGN_TOOLS,
+  applyAlignPickingActivation,
   getAlignPanelState,
   getAlignPickingActivation,
   getAlignPickingButtonState,
@@ -113,5 +114,33 @@ describe('align panel view-model helpers', () => {
       showPointCloud: null,
       colorMode: null,
     });
+  });
+});
+
+describe('applyAlignPickingActivation', () => {
+  it('applies every non-null field, visibility before mode', () => {
+    const calls: string[] = [];
+    applyAlignPickingActivation(
+      { pickingMode: 'origin-1pt', showPointCloud: true, colorMode: 'rgb' },
+      {
+        setShowPointCloud: (visible) => calls.push(`show:${visible}`),
+        setColorMode: (mode) => calls.push(`color:${mode}`),
+        setPickingMode: (mode) => calls.push(`mode:${mode}`),
+      }
+    );
+    expect(calls).toEqual(['show:true', 'color:rgb', 'mode:origin-1pt']);
+  });
+
+  it('skips the null fields so disarming touches nothing but the mode', () => {
+    const calls: string[] = [];
+    applyAlignPickingActivation(
+      { pickingMode: 'off', showPointCloud: null, colorMode: null },
+      {
+        setShowPointCloud: () => calls.push('show'),
+        setColorMode: () => calls.push('color'),
+        setPickingMode: (mode) => calls.push(`mode:${mode}`),
+      }
+    );
+    expect(calls).toEqual(['mode:off']);
   });
 });

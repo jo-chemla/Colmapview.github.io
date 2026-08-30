@@ -32,7 +32,7 @@ import {
   getNextPointSize,
   getNextSelectionColorMenuState,
 } from './globalContextMenuViewModel';
-import { getAlignPickingActivation } from '../panels/alignPanelViewModel';
+import { applyAlignPickingActivation, getAlignPickingActivation } from '../panels/alignPanelViewModel';
 
 type MaybePromise<T> = T | Promise<T>;
 type Setter<T> = (value: T) => void;
@@ -136,20 +136,14 @@ function setPickingModeWithPickablePoints(
   deps: GlobalContextMenuActionExecutorDeps,
   nextMode: PointPickingMode
 ): void {
-  const activation = getAlignPickingActivation({
-    nextMode,
-    showPointCloud: deps.showPointCloud,
-    colorMode: deps.colorMode,
-  });
-
-  if (activation.showPointCloud !== null) {
-    deps.setShowPointCloud(activation.showPointCloud);
-  }
-  if (activation.colorMode !== null) {
-    deps.setColorMode(activation.colorMode);
-  }
-
-  deps.setPickingMode(activation.pickingMode);
+  applyAlignPickingActivation(
+    getAlignPickingActivation({
+      nextMode,
+      showPointCloud: deps.showPointCloud,
+      colorMode: deps.colorMode,
+    }),
+    deps
+  );
 }
 
 export async function executeGlobalContextMenuAction(

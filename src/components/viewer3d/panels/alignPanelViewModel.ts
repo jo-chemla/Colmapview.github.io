@@ -1,4 +1,5 @@
 import type { ColorMode, PointPickingMode } from '../../../store';
+import { getNextPickingMode } from '../contextMenu/globalContextMenuActionPolicy';
 
 type ActiveAlignPickingMode = Exclude<PointPickingMode, 'off'>;
 
@@ -61,6 +62,34 @@ export interface AlignPickingActivation {
   colorMode: ColorMode | null;
 }
 
+/** The three store setters an arming site must feed an activation into. */
+export interface AlignPickingActivationSinks {
+  setShowPointCloud: (visible: boolean) => void;
+  setColorMode: (mode: ColorMode) => void;
+  setPickingMode: (mode: PointPickingMode) => void;
+}
+
+/**
+ * The APPLY half of arming: getAlignPickingActivation owns the rule, this
+ * owns feeding it into the stores. Both arming sites (AlignPanel and the
+ * context-menu executor) MUST route through here — the rule being
+ * centralized while the apply was copy-pasted is exactly how the two sites
+ * could still drift (adding a field to AlignPickingActivation would silently
+ * no-op at whichever site wasn't updated).
+ */
+export function applyAlignPickingActivation(
+  activation: AlignPickingActivation,
+  sinks: AlignPickingActivationSinks
+): void {
+  if (activation.showPointCloud !== null) {
+    sinks.setShowPointCloud(activation.showPointCloud);
+  }
+  if (activation.colorMode !== null) {
+    sinks.setColorMode(activation.colorMode);
+  }
+  sinks.setPickingMode(activation.pickingMode);
+}
+
 export function getAlignToolLabel(pickingMode: PointPickingMode): string | null {
   return ALIGN_TOOLS.find((tool) => tool.mode === pickingMode)?.label ?? null;
 }
@@ -90,13 +119,6 @@ export function getAlignPanelState(pickingMode: PointPickingMode): AlignPanelSta
   };
 }
 
-function getNextAlignPickingMode(
-  currentMode: PointPickingMode,
-  targetMode: ActiveAlignPickingMode
-): PointPickingMode {
-  return currentMode === targetMode ? 'off' : targetMode;
-}
-
 /** A tool row is lit while its own mode is armed, and disarms it when clicked again. */
 export function getAlignPickingButtonState(
   currentMode: PointPickingMode,
@@ -104,7 +126,7 @@ export function getAlignPickingButtonState(
 ): AlignPickingButtonState {
   return {
     isActive: currentMode === targetMode,
-    nextMode: getNextAlignPickingMode(currentMode, targetMode),
+    nextMode: getNextPickingMode(currentMode, targetMode),
   };
 }
 
