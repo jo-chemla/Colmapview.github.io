@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.11.0] - 2026-08-13
+## [0.11.0] - 2026-08-29
 
 ### Added
 
@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Toolbar clusters are announced as labelled groups to assistive tech, pressing Tab wakes chrome that has faded out, the idle fade is slower, and the shortcuts panel is titled "Help" now that it also carries the About tab.
 - The floating ⓘ button in the top-left corner of the viewport is gone. It opened the same Help panel as the status bar's "Shortcuts" entry and appeared in exactly the same situations, so it was redundant; the panel is still one click away there, and the `I` / `?` hotkey is unchanged.
 - The gizmo toggle and the alignment tools each have one home now: the gizmo stays in Transform (whose toolbar button toggles it, and which owns the `T` shortcut), and 1-Point Origin / 2-Point Scale / 3-Point Align live in Align. They were showing in both panels, in adjacent toolbar buttons. The right-click menu still offers all four.
-- The viewer↔gallery divider has a proper grab handle: a small rectangular grip fades in as you approach it and stays lit for the whole drag, instead of a hairline that flashed a full-height bar on hover. It sits clear of the collapse chevron, and the collapsed divider shows no grip, since there is nothing to drag.
+- The viewer↔gallery divider has a proper grab handle: a small rectangular grip fades in as you reach it — on the divider itself, or approaching from the gallery side, since the hit strip deliberately stays off the canvas — and stays lit for the whole drag, instead of a hairline that flashed a full-height bar on hover. It sits clear of the collapse chevron, and the collapsed divider shows no grip, since there is nothing to drag.
 
 ### Fixed
 
@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The splat renderer (5 MB) is loaded on demand and is not part of the initial page load; a test now enforces that, so it cannot regress silently.
 - If WebGPU fails after successfully initializing (device loss), the compatibility renderer now starts its 5 MB download at failure time instead of having a head start — an accepted tradeoff, since prefetching it while WebGPU is healthy would re-create the download the gate exists to avoid.
-- On machines whose WebGPU adapter fails intermittently, the viewer now spends up to ~21 seconds retrying (three attempts, backing off) before declaring WebGPU failed and downloading the compatibility renderer — previously the renderer was already warm on such machines. Bounded and self-healing, accepted for the same reason as above.
+- On machines whose WebGPU adapter fails intermittently, the viewer now waits out up to ~21 seconds of adapter retries (three attempts, backing off) before declaring WebGPU failed and downloading the compatibility renderer — previously the renderer was already warm on such machines. Bounded and self-healing, accepted for the same reason as above.
 
 ## [0.10.0] - 2026-08-12
 
