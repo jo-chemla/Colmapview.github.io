@@ -39,6 +39,22 @@ const SPARK_PACKAGE = '@sparkjsdev/spark';
 const RUNTIME_MODULE_PATH = 'src/utils/sparkSplatRuntime.ts';
 const SPARK_IMPORT_SCAN_TIMEOUT_MS = 15_000;
 
+const SPARK_PRELOAD_ENTRYPOINT = 'preloadSparkModule';
+const SPARK_PRELOAD_START_GATE = 'shouldStartSparkSplatRuntimePreload';
+
+// Sites that name the preload entrypoint without being the gate that starts a
+// download. Each is exempt for a stated reason, not for convenience.
+const DOCUMENTED_NON_DOWNLOAD_PRELOAD_SITES = new Set([
+  // Defines it.
+  'src/utils/sparkSplatRuntime.ts',
+  // Use-site, not a gate: reachable only once availability.spark is true, i.e.
+  // the module already landed and the memo is warm.
+  'src/splat/spark/sparkPsnrSession.ts',
+  // Injectable seam: the gate is threaded in as deps.shouldPreloadSplatRuntime
+  // by useFileDropzone.ts, which is the file that consults START.
+  'src/hooks/fileDropzoneWorkflow.ts',
+]);
+
 // Test files are excluded at the walk: they name the package in mocks and in
 // pinned literals, neither of which ships. That exclusion also covers this
 // file's own source, which necessarily contains the specifier.
@@ -131,4 +147,37 @@ describe('spark import boundary', () => {
 
     expect(source).toContain(`import('${SPARK_PACKAGE}')`);
   });
+
+  // Gating contract for the download itself. Two policy predicates read almost
+  // identically in English, and the SHORTER name is the wrong one to gate on:
+  //   shouldPreloadSparkSplatRuntime      — NEED: will Spark be the renderer?
+  //   shouldStartSparkSplatRuntimePreload — START: NEED, and no terminal
+  //                                         failure has been recorded yet.
+  // Only START refuses to re-attempt a download that already gave up.
+  // preloadSparkModule drops its memoised promise on rejection, so a site that
+  // gates on NEED re-fetches the 5 MB chunk and double-reports the failure —
+  // shipped once and fixed on 2026-08-30. Nothing but this test stops the next
+  // call site from reaching for the shorter name.
+  it('gates every spark download on the START predicate, not NEED', () => {
+    const violations: string[] = [];
+
+    for (const file of collectSourceFiles(SRC_ROOT)) {
+      const relativePath = toRepoRelative(file);
+      if (DOCUMENTED_NON_DOWNLOAD_PRELOAD_SITES.has(relativePath)) continue;
+
+      const source = stripComments(readFileSync(file, 'utf8'));
+      // The call form only: an import or a type position does not start a
+      // download.
+      if (!source.includes(`${SPARK_PRELOAD_ENTRYPOINT}(`)) continue;
+      // Call form on both sides: a leftover import of the gate satisfies a bare
+      // mention without gating anything (verified — an earlier version of this
+      // test passed against a site that had swapped the call to NEED and merely
+      // kept the unused import).
+      if (source.includes(`${SPARK_PRELOAD_START_GATE}(`)) continue;
+
+      violations.push(relativePath);
+    }
+
+    expect(violations).toEqual([]);
+  }, SPARK_IMPORT_SCAN_TIMEOUT_MS);
 });
