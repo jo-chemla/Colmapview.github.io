@@ -3,7 +3,10 @@ import {
   getForcedWebGpuSplatFailureNotice,
   getWebGpuSplatBackendNotice,
 } from './splatBackendNoticePolicy';
-import { WEBGPU_INSECURE_CONTEXT_REASON } from '../../utils/splatBackendPolicy';
+import {
+  SPARK_FALLBACK_REASON_PREFIX,
+  WEBGPU_INSECURE_CONTEXT_REASON,
+} from '../../utils/splatBackendPolicy';
 import type { SplatBackendResolution } from '../../utils/splatBackendPolicy';
 
 const unavailableResolution: SplatBackendResolution = {
@@ -250,6 +253,50 @@ describe('splat backend notice policy', () => {
     expect(getWebGpuSplatBackendNotice({ ...options, sparkPreloadPending: true })).toBeNull();
     // Settled without Spark: now it IS a durable outcome and must warn.
     expect(getWebGpuSplatBackendNotice({ ...options, sparkPreloadPending: false })).not.toBeNull();
+  });
+
+  it('never appends browser-upgrade advice to open-vocabulary failure text', () => {
+    // Failure reasons carry raw runtime/driver text. A driver message that
+    // happens to say "WebGPU is unsupported" must not tell a WebGPU-capable
+    // machine to go install a WebGPU-capable browser.
+    const notice = getWebGpuSplatBackendNotice({
+      requestedBackend: 'auto',
+      splatFile: new File(['x'], 'scene.spz'),
+      splatBackendResolution: {
+        status: 'resolved',
+        requested: 'auto',
+        backend: 'spark',
+        gpuPsnr: false,
+        reason: `${SPARK_FALLBACK_REASON_PREFIX}WebGPU splat renderer failed to initialize: WebGPU is unsupported by this driver build`,
+      },
+      webGpuSplatCanvasMounted: false,
+      sparkPreloadPending: false,
+    });
+
+    expect(notice).not.toBeNull();
+    expect(notice!.message).toBe(
+      'Using Spark fallback: WebGPU splat renderer failed to initialize: WebGPU is unsupported by this driver build'
+    );
+  });
+
+  it('strips exactly the shared fallback prefix the policy produces', () => {
+    const reason = `${SPARK_FALLBACK_REASON_PREFIX}WebGPU is unsupported`;
+    const notice = getWebGpuSplatBackendNotice({
+      requestedBackend: 'auto',
+      splatFile: new File(['x'], 'scene.spz'),
+      splatBackendResolution: {
+        status: 'resolved',
+        requested: 'auto',
+        backend: 'spark',
+        gpuPsnr: false,
+        reason,
+      },
+      webGpuSplatCanvasMounted: false,
+      sparkPreloadPending: false,
+    });
+
+    expect(notice!.message).toContain(`Using Spark fallback: ${reason.slice(SPARK_FALLBACK_REASON_PREFIX.length)}`);
+    expect(notice!.key).toBe(`fallback:${reason}`);
   });
 
   it('never suppresses the forced-webgpu failure notice for a pending preload', () => {
