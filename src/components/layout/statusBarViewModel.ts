@@ -1,3 +1,5 @@
+import { HOTKEY_HELP_TITLE } from '../modals/hotkeyHelpViewModel';
+
 export const STATUS_BAR_HIDDEN_CLASS_NAME = 'opacity-0';
 
 export const STATUS_BAR_SHORTCUTS_LABEL = '⌨ Shortcuts';
@@ -17,7 +19,8 @@ export const STATUS_BAR_SHORTCUTS_BUTTON_CLASS =
 // desktop bar's keyboard-shortcuts framing, and the title drops the (I) suffix
 // that nothing on a touch device can press.
 export const TOUCH_STATUS_BAR_HELP_LABEL = '? Help';
-export const TOUCH_STATUS_BAR_HELP_TITLE = 'Help';
+// Aliased, not re-typed: renaming the panel must rename this tooltip with it.
+export const TOUCH_STATUS_BAR_HELP_TITLE = HOTKEY_HELP_TITLE;
 // No synthetic tap box: the touch bar itself is 44px tall (h-11 in
 // TouchStatusBar) and the button stretches to fill it (self-stretch, applied
 // at the usage site), so the button's real box meets the tap minimum.

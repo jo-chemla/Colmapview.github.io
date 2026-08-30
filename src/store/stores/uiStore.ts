@@ -153,9 +153,9 @@ export interface UIState {
   showConversionModal: boolean;
   showAutoHideEditor: boolean;
   // Keyboard-shortcuts / About panel. Store-owned (not HotkeyHelpModal-local)
-  // because widely separated trees open it: the top-left info button in the
-  // modal itself, the desktop status bar's Shortcuts entry, and the touch
-  // status bar's Help entry. Transient — never persisted.
+  // because widely separated trees open it: the desktop status bar's
+  // Shortcuts entry and the touch status bar's Help entry. Transient — never
+  // persisted.
   showHotkeyHelp: boolean;
 
   // Context menu (persisted config + transient state)

@@ -92,7 +92,6 @@ describe('status bar view model', () => {
     // Touch mode drops the desktop status bar entirely, so this is the only
     // pointer route into HotkeyHelpModal on a phone or tablet.
     expect(TOUCH_STATUS_BAR_HELP_LABEL).toBe('? Help');
-    expect(TOUCH_STATUS_BAR_HELP_TITLE).toBe(HOTKEY_HELP_TITLE);
     // No (I) suffix: the hotkey it names is unreachable without a keyboard.
     expect(TOUCH_STATUS_BAR_HELP_TITLE).not.toContain('(');
     // The bar itself is 44px tall (TouchStatusBar h-11) and the button stretches
