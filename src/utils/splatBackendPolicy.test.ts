@@ -9,6 +9,7 @@ import {
   resolveSplatBackend,
   resolveSplatMetricCapability,
   shouldPreloadSparkSplatRuntime,
+  shouldStartSparkSplatRuntimePreload,
   shouldExposeSplatMetricVisualizations,
   type SplatBackendAvailability,
   type SplatMetricAvailability,
@@ -111,6 +112,28 @@ describe('splat backend policy', () => {
       spark: false,
       sparkPreloadFailed: true,
     })).toBe(false);
+  });
+
+  it('separates needing Spark from starting another download of it', () => {
+    // NEED stays blind to download state — the byte-less loader gate asks what
+    // the renderer WILL be, so a failed download must not change its answer.
+    expect(shouldPreloadSparkSplatRuntime('spark', {
+      webGpu: 'ready',
+      sparkPreloadFailed: true,
+    })).toBe(true);
+    // START refuses to re-request the chunk: preloadSparkModule drops its memo
+    // on rejection, so a second call is a second real ~5 MB download.
+    expect(shouldStartSparkSplatRuntimePreload('spark', { webGpu: 'ready' })).toBe(true);
+    expect(shouldStartSparkSplatRuntimePreload('spark', {
+      webGpu: 'ready',
+      sparkPreloadFailed: true,
+    })).toBe(false);
+    expect(shouldStartSparkSplatRuntimePreload('auto', {
+      webGpu: 'unsupported',
+      sparkPreloadFailed: true,
+    })).toBe(false);
+    // No need in the first place is still no start.
+    expect(shouldStartSparkSplatRuntimePreload('auto', { webGpu: 'unavailable' })).toBe(false);
   });
 
   it('builds Spark fallback reasons from the prefix the notice layer strips', () => {

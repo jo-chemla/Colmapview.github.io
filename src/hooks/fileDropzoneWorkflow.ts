@@ -46,11 +46,19 @@ type PreloadSplatRuntime = () => Promise<unknown>;
  * Whether the Spark runtime chunk (~5MB) is worth fetching for this drop. The
  * renderer only needs it when the resolved backend is Spark, so the decision is
  * the caller's: it owns the requested backend and the live availability that
- * `shouldPreloadSparkSplatRuntime` reads. Left unset it returns `true`, because
- * preloading a runtime that turns out to be unused only wastes bandwidth, while
- * skipping one that is needed stalls the first splat frame behind the download.
+ * `shouldStartSparkSplatRuntimePreload` reads. Left unset it returns `true`,
+ * because preloading a runtime that turns out to be unused only wastes
+ * bandwidth, while skipping one that is needed stalls the first splat frame
+ * behind the download.
  */
 type ShouldPreloadSplatRuntime = () => boolean;
+/**
+ * Records that the chunk could not be fetched. This is chronologically the
+ * FIRST of the three preload attempts in the app, so it has to report failure
+ * the same way the two renderer-side ones do — otherwise the backend store
+ * never learns, and the notice layer waits on a download nobody is making.
+ */
+type OnSplatRuntimePreloadFailed = () => void;
 type ClassifyPlyFile = typeof classifyPlyFile;
 
 interface PointCloudPlySource extends SplatFileSource {
@@ -74,6 +82,7 @@ export interface FileDropzoneWorkflowDeps {
   classifyPlyFile?: ClassifyPlyFile;
   preloadSplatRuntime?: PreloadSplatRuntime;
   shouldPreloadSplatRuntime?: ShouldPreloadSplatRuntime;
+  onSplatRuntimePreloadFailed?: OnSplatRuntimePreloadFailed;
   resetView: () => void;
   setDroppedFiles: (files: Map<string, File>) => void;
   setError: (error: string | null) => void;
@@ -246,6 +255,7 @@ export async function processFileDropzoneFiles(
   const buildReconstruction = deps.buildReconstruction ?? buildColmapReconstruction;
   const preloadSplatRuntime = deps.preloadSplatRuntime ?? preloadSparkModule;
   const shouldPreloadSplatRuntime = deps.shouldPreloadSplatRuntime ?? (() => true);
+  const onSplatRuntimePreloadFailed = deps.onSplatRuntimePreloadFailed ?? (() => undefined);
   const classifyPly = deps.classifyPlyFile ?? classifyPlyFile;
   const getDecodeFailureCount = deps.getFailedImageCount ?? getFailedImageCount;
   const delay = deps.delay ?? ((ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms)));
@@ -296,6 +306,10 @@ export async function processFileDropzoneFiles(
   // the splat itself loads — that stays with the handoff below.
   if (splatFile && shouldPreloadSplatRuntime()) {
     void preloadSplatRuntime().catch((error: unknown) => {
+      // Report it, don't just log it: the renderer-side attempts read this
+      // outcome to stop waiting on a download that will not arrive, and to
+      // avoid re-requesting the 5 MB chunk the memo already gave up on.
+      onSplatRuntimePreloadFailed();
       logger.warn(
         `[Splats] Failed to preload Spark runtime: ${error instanceof Error ? error.message : String(error)}`
       );

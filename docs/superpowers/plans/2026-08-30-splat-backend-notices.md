@@ -103,7 +103,7 @@ export const WEBGPU_INSECURE_CONTEXT_REASON =
   'WebGPU needs a secure (HTTPS) connection and this page was loaded over plain HTTP';
 ```
 
-Extend `getBrowserWebGpuCompatibilityBlockReason` with a `secureContext` parameter (default: `typeof window !== 'undefined' ? window.isSecureContext : true`) and, BEFORE the Firefox/Linux check, add:
+Extend `getBrowserWebGpuCompatibilityBlockReason` with a `secureContext` parameter (default: `typeof window !== 'undefined' ? window.isSecureContext !== false : true` — absent means secure, since jsdom and some embedded webviews never define the property) and, AFTER the Firefox/Linux check, add (a browser that cannot run WebGPU over HTTPS either must not be told to reload over HTTPS):
 
 ```ts
   // navigator.gpu is defined only in secure contexts. On plain HTTP a fully

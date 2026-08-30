@@ -7,7 +7,10 @@ import {
   preloadSparkModule,
   type SparkModule,
 } from '../../../utils/sparkSplatRuntime';
-import { shouldPreloadSparkSplatRuntime } from '../../../utils/splatBackendPolicy';
+import {
+  shouldPreloadSparkSplatRuntime,
+  shouldStartSparkSplatRuntimePreload,
+} from '../../../utils/splatBackendPolicy';
 import { SPARK_SPLAT_RENDER_ORDER } from './pointCloudRenderPolicy';
 import { useSplatLayerStoreFacade } from './SplatLayerStoreFacade';
 import {
@@ -359,7 +362,11 @@ export function SplatLayer({
   useEffect(() => {
     if (
       !splatFile ||
-      !shouldPreloadSparkSplatRuntime(requestedBackend, splatBackendAvailability)
+      // START, not NEED: this effect depends on the whole availability object,
+      // so recording the failure below re-runs it. preloadSparkModule drops
+      // its memo on rejection, so a need-only guard would fire a second real
+      // 5 MB request and a second "Failed to load splat" warning.
+      !shouldStartSparkSplatRuntimePreload(requestedBackend, splatBackendAvailability)
     ) {
       return;
     }

@@ -349,6 +349,27 @@ describe('file dropzone workflow', () => {
     expect(deps.setUrlLoading).not.toHaveBeenCalledWith(false);
   });
 
+  it('reports a failed spark runtime preload instead of only logging it', async () => {
+    // Chronologically the FIRST of the app's three preload attempts. Logging
+    // alone left the backend store believing a download was still coming.
+    const spz = new File(['xx'], 'scene.spz');
+    const logger = createLogger();
+    const deps = createDeps({
+      getLoadedFiles: vi.fn(() => null),
+      parseFiles: vi.fn(),
+      logger,
+      onSplatRuntimePreloadFailed: vi.fn(),
+      preloadSplatRuntime: vi.fn(async () => {
+        throw new Error('spark unavailable');
+      }),
+    });
+
+    await processFileDropzoneFiles(new Map([['scene.spz', spz]]), deps);
+
+    expect(deps.onSplatRuntimePreloadFailed).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('spark unavailable'));
+  });
+
   it('skips the spark runtime preload when the caller says the backend will not use it', async () => {
     const parseFiles = vi.fn();
     const spz = new File(['xx'], 'webgpu.spz');

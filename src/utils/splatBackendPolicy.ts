@@ -267,6 +267,16 @@ export function resolveSplatBackend(
   };
 }
 
+/**
+ * NEED: "is Spark the renderer this splat will be drawn with?" — a
+ * forward-looking property of the backend choice alone, deliberately blind to
+ * whether the module is downloaded, downloading, or unreachable. Consumers
+ * outside the download path depend on exactly that (the byte-less loader gate
+ * in urlLoaderPolicy asks what the renderer WILL be), so its semantics must not
+ * absorb download state. Two derived predicates below add that state:
+ * shouldStartSparkSplatRuntimePreload (should a download begin now?) and
+ * isSparkSplatRuntimePreloadPending (is one in flight?).
+ */
 export function shouldPreloadSparkSplatRuntime(
   requested: SplatBackendPreference,
   availability: Pick<SplatBackendAvailability, 'webGpu'>
@@ -295,11 +305,35 @@ export function shouldPreloadSparkSplatRuntime(
 }
 
 /**
- * True while the Spark download is the expected next step: the gate above
- * fired and the module has neither landed nor failed. The notice policy treats
- * an "unavailable" resolution in this window as a loading state rather than an
- * outcome, so the derived predicate lives here, beside the gate whose
- * semantics it mirrors, instead of being re-composed at call sites.
+ * START: "should a download be kicked off right now?" — the need above, minus
+ * an attempt that already ended in failure. Every site that actually calls
+ * preloadSparkModule must use this, because that memo drops its cached promise
+ * on rejection: a second call is a second real ~5 MB request. The preload
+ * effects take the whole availability object as a dependency, so any store
+ * write re-runs them — including the write that records the failure — and a
+ * need-only guard would let each one re-download and re-warn.
+ *
+ * Consequence, accepted for this wave: the failure is terminal for the session
+ * (only a successful load or a store reset clears it), so dropping a second
+ * splat after a failed download does not retry. Retrying coherently needs a
+ * "retrying" state the notice layer can read, which belongs with the deferred
+ * resolver pending-status refactor rather than a silent re-attempt behind an
+ * "unavailable" warning.
+ */
+export function shouldStartSparkSplatRuntimePreload(
+  requested: SplatBackendPreference,
+  availability: Pick<SplatBackendAvailability, 'webGpu' | 'sparkPreloadFailed'>
+): boolean {
+  return shouldPreloadSparkSplatRuntime(requested, availability)
+    && !availability.sparkPreloadFailed;
+}
+
+/**
+ * PENDING: "is a download in flight?" — the need above, with the module
+ * neither landed nor failed. The notice policy treats an "unavailable"
+ * resolution in this window as a loading state rather than an outcome, so the
+ * derived predicate lives here, beside the gate whose semantics it mirrors,
+ * instead of being re-composed at call sites.
  *
  * The failure flag is load-bearing: without it a download that never arrives
  * keeps "pending" true forever, so the loading note stays up and the honest

@@ -39,6 +39,7 @@ import { preloadSparkModule } from '../../utils/sparkSplatRuntime';
 import {
   isSparkSplatRuntimePreloadPending,
   shouldPreloadSparkSplatRuntime,
+  shouldStartSparkSplatRuntimePreload,
 } from '../../utils/splatBackendPolicy';
 import {
   SPLAT_LOADING_PROGRESS_MESSAGE,
@@ -88,7 +89,10 @@ function SplatRuntimePreloader({
   useEffect(() => {
     if (
       !splatFile ||
-      !shouldPreloadSparkSplatRuntime(requestedBackend, splatBackendAvailability)
+      // START, not NEED: recording the failure below changes availability and
+      // re-runs this effect, and preloadSparkModule drops its memo on
+      // rejection — a need-only guard would re-download the 5 MB chunk.
+      !shouldStartSparkSplatRuntimePreload(requestedBackend, splatBackendAvailability)
     ) {
       return;
     }

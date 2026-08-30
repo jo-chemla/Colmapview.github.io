@@ -63,6 +63,24 @@ describe('useFileDropzone', () => {
     expect(deps.shouldPreloadSplatRuntime?.()).toBe(false);
   });
 
+  it('records a failed drop-time preload so nothing re-requests the chunk', async () => {
+    useSplatBackendStore.setState({
+      requestedBackend: 'auto',
+      availability: { webGpu: 'unsupported', webGpuFailureReason: null, spark: false },
+    });
+
+    const deps = await captureWorkflowDeps();
+    expect(deps.shouldPreloadSplatRuntime?.()).toBe(true);
+
+    // The drop-time attempt is the first of three in the app; if its failure
+    // only reaches the log, the store keeps waiting on a download nobody is
+    // making and the renderer-side attempts re-request the 5 MB chunk.
+    deps.onSplatRuntimePreloadFailed?.();
+
+    expect(useSplatBackendStore.getState().availability.sparkPreloadFailed).toBe(true);
+    expect(deps.shouldPreloadSplatRuntime?.()).toBe(false);
+  });
+
   it('reads the backend at drop time, not at hook render time', async () => {
     useSplatBackendStore.setState({
       requestedBackend: 'auto',

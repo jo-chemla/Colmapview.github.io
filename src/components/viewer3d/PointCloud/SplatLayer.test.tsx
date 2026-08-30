@@ -538,4 +538,64 @@ describe('SplatLayer', () => {
       warn.mockRestore();
     }
   });
+
+  it('does not re-attempt the Spark download after a terminal preload failure', async () => {
+    preloadSparkModuleMock.mockRejectedValue(new Error('spark unavailable'));
+    const splatFile = new File(['splat'], 'scene.ply');
+    const facade = createFacade({
+      splatFile,
+      requestedBackend: 'spark',
+      splatBackendAvailability: {
+        webGpu: 'unsupported',
+        spark: false,
+      },
+      splatBackendResolution: {
+        status: 'unavailable',
+        requested: 'spark',
+        backend: null,
+        gpuPsnr: false,
+        reason: 'Spark renderer is unavailable',
+      },
+    });
+    // The real store now genuinely changes state on failure — that is the point
+    // of the fix — so the availability OBJECT IDENTITY changes and the preload
+    // effect's dep changes with it. A static facade hides the re-run; model the
+    // store instead, or this test cannot see the second 5 MB download.
+    vi.mocked(facade.actions.setSparkPreloadFailed).mockImplementation(() => {
+      facade.data.splatBackendAvailability = {
+        webGpu: 'unsupported',
+        spark: false,
+        sparkPreloadFailed: true,
+      };
+    });
+    vi.mocked(facade.actions.getUrlProgress).mockReturnValue({
+      percent: 92,
+      message: 'Preparing splat renderer...',
+      currentFile: 'scene.ply',
+    });
+    useSplatLayerStoreFacadeMock.mockReturnValue(facade);
+    const warn = vi.spyOn(appLogger, 'warn').mockImplementation(() => undefined);
+
+    try {
+      const { rerender } = render(<SplatLayer />);
+
+      await waitFor(() => {
+        expect(facade.actions.setSparkPreloadFailed).toHaveBeenCalled();
+      });
+
+      // The re-render the store update would have caused.
+      rerender(<SplatLayer />);
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(preloadSparkModuleMock).toHaveBeenCalledTimes(1);
+      const failureWarnings = vi.mocked(facade.actions.addNotification).mock.calls.filter(
+        ([type, message]) => type === 'warning' && message === `Failed to load splat: ${splatFile.name}`
+      );
+      expect(failureWarnings).toHaveLength(1);
+    } finally {
+      warn.mockRestore();
+    }
+  });
 });

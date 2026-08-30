@@ -11,7 +11,7 @@ import { clearAllCaches } from '../cache';
 import { isArchiveFile, loadZipFromFile, setActiveZipArchive } from '../utils/zipLoader';
 import { scanDirectoryHandle, scanEntry } from '../utils/fileScanning';
 import { appLogger } from '../utils/logger';
-import { shouldPreloadSparkSplatRuntime } from '../utils/splatBackendPolicy';
+import { shouldStartSparkSplatRuntimePreload } from '../utils/splatBackendPolicy';
 import { collectDroppedFiles, collectFileDropPayload, isFileDrop } from './fileDropzoneDropPayload';
 import { loadBrowsedDirectory, loadDropPayload, loadLocalZipFile } from './fileDropzoneLocalSources';
 import { processFileDropzoneFiles, type FileDropzoneWorkflowOptions } from './fileDropzoneWorkflow';
@@ -64,8 +64,9 @@ export function useFileDropzone() {
       // one taken the moment a splat actually arrives.
       shouldPreloadSplatRuntime: () => {
         const { requestedBackend, availability } = useSplatBackendStore.getState();
-        return shouldPreloadSparkSplatRuntime(requestedBackend, availability);
+        return shouldStartSparkSplatRuntimePreload(requestedBackend, availability);
       },
+      onSplatRuntimePreloadFailed: () => useSplatBackendStore.getState().setSparkPreloadFailed(),
     }, {
       progressRange,
       onSceneReplaced: options.onSceneReplaced,
