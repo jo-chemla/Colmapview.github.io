@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useSplatBackendStore } from './splatBackendStore';
+import { isSparkSplatRuntimePreloadPending } from '../../utils/splatBackendPolicy';
 
 describe('splat backend store', () => {
   beforeEach(() => {
@@ -27,6 +28,39 @@ describe('splat backend store', () => {
     useSplatBackendStore.getState().setSparkBackendAvailable(true);
 
     expect(useSplatBackendStore.getState()).toBe(readyState);
+  });
+
+  it('records a failed Spark download so the preload stops being pending', () => {
+    // The failure path used to call setSparkBackendAvailable(false), which is a
+    // no-op while spark is already false: the state never changed, so the
+    // sticky "Preparing splat renderer..." note stayed up forever and the
+    // honest no-renderer warning never fired.
+    useSplatBackendStore.getState().setWebGpuBackendState('unsupported');
+    const beforeFailure = useSplatBackendStore.getState();
+    expect(isSparkSplatRuntimePreloadPending(
+      beforeFailure.requestedBackend,
+      beforeFailure.availability
+    )).toBe(true);
+
+    useSplatBackendStore.getState().setSparkPreloadFailed();
+
+    const afterFailure = useSplatBackendStore.getState();
+    expect(afterFailure).not.toBe(beforeFailure);
+    expect(afterFailure.availability.sparkPreloadFailed).toBe(true);
+    expect(isSparkSplatRuntimePreloadPending(
+      afterFailure.requestedBackend,
+      afterFailure.availability
+    )).toBe(false);
+  });
+
+  it('clears a recorded Spark failure when a later load succeeds', () => {
+    useSplatBackendStore.getState().setSparkPreloadFailed();
+    useSplatBackendStore.getState().setSparkBackendAvailable(true);
+
+    expect(useSplatBackendStore.getState().availability).toMatchObject({
+      spark: true,
+      sparkPreloadFailed: false,
+    });
   });
 
   it('preserves adapter-unavailable details while staying pending in auto mode', () => {

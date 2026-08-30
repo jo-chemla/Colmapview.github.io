@@ -40,7 +40,10 @@ import {
   isSparkSplatRuntimePreloadPending,
   shouldPreloadSparkSplatRuntime,
 } from '../../utils/splatBackendPolicy';
-import { isSplatLoadingProgressForFile } from '../../utils/splatLoadingProgressPolicy';
+import {
+  SPLAT_LOADING_PROGRESS_MESSAGE,
+  isSplatLoadingProgressForFile,
+} from '../../utils/splatLoadingProgressPolicy';
 import type { SplatBackendAvailability } from '../../utils/splatBackendPolicy';
 import {
   composeSim3d,
@@ -73,11 +76,13 @@ function SplatRuntimePreloader({
   requestedBackend,
   splatBackendAvailability,
   setSparkBackendAvailable,
+  setSparkPreloadFailed,
   splatFile,
 }: {
   requestedBackend: 'auto' | 'webgpu' | 'spark';
   splatBackendAvailability: SplatBackendAvailability;
   setSparkBackendAvailable: (spark: boolean) => void;
+  setSparkPreloadFailed: () => void;
   splatFile?: File;
 }) {
   useEffect(() => {
@@ -91,8 +96,16 @@ function SplatRuntimePreloader({
     void loadSplatLayer().catch(() => undefined);
     void preloadSparkModule()
       .then(() => setSparkBackendAvailable(true))
-      .catch(() => setSparkBackendAvailable(false));
-  }, [requestedBackend, setSparkBackendAvailable, splatBackendAvailability, splatFile]);
+      // Record the failure, don't just re-assert "not available": the latter
+      // is a store no-op that would keep the preload pending forever.
+      .catch(() => setSparkPreloadFailed());
+  }, [
+    requestedBackend,
+    setSparkBackendAvailable,
+    setSparkPreloadFailed,
+    splatBackendAvailability,
+    splatFile,
+  ]);
 
   return null;
 }
@@ -119,6 +132,7 @@ function SceneContent() {
     },
     actions: {
       setSparkBackendAvailable,
+      setSparkPreloadFailed,
     },
   } = useSceneContentStoreFacade();
   // Use shared alignment mode (includes point picking AND floor detection)
@@ -239,6 +253,7 @@ function SceneContent() {
         requestedBackend={requestedSplatBackend}
         splatBackendAvailability={splatBackendAvailability}
         setSparkBackendAvailable={setSparkBackendAvailable}
+        setSparkPreloadFailed={setSparkPreloadFailed}
         splatFile={splatFile}
       />
       <WebGpuSplatCanvasBridge enabled={webGpuSplatCanvasBridgeEnabled} modelMatrix={webGpuSplatModelMatrix} />
@@ -313,6 +328,8 @@ export function Scene3D() {
       splatBackendResolution,
       splatsVisible,
       pointsLayerVisible,
+      urlLoading,
+      urlProgress,
     },
     actions: {
       addNotification,
@@ -344,6 +361,11 @@ export function Scene3D() {
   ) && pointsLayerVisible;
   const sparkPreloadPending = Boolean(splatFile)
     && isSparkSplatRuntimePreloadPending(requestedSplatBackend, splatBackendAvailability);
+  // The DropZone load overlay renders urlProgress.message verbatim, so while
+  // it shows this exact phase the toast would be the same sentence twice on
+  // screen at once. It stays the only surface once the overlay is gone.
+  const preparingProgressVisible = urlLoading
+    && urlProgress?.message === SPLAT_LOADING_PROGRESS_MESSAGE;
   const webGpuSplatBackendSelected = splatBackendResolution.status === 'resolved'
     && splatBackendResolution.backend === 'webgpu';
   const webGpuSplatCanvasReportsLoading = requestedSplatBackend === 'webgpu'
@@ -427,16 +449,22 @@ export function Scene3D() {
         onRuntimeFailed={handleWebGpuSplatRuntimeFailed}
         onAdapterUnavailable={handleWebGpuSplatAdapterUnavailable}
       />
-      <SplatBackendStatusNotifier
-        addNotification={addNotification}
-        removeNotification={removeNotification}
-        requestedBackend={requestedSplatBackend}
-        splatBackendResolution={splatBackendResolution}
-        splatFile={splatFile}
-        webGpuSplatCanvasMounted={webGpuSplatCanvasMounted}
-        sparkPreloadPending={sparkPreloadPending}
-      />
       <Scene3DErrorBoundary backgroundColor={backgroundColor}>
+        {/* Inside the boundary on purpose: everything that can settle these
+            flags lives in the canvas subtree, so a canvas crash has to unmount
+            the notifier too — otherwise its sticky preparing note is stranded
+            with nothing left that could remove it. It renders null and uses no
+            R3F hooks, so it is a plain sibling of the Canvas. */}
+        <SplatBackendStatusNotifier
+          addNotification={addNotification}
+          removeNotification={removeNotification}
+          requestedBackend={requestedSplatBackend}
+          splatBackendResolution={splatBackendResolution}
+          splatFile={splatFile}
+          webGpuSplatCanvasMounted={webGpuSplatCanvasMounted}
+          sparkPreloadPending={sparkPreloadPending}
+          preparingProgressVisible={preparingProgressVisible}
+        />
         <Canvas
           className="relative z-10"
           camera={{

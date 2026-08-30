@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { SPLAT_LOADING_PROGRESS_MESSAGE } from '../../utils/splatLoadingProgressPolicy';
+import { Scene3DErrorBoundary } from './Scene3DErrorBoundary';
 import { SplatBackendStatusNotifier } from './SplatBackendStatusNotifier';
 import type { SplatBackendResolution } from '../../utils/splatBackendPolicy';
 
@@ -247,6 +248,111 @@ describe('SplatBackendStatusNotifier', () => {
       expect.stringContaining('Using Spark fallback'),
       8000
     );
+  });
+
+  it('re-announces a warning when the same failure returns after a different one', () => {
+    // Warnings are events, not session facts: a.spz -> b.spz -> a.spz is a
+    // genuine retry, and a lifetime seen-set would leave the third attempt
+    // silent behind a blank viewport.
+    const addNotification = vi.fn(() => 'n');
+    const props = {
+      addNotification,
+      removeNotification,
+      requestedBackend: 'webgpu',
+      splatBackendResolution: makeUnavailable('WebGPU splat renderer failed to initialize: adapter lost'),
+      webGpuSplatCanvasMounted: false,
+      sparkPreloadPending: false,
+    } as const;
+    const fileA = new File(['x'], 'a.spz');
+    const fileB = new File(['x'], 'b.spz');
+
+    const { rerender } = render(<SplatBackendStatusNotifier {...props} splatFile={fileA} />);
+    rerender(<SplatBackendStatusNotifier {...props} splatFile={fileB} />);
+    rerender(<SplatBackendStatusNotifier {...props} splatFile={fileA} />);
+
+    expect(addNotification).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not repeat the preparing note while the load overlay already shows it', () => {
+    // The DropZone progress overlay renders the identical message during the
+    // Spark download; two surfaces saying the same thing at once reads as a
+    // stutter, and the toast is only needed once the overlay is gone.
+    const addNotification = vi.fn(() => 'preparing-1');
+    const props = {
+      addNotification,
+      removeNotification,
+      requestedBackend: 'auto',
+      splatBackendResolution: {
+        status: 'unavailable',
+        requested: 'auto',
+        backend: null,
+        gpuPsnr: false,
+        reason: 'No splat renderer is available',
+      },
+      splatFile: new File(['x'], 'scene.ply'),
+      webGpuSplatCanvasMounted: false,
+      sparkPreloadPending: true,
+    } as const;
+
+    const { rerender } = render(
+      <SplatBackendStatusNotifier {...props} preparingProgressVisible />
+    );
+    expect(addNotification).not.toHaveBeenCalled();
+
+    // Overlay gone, download still running: the toast is now the only surface.
+    rerender(<SplatBackendStatusNotifier {...props} preparingProgressVisible={false} />);
+    expect(addNotification).toHaveBeenCalledWith('info', SPLAT_LOADING_PROGRESS_MESSAGE, 0);
+  });
+
+  it('drops its sticky preparing note when the scene error boundary catches', () => {
+    // Scene3D mounts the notifier INSIDE Scene3DErrorBoundary, as a sibling
+    // before the Canvas: everything that can settle sparkPreloadPending lives
+    // in the canvas subtree, so a canvas crash must unmount the notifier too —
+    // otherwise the duration-0 note is stranded on screen with nothing left
+    // that could ever remove it.
+    const addNotification = vi.fn(() => 'preparing-1');
+    const removePreparing = vi.fn();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    function Boom({ crash }: { crash: boolean }): null {
+      if (crash) {
+        throw new Error('canvas exploded');
+      }
+      return null;
+    }
+
+    const scene = (crash: boolean) => (
+      <Scene3DErrorBoundary>
+        <SplatBackendStatusNotifier
+          addNotification={addNotification}
+          removeNotification={removePreparing}
+          requestedBackend="auto"
+          splatBackendResolution={{
+            status: 'unavailable',
+            requested: 'auto',
+            backend: null,
+            gpuPsnr: false,
+            reason: 'No splat renderer is available',
+          }}
+          splatFile={new File(['x'], 'scene.ply')}
+          webGpuSplatCanvasMounted={false}
+          sparkPreloadPending
+        />
+        <Boom crash={crash} />
+      </Scene3DErrorBoundary>
+    );
+
+    try {
+      const { rerender } = render(scene(false));
+      expect(addNotification).toHaveBeenCalledWith('info', SPLAT_LOADING_PROGRESS_MESSAGE, 0);
+      expect(removePreparing).not.toHaveBeenCalled();
+
+      rerender(scene(true));
+    } finally {
+      consoleError.mockRestore();
+    }
+
+    expect(removePreparing).toHaveBeenCalledWith('preparing-1');
   });
 
   it('never re-announces a notice key it has already shown, even after another notice', () => {

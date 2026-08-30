@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Choosing a splat no longer flashes a "no splat renderer is available" warning while the compatibility renderer is still downloading — that window now shows a brief "Preparing splat renderer…" note, and the warning is reserved for the case where the download actually failed.
 - When WebGPU is hidden because the page was loaded over plain HTTP, the app now says so and suggests HTTPS, instead of wrongly advising a "WebGPU-capable browser".
 - The compatibility-renderer notice is informational (auto-dismissing) and appears once per session, instead of a persistent warning re-raised for every splat file.
+- A compatibility-renderer download that never arrives — offline, blocked CDN, ad-blocker — now settles: the "Preparing splat renderer…" note clears and the honest "no renderer available" warning appears. It previously stayed "preparing" for the rest of the session, with the warning suppressed behind it.
+- On a browser that cannot run WebGPU at all, the app no longer tells the user to reload over HTTPS — advice that could not have helped there. The connection is only blamed when fixing it would actually change the outcome.
+- The "Preparing splat renderer…" line is shown once, not simultaneously by the loading overlay and a notification.
+- Retrying a splat that failed to render warns again instead of failing silently over a blank viewport, while the once-per-session compatibility notice stays once per session.
 
 ## [0.11.0] - 2026-08-29
 

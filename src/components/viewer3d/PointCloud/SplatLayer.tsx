@@ -192,6 +192,7 @@ export function SplatLayer({
       addNotification,
       removeNotification,
       setSparkBackendAvailable,
+      setSparkPreloadFailed,
       getUrlProgress,
       setUrlLoading,
       setUrlProgress,
@@ -372,7 +373,10 @@ export function SplatLayer({
         }
       })
       .catch((error: unknown) => {
-        setSparkBackendAvailable(false);
+        // A terminal failure, not merely "not loaded": re-asserting
+        // availability=false is a store no-op that would keep the preload
+        // pending — and the preparing note up — for the rest of the session.
+        setSparkPreloadFailed();
         if (!cancelled) {
           if (shouldReportSparkPreloadFailure) {
             failSplatLoading(splatFile);
@@ -391,6 +395,7 @@ export function SplatLayer({
     failSplatLoading,
     requestedBackend,
     setSparkBackendAvailable,
+    setSparkPreloadFailed,
     shouldReportSparkPreloadFailure,
     splatBackendAvailability,
     splatFile,

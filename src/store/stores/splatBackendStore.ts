@@ -27,6 +27,13 @@ export interface SplatBackendState {
   setWebGpuBackendState: (webGpu: WebGpuSplatBackendState, failureReason?: string | null) => void;
   setWebGpuMetricState: (webGpu: WebGpuSplatMetricState, failureReason?: string | null) => void;
   setSparkBackendAvailable: (spark: boolean) => void;
+  /**
+   * Records that the Spark module download ended in failure. Distinct from
+   * setSparkBackendAvailable(false), which only says "not loaded" and is a
+   * no-op while spark is already false — the state that used to leave the
+   * preload pending for the rest of the session.
+   */
+  setSparkPreloadFailed: () => void;
   resetSplatBackendState: () => void;
 }
 
@@ -104,12 +111,29 @@ export const useSplatBackendStore = create<SplatBackendState>()((set) => ({
       }
     )
   ),
-  setSparkBackendAvailable: (spark) => set((state) =>
-    state.availability.spark === spark
+  setSparkBackendAvailable: (spark) => set((state) => {
+    // A successful load clears any recorded failure: a retry that lands is a
+    // working renderer, not a permanent outage.
+    const sparkPreloadFailed = spark ? false : state.availability.sparkPreloadFailed ?? false;
+    if (
+      state.availability.spark === spark
+      && (state.availability.sparkPreloadFailed ?? false) === sparkPreloadFailed
+    ) {
+      return state;
+    }
+
+    return resolveNextState(
+      state.requestedBackend,
+      { ...state.availability, spark, sparkPreloadFailed },
+      state.metricAvailability
+    );
+  }),
+  setSparkPreloadFailed: () => set((state) =>
+    state.availability.sparkPreloadFailed
       ? state
       : resolveNextState(
         state.requestedBackend,
-        { ...state.availability, spark },
+        { ...state.availability, sparkPreloadFailed: true },
         state.metricAvailability
       )
   ),

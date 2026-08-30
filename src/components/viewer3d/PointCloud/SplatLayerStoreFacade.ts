@@ -23,6 +23,7 @@ interface SplatLayerActionsFacade {
   addNotification: NotificationState['addNotification'];
   removeNotification: NotificationState['removeNotification'];
   setSparkBackendAvailable: SplatBackendState['setSparkBackendAvailable'];
+  setSparkPreloadFailed: SplatBackendState['setSparkPreloadFailed'];
   getUrlProgress: () => ReturnType<typeof useReconstructionStore.getState>['urlProgress'];
   setUrlLoading: ReturnType<typeof useReconstructionStore.getState>['setUrlLoading'];
   setUrlProgress: ReturnType<typeof useReconstructionStore.getState>['setUrlProgress'];
@@ -46,6 +47,7 @@ export function useSplatLayerStoreFacade(): SplatLayerStoreFacade {
   const splatBackendAvailability = useSplatBackendStore((s) => s.availability);
   const splatBackendResolution = useSplatBackendStore((s) => s.resolution);
   const setSparkBackendAvailable = useSplatBackendStore((s) => s.setSparkBackendAvailable);
+  const setSparkPreloadFailed = useSplatBackendStore((s) => s.setSparkPreloadFailed);
 
   return {
     data: {
@@ -59,6 +61,7 @@ export function useSplatLayerStoreFacade(): SplatLayerStoreFacade {
       addNotification,
       removeNotification,
       setSparkBackendAvailable,
+      setSparkPreloadFailed,
       getUrlProgress: getCurrentUrlProgress,
       setUrlLoading,
       setUrlProgress,

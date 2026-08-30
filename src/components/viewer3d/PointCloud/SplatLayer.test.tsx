@@ -102,6 +102,7 @@ function createFacade(overrides: Partial<SplatLayerStoreFacade['data']> = {}): S
       addNotification: vi.fn(() => 'notice-id'),
       removeNotification: vi.fn(),
       setSparkBackendAvailable: vi.fn(),
+      setSparkPreloadFailed: vi.fn(),
       getUrlProgress: vi.fn(() => null),
       setUrlLoading: vi.fn(),
       setUrlProgress: vi.fn(),
@@ -461,7 +462,7 @@ describe('SplatLayer', () => {
     expect(facade.actions.setUrlLoading).not.toHaveBeenCalledWith(false);
   });
 
-  it('preloads Spark and records unavailability when auto WebGPU has already failed', async () => {
+  it('preloads Spark and records a terminal failure when auto WebGPU has already failed', async () => {
     preloadSparkModuleMock.mockRejectedValue(new Error('spark unavailable'));
     const facade = createFacade({
       splatBackendAvailability: {
@@ -483,9 +484,12 @@ describe('SplatLayer', () => {
       render(<SplatLayer />);
 
       expect(preloadSparkModuleMock).toHaveBeenCalledTimes(1);
+      // Terminal failure, not "still not loaded": the availability flag alone
+      // cannot end the pending window.
       await waitFor(() => {
-        expect(facade.actions.setSparkBackendAvailable).toHaveBeenCalledWith(false);
+        expect(facade.actions.setSparkPreloadFailed).toHaveBeenCalled();
       });
+      expect(facade.actions.setSparkBackendAvailable).not.toHaveBeenCalled();
       expect(warn).toHaveBeenCalledWith(expect.stringContaining('spark unavailable'));
     } finally {
       warn.mockRestore();
@@ -522,7 +526,7 @@ describe('SplatLayer', () => {
       render(<SplatLayer />);
 
       await waitFor(() => {
-        expect(facade.actions.setSparkBackendAvailable).toHaveBeenCalledWith(false);
+        expect(facade.actions.setSparkPreloadFailed).toHaveBeenCalled();
       });
       expect(facade.actions.setUrlLoading).toHaveBeenCalledWith(false);
       expect(facade.actions.addNotification).toHaveBeenCalledWith(

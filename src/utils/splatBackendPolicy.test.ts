@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   FIREFOX_LINUX_WEBGPU_UNSUPPORTED_REASON,
+  SPARK_FALLBACK_REASON_PREFIX,
   WEBGPU_INSECURE_CONTEXT_REASON,
   getBrowserWebGpuCompatibilityBlockReason,
   isSparkSplatRuntimePreloadPending,
@@ -95,6 +96,32 @@ describe('splat backend policy', () => {
     expect(isSparkSplatRuntimePreloadPending('auto', { webGpu: 'unavailable', spark: false })).toBe(false);
   });
 
+  it('stops reporting the Spark preload as pending once the download has failed', () => {
+    // A failed download (offline, blocked CDN, ad-blocker) never sets
+    // availability.spark, so without a terminal failure flag "pending" stays
+    // true forever: the sticky preparing note can never be removed and the
+    // honest no-renderer warning can never fire.
+    expect(isSparkSplatRuntimePreloadPending('auto', {
+      webGpu: 'unsupported',
+      spark: false,
+      sparkPreloadFailed: true,
+    })).toBe(false);
+    expect(isSparkSplatRuntimePreloadPending('spark', {
+      webGpu: 'ready',
+      spark: false,
+      sparkPreloadFailed: true,
+    })).toBe(false);
+  });
+
+  it('builds Spark fallback reasons from the prefix the notice layer strips', () => {
+    // Producer and consumer share one constant: a reword on either side used
+    // to break the strip and the notice keys with no test noticing.
+    expect(resolveSplatBackend('auto', sparkReady).reason)
+      .toBe(`${SPARK_FALLBACK_REASON_PREFIX}WebGPU is unsupported`);
+    expect(resolveSplatBackend('auto', { webGpu: 'failed', spark: true }).reason)
+      .toBe(`${SPARK_FALLBACK_REASON_PREFIX}WebGPU splat renderer failed to initialize`);
+  });
+
   it('names the insecure context when WebGPU is hidden by plain HTTP', () => {
     // navigator.gpu is defined only in secure contexts, so on plain HTTP a
     // fully capable browser reports no gpu at all — "use a WebGPU-capable
@@ -118,6 +145,40 @@ describe('splat backend policy', () => {
       { platform: 'Win32', userAgent: 'Chrome' },
       true
     )).toBeNull();
+  });
+
+  it('treats a missing window.isSecureContext as secure', () => {
+    // jsdom and some embedded webviews never define the property. Reading
+    // `undefined` as "plain HTTP" mis-diagnoses an HTTPS page — and seeds the
+    // wrong reason into every store-backed test in this repo.
+    const original = Object.getOwnPropertyDescriptor(window, 'isSecureContext');
+    Object.defineProperty(window, 'isSecureContext', { value: undefined, configurable: true });
+
+    try {
+      expect(getBrowserWebGpuCompatibilityBlockReason({
+        platform: 'Win32',
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0.0.0',
+      })).toBeNull();
+    } finally {
+      if (original) {
+        Object.defineProperty(window, 'isSecureContext', original);
+      } else {
+        Reflect.deleteProperty(window, 'isSecureContext');
+      }
+    }
+  });
+
+  it('prefers a block reason HTTPS cannot fix over the insecure-context advice', () => {
+    // Blocklisted Firefox on Linux over plain HTTP: "reload over HTTPS" is the
+    // wild goose chase the insecure branch exists to prevent, so the reason
+    // that proves HTTPS will not help has to win.
+    expect(getBrowserWebGpuCompatibilityBlockReason(
+      {
+        platform: 'Linux x86_64',
+        userAgent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0',
+      },
+      false
+    )).toBe(FIREFOX_LINUX_WEBGPU_UNSUPPORTED_REASON);
   });
 
   it('stays pending rather than resolving Spark while auto WebGPU is still preparing', () => {

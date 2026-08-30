@@ -43,6 +43,7 @@ interface SceneContentDataFacade {
 
 interface SceneContentActionsFacade {
   setSparkBackendAvailable: SplatBackendState['setSparkBackendAvailable'];
+  setSparkPreloadFailed: SplatBackendState['setSparkPreloadFailed'];
 }
 
 interface SceneContainerDataFacade {
@@ -56,6 +57,8 @@ interface SceneContainerDataFacade {
   splatBackendResolution: SplatBackendResolution;
   splatsVisible: boolean;
   pointsLayerVisible: boolean;
+  urlLoading: boolean;
+  urlProgress: UrlLoadProgress | null;
 }
 
 interface SceneContainerActionsFacade {
@@ -98,6 +101,7 @@ export function useSceneContentStoreFacade(): SceneContentStoreFacade {
   const splatBackendResolution = useSplatBackendStore((s) => s.resolution);
   const urlProgress = useReconstructionStore((s) => s.urlProgress);
   const setSparkBackendAvailable = useSplatBackendStore((s) => s.setSparkBackendAvailable);
+  const setSparkPreloadFailed = useSplatBackendStore((s) => s.setSparkPreloadFailed);
   const points = usePointsNode();
 
   return {
@@ -121,6 +125,7 @@ export function useSceneContentStoreFacade(): SceneContentStoreFacade {
     },
     actions: {
       setSparkBackendAvailable,
+      setSparkPreloadFailed,
     },
   };
 }
@@ -143,6 +148,10 @@ export function useSceneContainerStoreFacade(): SceneContainerStoreFacade {
   const setWebGpuMetricState = useSplatBackendStore((s) => s.setWebGpuMetricState);
   const setUrlLoading = useReconstructionStore((s) => s.setUrlLoading);
   const setUrlProgress = useReconstructionStore((s) => s.setUrlProgress);
+  // Reactive copies (the getter above is for effects only): the notice layer
+  // has to know whether the DropZone progress overlay is on screen right now.
+  const urlLoading = useReconstructionStore((s) => s.urlLoading);
+  const urlProgress = useReconstructionStore((s) => s.urlProgress);
   const points = usePointsNode();
   const pointsLayerVisible = !shouldHideSceneAutoHideElement(
     isIdle,
@@ -162,6 +171,8 @@ export function useSceneContainerStoreFacade(): SceneContainerStoreFacade {
       splatBackendResolution,
       splatsVisible: points.splatsVisible,
       pointsLayerVisible,
+      urlLoading,
+      urlProgress,
     },
     actions: {
       addNotification,

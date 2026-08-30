@@ -11,6 +11,14 @@ export interface SplatBackendAvailability {
   webGpu: WebGpuSplatBackendState;
   webGpuFailureReason?: string | null;
   spark: boolean;
+  /**
+   * Terminal state for the Spark module download. `spark: false` alone cannot
+   * tell "not loaded yet" from "load failed", so a failed download (offline,
+   * blocked CDN, ad-blocker) would otherwise leave the preload pending
+   * forever — a sticky preparing note that never clears and a no-renderer
+   * warning that never fires. Set only by the preload failure paths.
+   */
+  sparkPreloadFailed?: boolean;
 }
 
 export interface SplatMetricAvailability {
@@ -58,6 +66,7 @@ export const DEFAULT_SPLAT_BACKEND_AVAILABILITY: SplatBackendAvailability = {
   webGpu: 'unavailable',
   webGpuFailureReason: null,
   spark: false,
+  sparkPreloadFailed: false,
 };
 
 export const DEFAULT_SPLAT_METRIC_AVAILABILITY: SplatMetricAvailability = {
@@ -74,6 +83,13 @@ export const WEBGPU_INSECURE_CONTEXT_REASON =
 // Exported because the notice policy keys behavior off this exact string: an
 // unshared literal let the two sides drift apart without any test noticing.
 export const PREPARING_WEBGPU_SPLAT_RENDERER_REASON = 'Preparing WebGPU splat renderer';
+
+// Both sides of the Spark fallback message share these: the reasons below
+// build them, and the notice policy strips/matches them. Unshared literals let
+// a producer reword silently break the strip and the notice keys at once.
+export const SPARK_FALLBACK_REASON_PREFIX = 'Spark fallback selected because ';
+
+export const WEBGPU_SPLAT_RENDERER_FAILED_REASON = 'WebGPU splat renderer failed to initialize';
 
 export interface BrowserWebGpuCompatibilityNavigator {
   gpu?: unknown;
@@ -105,18 +121,13 @@ export function getInitialSplatBackendPreference(): SplatBackendPreference {
 
 export function getBrowserWebGpuCompatibilityBlockReason(
   navigatorLike: BrowserWebGpuCompatibilityNavigator | null | undefined = getCurrentBrowserNavigator(),
-  secureContext: boolean = typeof window === 'undefined' ? true : window.isSecureContext
+  // Only an explicit `false` means insecure. jsdom and some embedded webviews
+  // never define window.isSecureContext, and reading that absence as "loaded
+  // over plain HTTP" hands an HTTPS page the wrong diagnosis.
+  secureContext: boolean = typeof window === 'undefined' ? true : window.isSecureContext !== false
 ): string | null {
   if (!navigatorLike) {
     return null;
-  }
-
-  // navigator.gpu is defined only in secure contexts. On plain HTTP a fully
-  // WebGPU-capable browser reports no gpu at all, so without this branch the
-  // generic "unsupported" advice ("use a WebGPU-capable browser") is wrong —
-  // the fix for the user is the URL scheme, not the browser.
-  if (!navigatorLike.gpu && !secureContext) {
-    return WEBGPU_INSECURE_CONTEXT_REASON;
   }
 
   const userAgent = navigatorLike.userAgent ?? '';
@@ -126,8 +137,19 @@ export function getBrowserWebGpuCompatibilityBlockReason(
     userAgent,
   ].filter(Boolean).join(' ');
 
+  // Blocklist first: these browsers cannot run splat WebGPU over HTTPS either,
+  // so telling such a user to reload over HTTPS is the exact wild goose chase
+  // the insecure-context branch below exists to prevent.
   if (isFirefox(userAgent) && isDesktopLinux(platform)) {
     return FIREFOX_LINUX_WEBGPU_UNSUPPORTED_REASON;
+  }
+
+  // navigator.gpu is defined only in secure contexts. On plain HTTP a fully
+  // WebGPU-capable browser reports no gpu at all, so without this branch the
+  // generic "unsupported" advice ("use a WebGPU-capable browser") is wrong —
+  // the fix for the user is the URL scheme, not the browser.
+  if (!navigatorLike.gpu && !secureContext) {
+    return WEBGPU_INSECURE_CONTEXT_REASON;
   }
 
   return null;
@@ -274,16 +296,22 @@ export function shouldPreloadSparkSplatRuntime(
 
 /**
  * True while the Spark download is the expected next step: the gate above
- * fired and the module has not landed yet. The notice policy treats an
- * "unavailable" resolution in this window as a loading state rather than an
+ * fired and the module has neither landed nor failed. The notice policy treats
+ * an "unavailable" resolution in this window as a loading state rather than an
  * outcome, so the derived predicate lives here, beside the gate whose
  * semantics it mirrors, instead of being re-composed at call sites.
+ *
+ * The failure flag is load-bearing: without it a download that never arrives
+ * keeps "pending" true forever, so the loading note stays up and the honest
+ * warning stays suppressed for the rest of the session.
  */
 export function isSparkSplatRuntimePreloadPending(
   requested: SplatBackendPreference,
-  availability: Pick<SplatBackendAvailability, 'webGpu' | 'spark'>
+  availability: Pick<SplatBackendAvailability, 'webGpu' | 'spark' | 'sparkPreloadFailed'>
 ): boolean {
-  return shouldPreloadSparkSplatRuntime(requested, availability) && !availability.spark;
+  return shouldPreloadSparkSplatRuntime(requested, availability)
+    && !availability.spark
+    && !availability.sparkPreloadFailed;
 }
 
 export function resolveSplatMetricCapability(
@@ -362,12 +390,12 @@ function getAutoSparkFallbackReason(availability: SplatBackendAvailability): str
   switch (availability.webGpu) {
     case 'unsupported':
       return availability.webGpuFailureReason
-        ? `Spark fallback selected because ${availability.webGpuFailureReason}`
-        : 'Spark fallback selected because WebGPU is unsupported';
+        ? `${SPARK_FALLBACK_REASON_PREFIX}${availability.webGpuFailureReason}`
+        : `${SPARK_FALLBACK_REASON_PREFIX}WebGPU is unsupported`;
     case 'failed':
       return availability.webGpuFailureReason
-        ? `Spark fallback selected because WebGPU splat renderer failed to initialize: ${availability.webGpuFailureReason}`
-        : 'Spark fallback selected because WebGPU splat renderer failed to initialize';
+        ? `${SPARK_FALLBACK_REASON_PREFIX}${WEBGPU_SPLAT_RENDERER_FAILED_REASON}: ${availability.webGpuFailureReason}`
+        : `${SPARK_FALLBACK_REASON_PREFIX}${WEBGPU_SPLAT_RENDERER_FAILED_REASON}`;
     case 'unavailable':
       return availability.webGpuFailureReason
         ? `Spark compatibility renderer active because ${availability.webGpuFailureReason}`
@@ -383,8 +411,8 @@ function getWebGpuUnavailableReason(availability: SplatBackendAvailability): str
       return availability.webGpuFailureReason ?? 'WebGPU is unsupported in this browser';
     case 'failed':
       return availability.webGpuFailureReason
-        ? `WebGPU splat renderer failed to initialize: ${availability.webGpuFailureReason}`
-        : 'WebGPU splat renderer failed to initialize';
+        ? `${WEBGPU_SPLAT_RENDERER_FAILED_REASON}: ${availability.webGpuFailureReason}`
+        : WEBGPU_SPLAT_RENDERER_FAILED_REASON;
     case 'unavailable':
       return availability.webGpuFailureReason ?? 'WebGPU splat renderer is not available';
     case 'ready':
