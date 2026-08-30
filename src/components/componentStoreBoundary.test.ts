@@ -4,13 +4,15 @@ import { describe, expect, it } from 'vitest';
 
 const SRC_ROOT = path.join(process.cwd(), 'src');
 const COMPONENTS_ROOT = path.join(SRC_ROOT, 'components');
-// One walk of src/, shared by all three tests below. The suite runs alongside
-// the other whole-tree scans (classContract, sparkImportBoundary), and three
-// separate uncached walks of the same tree were what pushed this file past
-// its budget on a loaded machine — the timeout kept widening (15s → 45s) to
-// absorb work the tests were repeating, not work they needed. With the walk
-// cached, 15s is comfortable: a real regression here would be orders of
-// magnitude, not 2x.
+// One walk of src/ and at most one read per file, shared by all three tests
+// below. The suite runs alongside the other whole-tree scans (classContract,
+// sparkImportBoundary), and repeating that I/O per test was what pushed this
+// file past its budget on a loaded machine — the timeout kept widening
+// (15s → 45s) to absorb work the tests were repeating, not work they needed.
+// Cached, the whole file costs one walk, 633 unique reads (down from 988) and
+// 55 stats: ~80ms standalone, and the residual under full-suite contention is
+// disk latency on those reads, not repeated work. 15s is a flake guard against
+// that latency, not a performance assertion.
 const STORE_BOUNDARY_SCAN_TIMEOUT_MS = 15_000;
 const STORE_HOOK_CALL_PATTERN = /\buse[A-Z][A-Za-z0-9]*Store\s*\(/g;
 const DOCUMENTED_STORE_BOUNDARY_CALLERS = new Set([
@@ -76,6 +78,19 @@ const componentFilesPromise = sourceFilesPromise.then((files) =>
   files.filter((file) => file.startsWith(COMPONENTS_ROOT + path.sep))
 );
 
+// Tests 1 and 2 scan overlapping file sets, so memoise the read: every file is
+// read from disk at most once no matter how many tests inspect it.
+const sourceTextCache = new Map<string, Promise<string>>();
+
+function readSourceFile(filePath: string): Promise<string> {
+  let pending = sourceTextCache.get(filePath);
+  if (!pending) {
+    pending = readFile(filePath, 'utf8');
+    sourceTextCache.set(filePath, pending);
+  }
+  return pending;
+}
+
 describe('component store boundaries', () => {
   it('keeps production component store hooks behind facade modules', async () => {
     const files = await componentFilesPromise;
@@ -85,7 +100,7 @@ describe('component store boundaries', () => {
       const relativePath = path.relative(process.cwd(), file).replace(/\\/g, '/');
       if (isStoreFacadeFile(relativePath)) continue;
 
-      const source = await readFile(file, 'utf8');
+      const source = await readSourceFile(file);
       const matches = Array.from(source.matchAll(STORE_HOOK_CALL_PATTERN))
         .map((match) => match[0].replace(/\s*\($/, ''))
         .filter((hookName) => hookName !== 'useSyncExternalStore');
@@ -112,7 +127,7 @@ describe('component store boundaries', () => {
         continue;
       }
 
-      const source = await readFile(file, 'utf8');
+      const source = await readSourceFile(file);
       const matches = Array.from(source.matchAll(STORE_HOOK_CALL_PATTERN))
         .map((match) => match[0].replace(/\s*\($/, ''))
         .filter((hookName) => hookName !== 'useSyncExternalStore');
