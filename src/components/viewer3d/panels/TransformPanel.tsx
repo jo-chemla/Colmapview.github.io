@@ -24,24 +24,24 @@ const styles = controlPanelStyles;
 export interface TransformPanelProps {
   activePanel: PanelType;
   setActivePanel: (panel: PanelType) => void;
-  onOpenFloorModal: () => void;
 }
 
 /**
- * Toolbar entry point for the gizmo and the Sim3D transform itself. This panel
- * owns the gizmo — the button's own click, the `T` hotkey, and the toggle row —
- * while the point-picking alignment tools live in the Align panel and the
- * context menu, so no control has two homes.
+ * Toolbar entry point for EDITING the Sim3D transform by hand and committing
+ * it: the gizmo — the button's own click, the `T` hotkey, and the toggle row —
+ * plus the scale/rotate/translate sliders. Operations that COMPUTE a transform
+ * from the scene (Center at Origin, Floor Detection, the point-picking tools)
+ * live in the Align panel next door, so no control has two homes. Reset/Apply
+ * are the exception on purpose: they act on the one pending transform in
+ * `transformStore`, which both panels write, so both offer the commit.
  */
 export const TransformPanel = memo(function TransformPanel({
   activePanel,
   setActivePanel,
-  onOpenFloorModal,
 }: TransformPanelProps) {
   const {
     data: {
       reconstruction,
-      wasmReconstruction,
       droppedFiles,
     },
     transform: {
@@ -54,17 +54,14 @@ export const TransformPanel = memo(function TransformPanel({
       toggleGizmo,
     },
     actions: {
-      applyTransformPreset,
       applyTransformToData,
     },
   } = useTransformPanelStoreFacade();
   const { processFiles } = useFileDropzone();
 
-  const hasPoints = wasmReconstruction?.hasPoints() ?? false;
   const panelState = getTransformPanelState({
     transform,
     showGizmo,
-    hasPoints,
     hasDroppedFiles: Boolean(droppedFiles),
   });
 
@@ -156,26 +153,11 @@ export const TransformPanel = memo(function TransformPanel({
           formatValue={formatTransformTranslationValue}
         />
 
-        <div className={styles.presetGroup}>
-          <button
-            onClick={() => applyTransformPreset('centerAtOrigin')}
-            className={styles.presetButton}
-            data-tooltip="Move scene center to (0,0,0)"
-            data-tooltip-pos="bottom"
-          >
-            Center at Origin
-          </button>
-          <button
-            onClick={onOpenFloorModal}
-            disabled={!panelState.canRunFloorDetection}
-            className={panelState.canRunFloorDetection ? styles.presetButton : styles.actionButtonDisabled}
-            data-tooltip="RANSAC floor plane detection"
-            data-tooltip-pos="bottom"
-          >
-            Floor Detection
-          </button>
-        </div>
-
+        {/*
+          Reset/Apply act on the same pending transform the Align panel's ops
+          write, so that panel offers them too. Reload is this panel's alone: it
+          re-reads the dropped files rather than touching the transform.
+        */}
         <div className={styles.actionGroup}>
           <button
             onClick={resetTransform}

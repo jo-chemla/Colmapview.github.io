@@ -5,6 +5,7 @@ import {
   formatTransformDegreesValue,
   formatTransformScaleValue,
   formatTransformTranslationValue,
+  getTransformCommitState,
   getTransformPanelState,
   radiansToDegrees,
 } from './transformPanelViewModel';
@@ -38,14 +39,12 @@ describe('transform panel view-model helpers', () => {
     expect(getTransformPanelState({
       transform: identityTransform,
       showGizmo: false,
-      hasPoints: false,
       hasDroppedFiles: false,
     })).toEqual({
       hasChanges: false,
       canApplyTransform: false,
       canResetTransform: false,
       canReloadDroppedFiles: false,
-      canRunFloorDetection: false,
       tooltip: 'Transform (T): Off',
     });
   });
@@ -54,15 +53,41 @@ describe('transform panel view-model helpers', () => {
     expect(getTransformPanelState({
       transform: { ...identityTransform, translationX: 0.5 },
       showGizmo: true,
-      hasPoints: true,
       hasDroppedFiles: true,
     })).toEqual({
       hasChanges: true,
       canApplyTransform: true,
       canResetTransform: true,
       canReloadDroppedFiles: true,
-      canRunFloorDetection: true,
       tooltip: 'Transform (T): On (dbl-click to apply)',
     });
+  });
+});
+
+describe('getTransformCommitState', () => {
+  it('gates Reset and Apply on the transform differing from identity', () => {
+    expect(getTransformCommitState(identityTransform)).toEqual({
+      hasChanges: false,
+      canApplyTransform: false,
+      canResetTransform: false,
+    });
+    expect(getTransformCommitState({ ...identityTransform, scale: 2 })).toEqual({
+      hasChanges: true,
+      canApplyTransform: true,
+      canResetTransform: true,
+    });
+  });
+
+  it('is the same state the transform panel renders, so both panels agree', () => {
+    // Reset/Apply now appear in the Transform panel AND the Align panel over the
+    // one transformStore value. If these ever disagree, one panel offers Apply
+    // while the other refuses it for the same scene.
+    const transform = { ...identityTransform, rotationZ: 0.25 };
+    const commit = getTransformCommitState(transform);
+    expect(getTransformPanelState({
+      transform,
+      showGizmo: false,
+      hasDroppedFiles: false,
+    })).toMatchObject(commit);
   });
 });

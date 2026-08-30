@@ -4,15 +4,21 @@ import {
   usePointCloudStore,
   usePointPickingStore,
   useReconstructionStore,
+  useTransformStore,
 } from '../../../store';
-import { buildReconstruction } from '../../../test/builders';
+import {
+  buildReconstruction,
+  buildWasmReconstructionWrapper,
+} from '../../../test/builders';
+import { createIdentityEuler } from '../../../utils/sim3dTransforms';
 import { AlignPanel, type AlignPanelProps } from './AlignPanel';
-import { ALIGN_TOOLS } from './alignPanelViewModel';
+import { ALIGN_GOALS, ALIGN_TOOLS } from './alignPanelViewModel';
 
 function renderPanel(overrides: Partial<AlignPanelProps> = {}) {
   const props: AlignPanelProps = {
     activePanel: 'align',
     setActivePanel: vi.fn(),
+    onOpenFloorModal: vi.fn(),
     ...overrides,
   };
 
@@ -24,6 +30,7 @@ describe('AlignPanel', () => {
     useReconstructionStore.setState(useReconstructionStore.getInitialState(), true);
     usePointPickingStore.setState(usePointPickingStore.getInitialState(), true);
     usePointCloudStore.setState(usePointCloudStore.getInitialState(), true);
+    useTransformStore.setState(useTransformStore.getInitialState(), true);
     useReconstructionStore.setState({ reconstruction: buildReconstruction() });
   });
 
@@ -84,6 +91,73 @@ describe('AlignPanel', () => {
     }
     expect(screen.queryByText('Gizmo (T)')).toBeNull();
     expect(screen.queryByRole('switch')).toBeNull();
+  });
+
+  it('groups each automatic operation with the pick tool that reaches the same goal', () => {
+    renderPanel();
+
+    for (const goal of ALIGN_GOALS) {
+      const caption = screen.getByText(goal.goal);
+      const group = caption.parentElement;
+      const labels = [...(group?.querySelectorAll('button') ?? [])].map((b) => b.textContent);
+
+      // The automatic half first, then the by-picking half, under one caption.
+      expect(labels).toEqual(
+        goal.automatic ? [goal.automatic.label, goal.pick.label] : [goal.pick.label]
+      );
+    }
+  });
+
+  it('centers the scene at the origin without picking anything', () => {
+    renderPanel();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Center at Origin' }));
+
+    // The preset writes the same pending transform the pick tools do.
+    expect(useTransformStore.getState().transform).not.toEqual(createIdentityEuler());
+  });
+
+  it('opens the floor modal only once the reconstruction has points', () => {
+    const onOpenFloorModal = vi.fn();
+    renderPanel({ onOpenFloorModal });
+
+    expect(screen.getByRole('button', { name: 'Floor Detection' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Floor Detection' }));
+    expect(onOpenFloorModal).not.toHaveBeenCalled();
+
+    cleanup();
+    useReconstructionStore.setState({
+      wasmReconstruction: buildWasmReconstructionWrapper({
+        positions: new Float32Array([0, 0, 0]),
+      }),
+    });
+    renderPanel({ onOpenFloorModal });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Floor Detection' }));
+    expect(onOpenFloorModal).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers the same Reset/Apply the transform panel does, on the shared transform', () => {
+    useTransformStore.setState({ transform: { ...createIdentityEuler(), translationX: 2 } });
+    renderPanel();
+
+    expect(screen.getByRole('button', { name: 'Apply' })).toBeEnabled();
+    expect(
+      screen.getByText('Transform will be applied to reconstruction data when you click "Apply".')
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+
+    expect(useTransformStore.getState().transform).toEqual(createIdentityEuler());
+  });
+
+  it('disables Reset/Apply while the transform is untouched, and offers no Reload', () => {
+    renderPanel();
+
+    expect(screen.getByRole('button', { name: 'Reset' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Apply' })).toBeDisabled();
+    // Reload re-reads the dropped files; it is not an alignment and stays in Transform.
+    expect(screen.queryByRole('button', { name: 'Reload' })).toBeNull();
   });
 
   it('stays disabled with no reconstruction loaded', () => {

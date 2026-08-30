@@ -8,7 +8,6 @@ import {
 import {
   buildFile,
   buildReconstruction,
-  buildWasmReconstructionWrapper,
 } from '../../../test/builders';
 import { createIdentityEuler } from '../../../utils/sim3dTransforms';
 import { useTransformPanelStoreFacade } from './useTransformPanelStoreFacade';
@@ -22,9 +21,6 @@ describe('useTransformPanelStoreFacade', () => {
 
   it('collects transform-panel dependencies from owning stores', () => {
     const reconstruction = buildReconstruction();
-    const wasmReconstruction = buildWasmReconstructionWrapper({
-      positions: new Float32Array([0, 0, 0]),
-    });
     const droppedFiles = new Map([['sparse/0/images.bin', buildFile('images.bin')]]);
     const transform = {
       ...createIdentityEuler(),
@@ -33,7 +29,6 @@ describe('useTransformPanelStoreFacade', () => {
     };
     useReconstructionStore.setState({
       reconstruction,
-      wasmReconstruction,
       droppedFiles,
     });
     useTransformStore.setState({ transform });
@@ -41,15 +36,22 @@ describe('useTransformPanelStoreFacade', () => {
 
     const { result } = renderHook(() => useTransformPanelStoreFacade());
 
-    expect(result.current.data).toMatchObject({
+    expect(result.current.data).toEqual({
       reconstruction,
-      wasmReconstruction,
       droppedFiles,
     });
     expect(result.current.transform.transform).toBe(transform);
     expect(result.current.ui.showGizmo).toBe(true);
-    expect(typeof result.current.actions.applyTransformPreset).toBe('function');
     expect(typeof result.current.actions.applyTransformToData).toBe('function');
+  });
+
+  it('drops the surface the moved preset buttons needed', () => {
+    const { result } = renderHook(() => useTransformPanelStoreFacade());
+
+    // Center at Origin and Floor Detection now live in the Align panel, and
+    // they took `applyTransformPreset` and the `hasPoints()` gate with them.
+    expect(result.current.actions).not.toHaveProperty('applyTransformPreset');
+    expect(result.current.data).not.toHaveProperty('wasmReconstruction');
   });
 
   it('leaves point picking to the align panel and subscribes to neither picking store', () => {

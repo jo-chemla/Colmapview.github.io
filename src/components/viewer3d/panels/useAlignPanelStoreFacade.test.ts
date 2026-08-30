@@ -4,8 +4,13 @@ import {
   usePointCloudStore,
   usePointPickingStore,
   useReconstructionStore,
+  useTransformStore,
 } from '../../../store';
-import { buildReconstruction } from '../../../test/builders';
+import {
+  buildReconstruction,
+  buildWasmReconstructionWrapper,
+} from '../../../test/builders';
+import { createIdentityEuler } from '../../../utils/sim3dTransforms';
 import { useAlignPanelStoreFacade } from './useAlignPanelStoreFacade';
 
 describe('useAlignPanelStoreFacade', () => {
@@ -13,22 +18,32 @@ describe('useAlignPanelStoreFacade', () => {
     useReconstructionStore.setState(useReconstructionStore.getInitialState(), true);
     usePointPickingStore.setState(usePointPickingStore.getInitialState(), true);
     usePointCloudStore.setState(usePointCloudStore.getInitialState(), true);
+    useTransformStore.setState(useTransformStore.getInitialState(), true);
   });
 
   it('collects align-panel dependencies from owning stores', () => {
     const reconstruction = buildReconstruction();
-    useReconstructionStore.setState({ reconstruction });
+    const wasmReconstruction = buildWasmReconstructionWrapper({
+      positions: new Float32Array([0, 0, 0]),
+    });
+    const transform = { ...createIdentityEuler(), scale: 2 };
+    useReconstructionStore.setState({ reconstruction, wasmReconstruction });
     usePointPickingStore.setState({ pickingMode: 'origin-1pt' });
     usePointCloudStore.setState({ showPointCloud: false, colorMode: 'splats' });
+    useTransformStore.setState({ transform });
 
     const { result } = renderHook(() => useAlignPanelStoreFacade());
 
     expect(result.current.data.reconstruction).toBe(reconstruction);
+    expect(result.current.data.wasmReconstruction).toBe(wasmReconstruction);
     expect(result.current.pointPicking.pickingMode).toBe('origin-1pt');
+    expect(result.current.transform.transform).toBe(transform);
     expect(result.current.pointCloud.getPointCloudSnapshot()).toEqual({
       showPointCloud: false,
       colorMode: 'splats',
     });
+    expect(typeof result.current.actions.applyTransformPreset).toBe('function');
+    expect(typeof result.current.actions.applyTransformToData).toBe('function');
   });
 
   it('reads point-cloud state on demand instead of subscribing the panel to it', () => {
@@ -66,7 +81,27 @@ describe('useAlignPanelStoreFacade', () => {
   it('leaves the gizmo to the transform panel and exposes no UI slice', () => {
     const { result } = renderHook(() => useAlignPanelStoreFacade());
 
-    expect(Object.keys(result.current).sort()).toEqual(['data', 'pointCloud', 'pointPicking']);
+    // `transform` and `actions` are here because Align commits the same pending
+    // transform the Transform panel does; `ui` is not, because the gizmo (and
+    // its `T` hotkey) still has exactly one home.
+    expect(Object.keys(result.current).sort()).toEqual([
+      'actions',
+      'data',
+      'pointCloud',
+      'pointPicking',
+      'transform',
+    ]);
+  });
+
+  it('routes Reset back to the shared transform store', () => {
+    useTransformStore.setState({ transform: { ...createIdentityEuler(), rotationZ: 1 } });
+    const { result } = renderHook(() => useAlignPanelStoreFacade());
+
+    act(() => {
+      result.current.transform.resetTransform();
+    });
+
+    expect(useTransformStore.getState().transform).toEqual(createIdentityEuler());
   });
 
   it('routes point-picking and point-cloud actions back to owning stores', () => {

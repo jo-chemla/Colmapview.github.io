@@ -1,6 +1,6 @@
 /**
  * Modal for floor detection tool with RANSAC parameters.
- * Triggered from TransformPanel button.
+ * Triggered from the AlignPanel button.
  */
 
 import { useCallback, memo, useMemo } from 'react';

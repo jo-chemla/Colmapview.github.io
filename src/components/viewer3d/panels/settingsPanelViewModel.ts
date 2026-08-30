@@ -55,7 +55,7 @@ export interface SettingsToolAvailability {
   hasReconstruction: boolean;
   /** Export panel gate: 'Convert Camera Model' only renders when cameras exist. */
   hasCameras: boolean;
-  /** Transform panel gate for 'Floor Detection' (wasmReconstruction.hasPoints()). */
+  /** Align panel gate for 'Floor Detection' (wasmReconstruction.hasPoints()). */
   hasPoints: boolean;
   idleHideTimeout: number;
 }
@@ -71,7 +71,7 @@ export const SETTINGS_TOOL_LABELS: Record<SettingsToolId, string> = {
 
 /**
  * The Settings panel's index of tool windows. These windows already have entry
- * points — Export owns deletion + camera conversion, Transform owns floor
+ * points — Export owns deletion + camera conversion, Align owns floor
  * detection — but each is buried behind an unrelated panel, so Settings lists
  * them in one place. Deliberate duplication: the original buttons stay exactly
  * where they are and fire the same store actions.

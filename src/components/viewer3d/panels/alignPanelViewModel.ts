@@ -1,5 +1,10 @@
 import type { ColorMode, PointPickingMode } from '../../../store';
+import type { Sim3dEuler } from '../../../types/sim3d';
 import { getNextPickingMode } from '../contextMenu/globalContextMenuActionPolicy';
+import {
+  getTransformCommitState,
+  type TransformCommitState,
+} from './transformPanelViewModel';
 
 type ActiveAlignPickingMode = Exclude<PointPickingMode, 'off'>;
 
@@ -9,39 +14,103 @@ export interface AlignToolDescriptor {
   tooltip: string;
 }
 
+/** The automatic operations the panel can run. Each one needs its own handler. */
+export type AlignAutomaticAction = 'centerAtOrigin' | 'floorDetection';
+
+export interface AlignAutomaticDescriptor {
+  action: AlignAutomaticAction;
+  label: string;
+  tooltip: string;
+}
+
+export interface AlignGoalDescriptor {
+  /** What the user is trying to achieve — the group's caption. */
+  goal: string;
+  /** The compute-it-for-me half. `null` where no automatic method exists yet. */
+  automatic: AlignAutomaticDescriptor | null;
+  /** The pick-points half. Every goal has one. */
+  pick: AlignToolDescriptor;
+}
+
 /**
- * The point-picking alignment tools, in the order the context menu lists them.
+ * The panel's structure: one group per GOAL, each listing the ways to reach it.
+ * Both halves compute the same shared Sim3D transform, so grouping by goal is
+ * what makes "Center at Origin" and "1-Point Origin" read as two methods rather
+ * than two unrelated buttons — the naming collision that had them sitting in
+ * different panels.
+ *
+ * Scale has no automatic half on purpose: normalizing to a unit bounding box is
+ * not a scale anyone asked for, so only the measured 2-point method is offered.
+ *
  * Labels and tooltips intentionally match the context-menu entries: the menu is
  * the only other entry point into these same store actions, not a second set of
  * tools.
  */
-export const ALIGN_TOOLS: readonly AlignToolDescriptor[] = [
+export const ALIGN_GOALS: readonly AlignGoalDescriptor[] = [
   {
-    mode: 'origin-1pt',
-    label: '1-Point Origin',
-    tooltip: '{LMB} Click 1 point to set as origin (0,0,0)',
+    goal: 'Set the origin',
+    automatic: {
+      action: 'centerAtOrigin',
+      label: 'Center at Origin',
+      tooltip: 'Move scene center to (0,0,0)',
+    },
+    pick: {
+      mode: 'origin-1pt',
+      label: '1-Point Origin',
+      tooltip: '{LMB} Click 1 point to set as origin (0,0,0)',
+    },
   },
   {
-    mode: 'distance-2pt',
-    label: '2-Point Scale',
-    tooltip: '{LMB} Click 2 points, set target distance',
+    goal: 'Set the scale',
+    automatic: null,
+    pick: {
+      mode: 'distance-2pt',
+      label: '2-Point Scale',
+      tooltip: '{LMB} Click 2 points, set target distance',
+    },
   },
   {
-    mode: 'normal-3pt',
-    label: '3-Point Align',
-    tooltip: '{LMB} Click 3 points clockwise to align plane with Y-up',
+    goal: 'Level the scene',
+    automatic: {
+      action: 'floorDetection',
+      label: 'Floor Detection',
+      tooltip: 'RANSAC floor plane detection',
+    },
+    pick: {
+      mode: 'normal-3pt',
+      label: '3-Point Align',
+      tooltip: '{LMB} Click 3 points clockwise to align plane with Y-up',
+    },
   },
 ];
 
-export const ALIGN_PANEL_IDLE_TOOLTIP = 'Align tools';
-export const ALIGN_PANEL_IDLE_HINT =
-  'Pick points in the viewport to set the origin, scale the scene, or level it.';
+/**
+ * The point-picking tools alone, in the order the context menu lists them.
+ * Projected from ALIGN_GOALS rather than listed again, so a tool cannot exist in
+ * one place and not the other.
+ */
+export const ALIGN_TOOLS: readonly AlignToolDescriptor[] = ALIGN_GOALS.map((goal) => goal.pick);
 
-export interface AlignPanelState {
+export const ALIGN_PANEL_IDLE_TOOLTIP = 'Align tools';
+// Names the two METHODS, not the goals: the group captions above already carry
+// the goals, and repeating them here read as an echo rather than a hint.
+export const ALIGN_PANEL_IDLE_HINT =
+  'Compute the transform automatically, or by picking points in the viewport.';
+
+export interface AlignPanelState extends TransformCommitState {
   tooltip: string;
   hint: string;
   isPicking: boolean;
   activeToolLabel: string | null;
+  canRunFloorDetection: boolean;
+}
+
+export interface AlignPanelStateInput {
+  pickingMode: PointPickingMode;
+  /** The pending Sim3D transform every operation in this panel writes. */
+  transform: Sim3dEuler;
+  /** RANSAC needs a point cloud to fit a plane to. */
+  hasPoints: boolean;
 }
 
 export interface AlignPickingButtonState {
@@ -95,27 +164,37 @@ export function getAlignToolLabel(pickingMode: PointPickingMode): string | null 
 }
 
 /**
- * Toolbar button + panel copy for the align tools. While a tool is armed the
+ * Toolbar button + panel copy for the align tools, plus the commit state its
+ * Reset/Apply pair shares with the Transform panel. While a tool is armed the
  * button doubles as its off-switch, which is the only mouse-reachable cancel:
  * the right-click menu is taken over by point picking while a mode is active.
  */
-export function getAlignPanelState(pickingMode: PointPickingMode): AlignPanelState {
+export function getAlignPanelState({
+  pickingMode,
+  transform,
+  hasPoints,
+}: AlignPanelStateInput): AlignPanelState {
   const activeToolLabel = getAlignToolLabel(pickingMode);
+  const commit = getTransformCommitState(transform);
 
   if (!activeToolLabel) {
     return {
+      ...commit,
       tooltip: ALIGN_PANEL_IDLE_TOOLTIP,
       hint: ALIGN_PANEL_IDLE_HINT,
       isPicking: false,
       activeToolLabel: null,
+      canRunFloorDetection: hasPoints,
     };
   }
 
   return {
+    ...commit,
     tooltip: `Align: ${activeToolLabel} (click to cancel)`,
     hint: `${activeToolLabel} is armed — click points in the viewport, or press Esc to cancel.`,
     isPicking: true,
     activeToolLabel,
+    canRunFloorDetection: hasPoints,
   };
 }
 

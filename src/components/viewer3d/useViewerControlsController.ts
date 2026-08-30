@@ -334,11 +334,11 @@ export function useViewerControlsController(): ViewerControlsController {
       onSaturationChange: handleSaturationChange,
       onLightnessChange: handleLightnessChange,
     },
-    transformPanel: {
+    transformPanel: panelState,
+    alignPanel: {
       ...panelState,
       onOpenFloorModal: () => modals.setShowFloorModal(true),
     },
-    alignPanel: panelState,
     pointCloudPanel: {
       ...panelState,
       showPointCloud: pointsNode.visible,

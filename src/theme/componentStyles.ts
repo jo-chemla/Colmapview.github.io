@@ -422,8 +422,16 @@ export const controlPanelStyles = {
   // Hint text (keyboard shortcuts, etc.)
   hint: 'text-ds-secondary text-sm mt-3',
   hintTitle: 'mb-1 font-medium',
-  // Preset buttons (e.g., Transform presets) - uses toggle button design
-  presetGroup: 'flex flex-col gap-2 mt-3',
+  // Preset buttons (e.g. the Align panel's goals) - uses toggle button design.
+  // The list gaps wider than the groups inside it: that difference is the only
+  // thing telling the reader which caption owns which buttons.
+  presetGroupList: 'flex flex-col gap-4 mt-3',
+  presetGroup: 'flex flex-col gap-1.5',
+  // Caption above a preset group. Same idiom as the Settings panel's section
+  // headings. Carries no margin of its own: the owning group's flex `gap` binds
+  // it to its buttons, and a margin here would lose to `.space-y-* > * + *`,
+  // which is declared later in index.css at equal specificity.
+  presetGroupLabel: 'text-ds-muted text-xs uppercase tracking-wide',
   presetButton: `${buttonStyles.base} ${buttonStyles.sizes.toggle} ${buttonStyles.variants.toggle} w-full justify-start`,
   // Action buttons (e.g., Reset, Apply) - references shared action button styles
   actionGroup: actionButtonStyles.group,

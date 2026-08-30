@@ -1,20 +1,49 @@
 import {
+  applyTransformPreset,
+  applyTransformToData,
   usePointCloudStore,
   usePointPickingStore,
   useReconstructionStore,
+  useTransformStore,
   type ColorMode,
   type PointCloudState,
   type PointPickingState,
+  type TransformState,
 } from '../../../store';
 import type { Reconstruction } from '../../../types/colmap';
+import type { WasmReconstructionWrapper } from '../../../wasm/reconstruction';
 
 interface AlignPanelDataFacade {
   reconstruction: Reconstruction | null;
+  /** Only for `hasPoints()`: RANSAC floor detection needs a cloud to fit to. */
+  wasmReconstruction: WasmReconstructionWrapper | null;
 }
 
 interface AlignPanelPointPickingFacade {
   pickingMode: PointPickingState['pickingMode'];
   setPickingMode: PointPickingState['setPickingMode'];
+}
+
+/**
+ * Subscribed, not read on demand like the point-cloud slice below: Reset and
+ * Apply are enabled by whether the transform differs from identity, so the panel
+ * has to re-render when any alignment op writes one — including the picking
+ * tools' own results, which land while this panel is open.
+ */
+interface AlignPanelTransformFacade {
+  transform: TransformState['transform'];
+  resetTransform: TransformState['resetTransform'];
+}
+
+/**
+ * The compute-a-transform actions. Align owns these because it is the panel
+ * that DERIVES a transform from the scene; `applyTransformToData` is the commit
+ * both panels share, so it appears in the transform panel's facade too — one
+ * store value, two views of it, not two states.
+ */
+interface AlignPanelActionFacade {
+  applyTransformPreset: typeof applyTransformPreset;
+  applyTransformToData: typeof applyTransformToData;
 }
 
 export interface AlignPanelPointCloudSnapshot {
@@ -45,10 +74,13 @@ export interface AlignPanelStoreFacade {
   data: AlignPanelDataFacade;
   pointPicking: AlignPanelPointPickingFacade;
   pointCloud: AlignPanelPointCloudFacade;
+  transform: AlignPanelTransformFacade;
+  actions: AlignPanelActionFacade;
 }
 
 export function useAlignPanelStoreFacade(): AlignPanelStoreFacade {
   const reconstruction = useReconstructionStore((s) => s.reconstruction);
+  const wasmReconstruction = useReconstructionStore((s) => s.wasmReconstruction);
 
   const pickingMode = usePointPickingStore((s) => s.pickingMode);
   const setPickingMode = usePointPickingStore((s) => s.setPickingMode);
@@ -56,9 +88,13 @@ export function useAlignPanelStoreFacade(): AlignPanelStoreFacade {
   const setShowPointCloud = usePointCloudStore((s) => s.setShowPointCloud);
   const setColorMode = usePointCloudStore((s) => s.setColorMode);
 
+  const transform = useTransformStore((s) => s.transform);
+  const resetTransform = useTransformStore((s) => s.resetTransform);
+
   return {
     data: {
       reconstruction,
+      wasmReconstruction,
     },
     pointPicking: {
       pickingMode,
@@ -68,6 +104,14 @@ export function useAlignPanelStoreFacade(): AlignPanelStoreFacade {
       getPointCloudSnapshot,
       setShowPointCloud,
       setColorMode,
+    },
+    transform: {
+      transform,
+      resetTransform,
+    },
+    actions: {
+      applyTransformPreset,
+      applyTransformToData,
     },
   };
 }

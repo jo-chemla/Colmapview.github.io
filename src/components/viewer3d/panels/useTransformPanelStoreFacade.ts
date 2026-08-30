@@ -1,5 +1,4 @@
 import {
-  applyTransformPreset,
   applyTransformToData,
   useReconstructionStore,
   useTransformStore,
@@ -8,11 +7,9 @@ import {
   type UIState,
 } from '../../../store';
 import type { Reconstruction } from '../../../types/colmap';
-import type { WasmReconstructionWrapper } from '../../../wasm/reconstruction';
 
 interface TransformPanelDataFacade {
   reconstruction: Reconstruction | null;
-  wasmReconstruction: WasmReconstructionWrapper | null;
   droppedFiles: Map<string, File> | null;
 }
 
@@ -28,7 +25,11 @@ interface TransformPanelUiFacade {
 }
 
 interface TransformPanelActionFacade {
-  applyTransformPreset: typeof applyTransformPreset;
+  /**
+   * The commit. `applyTransformPreset` is deliberately absent: the panel's two
+   * preset buttons moved to Align, which is where a transform gets COMPUTED —
+   * this panel only edits one by hand and commits it.
+   */
   applyTransformToData: typeof applyTransformToData;
 }
 
@@ -41,7 +42,6 @@ export interface TransformPanelStoreFacade {
 
 export function useTransformPanelStoreFacade(): TransformPanelStoreFacade {
   const reconstruction = useReconstructionStore((s) => s.reconstruction);
-  const wasmReconstruction = useReconstructionStore((s) => s.wasmReconstruction);
   const droppedFiles = useReconstructionStore((s) => s.droppedFiles);
 
   const transform = useTransformStore((s) => s.transform);
@@ -54,7 +54,6 @@ export function useTransformPanelStoreFacade(): TransformPanelStoreFacade {
   return {
     data: {
       reconstruction,
-      wasmReconstruction,
       droppedFiles,
     },
     transform: {
@@ -67,7 +66,6 @@ export function useTransformPanelStoreFacade(): TransformPanelStoreFacade {
       toggleGizmo,
     },
     actions: {
-      applyTransformPreset,
       applyTransformToData,
     },
   };
