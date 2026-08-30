@@ -1,3 +1,4 @@
+import { WEBGPU_INSECURE_CONTEXT_REASON } from '../../utils/splatBackendPolicy';
 import type {
   SplatBackendPreference,
   SplatBackendResolution,
@@ -17,6 +18,9 @@ export interface ForcedWebGpuSplatFailureNotice {
 
 const WEBGPU_FULL_FEATURES_SUGGESTION =
   'Enable WebGPU in your browser, or use a WebGPU-capable browser, for full features.';
+
+const WEBGPU_HTTPS_SUGGESTION =
+  'Reload the page over HTTPS for full features.';
 
 export function getWebGpuSplatBackendNotice(options: ForcedWebGpuSplatFailureNoticeOptions): ForcedWebGpuSplatFailureNotice | null {
   return getForcedWebGpuSplatFailureNotice(options)
@@ -120,6 +124,12 @@ function getAutoWebGpuFailureSparkFallbackNotice({
 }
 
 function withWebGpuFullFeaturesSuggestion(message: string, reason: string): string {
+  // The insecure-context reason gets its own advice: the browser is fine,
+  // the URL scheme hid navigator.gpu — suggesting a different browser there
+  // sends the user on a wild goose chase.
+  if (reason.includes(WEBGPU_INSECURE_CONTEXT_REASON)) {
+    return `${message}. ${WEBGPU_HTTPS_SUGGESTION}`;
+  }
   return isWebGpuUnsupportedReason(reason)
     ? `${message}. ${WEBGPU_FULL_FEATURES_SUGGESTION}`
     : message;
@@ -128,5 +138,6 @@ function withWebGpuFullFeaturesSuggestion(message: string, reason: string): stri
 function isWebGpuUnsupportedReason(reason: string): boolean {
   const normalizedReason = reason.toLowerCase();
   return normalizedReason.includes('webgpu is unsupported')
-    || normalizedReason.includes('does not provide reliable webgpu support');
+    || normalizedReason.includes('does not provide reliable webgpu support')
+    || normalizedReason.includes('secure (https) connection');
 }

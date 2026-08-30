@@ -3,6 +3,7 @@ import {
   getForcedWebGpuSplatFailureNotice,
   getWebGpuSplatBackendNotice,
 } from './splatBackendNoticePolicy';
+import { WEBGPU_INSECURE_CONTEXT_REASON } from '../../utils/splatBackendPolicy';
 import type { SplatBackendResolution } from '../../utils/splatBackendPolicy';
 
 const unavailableResolution: SplatBackendResolution = {
@@ -160,5 +161,24 @@ describe('splat backend notice policy', () => {
       key: 'scene.spz:WebGPU adapter is unavailable',
       message: 'WebGPU splat renderer unavailable: WebGPU adapter is unavailable',
     });
+  });
+
+  it('suggests HTTPS, not a different browser, for the insecure-context reason', () => {
+    const notice = getWebGpuSplatBackendNotice({
+      requestedBackend: 'auto',
+      splatFile: new File(['x'], 'scene.ply'),
+      splatBackendResolution: {
+        status: 'resolved',
+        requested: 'auto',
+        backend: 'spark',
+        gpuPsnr: false,
+        reason: `Spark fallback selected because ${WEBGPU_INSECURE_CONTEXT_REASON}`,
+      },
+      webGpuSplatCanvasMounted: false,
+    });
+
+    expect(notice).not.toBeNull();
+    expect(notice!.message).toContain('HTTPS');
+    expect(notice!.message).not.toContain('WebGPU-capable browser');
   });
 });

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   FIREFOX_LINUX_WEBGPU_UNSUPPORTED_REASON,
+  WEBGPU_INSECURE_CONTEXT_REASON,
   getBrowserWebGpuCompatibilityBlockReason,
   parseSplatBackendPreference,
   resolveSplatBackend,
@@ -80,6 +81,31 @@ describe('splat backend policy', () => {
       platform: 'Linux x86_64',
       userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/126.0.0.0 Safari/537.36',
     })).toBeNull();
+  });
+
+  it('names the insecure context when WebGPU is hidden by plain HTTP', () => {
+    // navigator.gpu is defined only in secure contexts, so on plain HTTP a
+    // fully capable browser reports no gpu at all — "use a WebGPU-capable
+    // browser" is wrong advice there; the fix is the URL scheme.
+    expect(getBrowserWebGpuCompatibilityBlockReason(
+      {
+        platform: 'iPhone',
+        userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Safari/604.1',
+      },
+      false
+    )).toBe(WEBGPU_INSECURE_CONTEXT_REASON);
+  });
+
+  it('does not blame the connection when WebGPU exists or the context is secure', () => {
+    expect(getBrowserWebGpuCompatibilityBlockReason(
+      { gpu: {}, platform: 'Win32', userAgent: 'Chrome' },
+      false
+    )).toBeNull();
+
+    expect(getBrowserWebGpuCompatibilityBlockReason(
+      { platform: 'Win32', userAgent: 'Chrome' },
+      true
+    )).toBeNull();
   });
 
   it('stays pending rather than resolving Spark while auto WebGPU is still preparing', () => {

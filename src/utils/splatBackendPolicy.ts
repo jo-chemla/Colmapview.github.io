@@ -68,6 +68,9 @@ export const DEFAULT_SPLAT_METRIC_AVAILABILITY: SplatMetricAvailability = {
 export const FIREFOX_LINUX_WEBGPU_UNSUPPORTED_REASON =
   'Firefox on Linux does not provide reliable WebGPU support for splat rendering';
 
+export const WEBGPU_INSECURE_CONTEXT_REASON =
+  'WebGPU needs a secure (HTTPS) connection and this page was loaded over plain HTTP';
+
 export interface BrowserWebGpuCompatibilityNavigator {
   gpu?: unknown;
   platform?: string;
@@ -97,10 +100,19 @@ export function getInitialSplatBackendPreference(): SplatBackendPreference {
 }
 
 export function getBrowserWebGpuCompatibilityBlockReason(
-  navigatorLike: BrowserWebGpuCompatibilityNavigator | null | undefined = getCurrentBrowserNavigator()
+  navigatorLike: BrowserWebGpuCompatibilityNavigator | null | undefined = getCurrentBrowserNavigator(),
+  secureContext: boolean = typeof window === 'undefined' ? true : window.isSecureContext
 ): string | null {
   if (!navigatorLike) {
     return null;
+  }
+
+  // navigator.gpu is defined only in secure contexts. On plain HTTP a fully
+  // WebGPU-capable browser reports no gpu at all, so without this branch the
+  // generic "unsupported" advice ("use a WebGPU-capable browser") is wrong —
+  // the fix for the user is the URL scheme, not the browser.
+  if (!navigatorLike.gpu && !secureContext) {
+    return WEBGPU_INSECURE_CONTEXT_REASON;
   }
 
   const userAgent = navigatorLike.userAgent ?? '';
