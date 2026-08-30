@@ -27,10 +27,12 @@ describe('splat backend notice policy', () => {
     expect(getForcedWebGpuSplatFailureNotice(options)).toEqual({
       key: 'scene.spz:WebGPU is unsupported in this browser',
       message: 'WebGPU splat renderer unavailable: WebGPU is unsupported in this browser. Enable WebGPU in your browser, or use a WebGPU-capable browser, for full features.',
+      severity: 'warning',
     });
     expect(getWebGpuSplatBackendNotice(options)).toEqual({
       key: 'scene.spz:WebGPU is unsupported in this browser',
       message: 'WebGPU splat renderer unavailable: WebGPU is unsupported in this browser. Enable WebGPU in your browser, or use a WebGPU-capable browser, for full features.',
+      severity: 'warning',
     });
   });
 
@@ -91,8 +93,9 @@ describe('splat backend notice policy', () => {
       webGpuSplatCanvasMounted: false,
       sparkPreloadPending: false,
     })).toEqual({
-      key: 'scene.spz:Spark fallback selected because WebGPU splat renderer failed to initialize: adapter lost',
+      key: 'fallback:Spark fallback selected because WebGPU splat renderer failed to initialize: adapter lost',
       message: 'Using Spark fallback: WebGPU splat renderer failed to initialize: adapter lost',
+      severity: 'info',
     });
   });
 
@@ -112,8 +115,9 @@ describe('splat backend notice policy', () => {
       webGpuSplatCanvasMounted: false,
       sparkPreloadPending: false,
     })).toEqual({
-      key: 'scene.spz:Spark fallback selected because WebGPU is unsupported',
+      key: 'fallback:Spark fallback selected because WebGPU is unsupported',
       message: 'Using Spark fallback: WebGPU is unsupported. Enable WebGPU in your browser, or use a WebGPU-capable browser, for full features.',
+      severity: 'info',
     });
   });
 
@@ -133,8 +137,9 @@ describe('splat backend notice policy', () => {
       webGpuSplatCanvasMounted: false,
       sparkPreloadPending: false,
     })).toEqual({
-      key: 'scene.spz:Spark fallback selected because Firefox on Linux does not provide reliable WebGPU support for splat rendering',
+      key: 'fallback:Spark fallback selected because Firefox on Linux does not provide reliable WebGPU support for splat rendering',
       message: 'Using Spark fallback: Firefox on Linux does not provide reliable WebGPU support for splat rendering. Enable WebGPU in your browser, or use a WebGPU-capable browser, for full features.',
+      severity: 'info',
     });
   });
 
@@ -170,7 +175,41 @@ describe('splat backend notice policy', () => {
     })).toEqual({
       key: 'scene.spz:WebGPU adapter is unavailable',
       message: 'WebGPU splat renderer unavailable: WebGPU adapter is unavailable',
+      severity: 'warning',
     });
+  });
+
+  it('keys fallback notices by session reason, not by splat file', () => {
+    const fallbackResolution: SplatBackendResolution = {
+      status: 'resolved',
+      requested: 'auto',
+      backend: 'spark',
+      gpuPsnr: false,
+      reason: 'Spark fallback selected because WebGPU is unsupported',
+    };
+    const base = {
+      requestedBackend: 'auto',
+      splatBackendResolution: fallbackResolution,
+      webGpuSplatCanvasMounted: false,
+      sparkPreloadPending: false,
+    } as const;
+
+    // The fallback is a property of the browser environment, not the file:
+    // a second splat must not re-announce it.
+    const first = getWebGpuSplatBackendNotice({ ...base, splatFile: new File(['x'], 'a.ply') });
+    const second = getWebGpuSplatBackendNotice({ ...base, splatFile: new File(['x'], 'b.ply') });
+    expect(first!.key).toBe(second!.key);
+
+    // Forced failures stay per-file: each file's failure is its own event.
+    const forcedBase = {
+      requestedBackend: 'webgpu',
+      splatBackendResolution: unavailableResolution,
+      webGpuSplatCanvasMounted: false,
+      sparkPreloadPending: false,
+    } as const;
+    const forcedA = getWebGpuSplatBackendNotice({ ...forcedBase, splatFile: new File(['x'], 'a.spz') });
+    const forcedB = getWebGpuSplatBackendNotice({ ...forcedBase, splatFile: new File(['x'], 'b.spz') });
+    expect(forcedA!.key).not.toBe(forcedB!.key);
   });
 
   it('suggests HTTPS, not a different browser, for the insecure-context reason', () => {

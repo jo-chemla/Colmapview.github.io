@@ -24,6 +24,13 @@ export const SPLAT_RENDERER_PREPARING_MESSAGE = 'Preparing splat renderer…';
 export interface ForcedWebGpuSplatFailureNotice {
   key: string;
   message: string;
+  /**
+   * 'warning' = the user lost something durable (no renderer at all, or a
+   * forced backend failed). 'info' = the outcome is success via fallback —
+   * splats render, the message is context, and it must not persist as an
+   * alarm.
+   */
+  severity: 'info' | 'warning';
 }
 
 const WEBGPU_FULL_FEATURES_SUGGESTION =
@@ -60,6 +67,7 @@ export function getForcedWebGpuSplatFailureNotice({
       `WebGPU splat renderer unavailable: ${splatBackendResolution.reason}`,
       splatBackendResolution.reason
     ),
+    severity: 'warning',
   };
 }
 
@@ -90,6 +98,7 @@ function getAutoWebGpuUnavailableNotice({
       `WebGPU splat renderer unavailable: ${splatBackendResolution.reason}`,
       splatBackendResolution.reason
     ),
+    severity: 'warning',
   };
 }
 
@@ -112,8 +121,12 @@ function getAutoWebGpuUnsupportedSparkFallbackNotice({
 
   const fallbackReason = splatBackendResolution.reason.replace(/^Spark fallback selected because /, '');
   return {
-    key: `${splatFile.name}:${splatBackendResolution.reason}`,
+    // Keyed by reason alone: the fallback is a property of this SESSION's
+    // browser environment, not of the file, so a second splat must not
+    // re-announce it.
+    key: `fallback:${splatBackendResolution.reason}`,
     message: withWebGpuFullFeaturesSuggestion(`Using Spark fallback: ${fallbackReason}`, fallbackReason),
+    severity: 'info',
   };
 }
 
@@ -135,8 +148,10 @@ function getAutoWebGpuFailureSparkFallbackNotice({
   }
 
   return {
-    key: `${splatFile.name}:${splatBackendResolution.reason}`,
+    // Session-keyed for the same reason as the unsupported fallback above.
+    key: `fallback:${splatBackendResolution.reason}`,
     message: `Using Spark fallback: ${splatBackendResolution.reason.replace(/^Spark fallback selected because /, '')}`,
+    severity: 'info',
   };
 }
 

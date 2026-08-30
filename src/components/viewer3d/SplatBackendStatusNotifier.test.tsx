@@ -108,8 +108,9 @@ describe('SplatBackendStatusNotifier', () => {
     );
 
     expect(addNotification).toHaveBeenCalledWith(
-      'warning',
-      'Using Spark fallback: WebGPU splat renderer failed to initialize: adapter lost'
+      'info',
+      'Using Spark fallback: WebGPU splat renderer failed to initialize: adapter lost',
+      8000
     );
   });
 
@@ -136,8 +137,9 @@ describe('SplatBackendStatusNotifier', () => {
     );
 
     expect(addNotification).toHaveBeenCalledWith(
-      'warning',
-      'Using Spark fallback: WebGPU is unsupported. Enable WebGPU in your browser, or use a WebGPU-capable browser, for full features.'
+      'info',
+      'Using Spark fallback: WebGPU is unsupported. Enable WebGPU in your browser, or use a WebGPU-capable browser, for full features.',
+      8000
     );
   });
 
@@ -238,8 +240,44 @@ describe('SplatBackendStatusNotifier', () => {
 
     expect(removePreparing).toHaveBeenCalledWith('preparing-1');
     expect(addNotification).toHaveBeenCalledWith(
-      'warning',
-      expect.stringContaining('Using Spark fallback')
+      'info',
+      expect.stringContaining('Using Spark fallback'),
+      8000
     );
+  });
+
+  it('never re-announces a notice key it has already shown, even after another notice', () => {
+    const addNotification = vi.fn(() => 'n');
+    const fallback: SplatBackendResolution = {
+      status: 'resolved',
+      requested: 'auto',
+      backend: 'spark',
+      gpuPsnr: false,
+      reason: 'Spark fallback selected because WebGPU is unsupported',
+    };
+    const failed: SplatBackendResolution = {
+      status: 'resolved',
+      requested: 'auto',
+      backend: 'spark',
+      gpuPsnr: false,
+      reason: 'Spark fallback selected because WebGPU splat renderer failed to initialize: adapter lost',
+    };
+    const props = {
+      addNotification,
+      removeNotification,
+      requestedBackend: 'auto',
+      splatFile: new File(['x'], 'scene.ply'),
+      webGpuSplatCanvasMounted: false,
+      sparkPreloadPending: false,
+    } as const;
+
+    const { rerender } = render(
+      <SplatBackendStatusNotifier {...props} splatBackendResolution={fallback} />
+    );
+    rerender(<SplatBackendStatusNotifier {...props} splatBackendResolution={failed} />);
+    // A last-key-only dedupe would re-fire here; a seen-set must not.
+    rerender(<SplatBackendStatusNotifier {...props} splatBackendResolution={fallback} />);
+
+    expect(addNotification).toHaveBeenCalledTimes(2);
   });
 });
