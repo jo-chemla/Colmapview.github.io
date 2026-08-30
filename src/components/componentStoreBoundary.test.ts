@@ -4,14 +4,14 @@ import { describe, expect, it } from 'vitest';
 
 const SRC_ROOT = path.join(process.cwd(), 'src');
 const COMPONENTS_ROOT = path.join(SRC_ROOT, 'components');
-// Both tests walk the whole of src/ and read every file, so their runtime tracks
-// disk contention rather than the work itself: ~130ms standalone, but repeatedly
-// past 15s when the suite runs them alongside the other whole-tree scans
-// (classContract, sparkImportBoundary) on a loaded machine. That was the single
-// most frequent false failure while building this branch, and CI runs the full
-// suite on every push. The budget is a flake guard, not a performance
-// assertion — a real regression here would be orders of magnitude, not 2x.
-const STORE_BOUNDARY_SCAN_TIMEOUT_MS = 45_000;
+// One walk of src/, shared by all three tests below. The suite runs alongside
+// the other whole-tree scans (classContract, sparkImportBoundary), and three
+// separate uncached walks of the same tree were what pushed this file past
+// its budget on a loaded machine — the timeout kept widening (15s → 45s) to
+// absorb work the tests were repeating, not work they needed. With the walk
+// cached, 15s is comfortable: a real regression here would be orders of
+// magnitude, not 2x.
+const STORE_BOUNDARY_SCAN_TIMEOUT_MS = 15_000;
 const STORE_HOOK_CALL_PATTERN = /\buse[A-Z][A-Za-z0-9]*Store\s*\(/g;
 const DOCUMENTED_STORE_BOUNDARY_CALLERS = new Set([
   'src/dataset/index.ts',
@@ -71,9 +71,14 @@ async function fileExists(filePath: string): Promise<boolean> {
   }
 }
 
+const sourceFilesPromise = collectSourceFiles(SRC_ROOT);
+const componentFilesPromise = sourceFilesPromise.then((files) =>
+  files.filter((file) => file.startsWith(COMPONENTS_ROOT + path.sep))
+);
+
 describe('component store boundaries', () => {
   it('keeps production component store hooks behind facade modules', async () => {
-    const files = await collectSourceFiles(COMPONENTS_ROOT);
+    const files = await componentFilesPromise;
     const violations: string[] = [];
 
     for (const file of files) {
@@ -94,7 +99,7 @@ describe('component store boundaries', () => {
   }, STORE_BOUNDARY_SCAN_TIMEOUT_MS);
 
   it('keeps non-component store hook calls in documented boundary modules', async () => {
-    const files = await collectSourceFiles(SRC_ROOT);
+    const files = await sourceFilesPromise;
     const violations: string[] = [];
 
     for (const file of files) {
@@ -121,7 +126,7 @@ describe('component store boundaries', () => {
   }, STORE_BOUNDARY_SCAN_TIMEOUT_MS);
 
   it('keeps store facades covered by colocated tests', async () => {
-    const files = await collectSourceFiles(COMPONENTS_ROOT);
+    const files = await componentFilesPromise;
     const facadeFiles = files
       .map((file) => path.relative(process.cwd(), file).replace(/\\/g, '/'))
       .filter(isStoreFacadeFile);
