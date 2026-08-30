@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Choosing a splat no longer flashes a "no splat renderer is available" warning while the compatibility renderer is still downloading — that window now shows a brief "Preparing splat renderer…" note, and the warning is reserved for the case where the download actually failed.
+- When WebGPU is hidden because the page was loaded over plain HTTP, the app now says so and suggests HTTPS, instead of wrongly advising a "WebGPU-capable browser".
+- The compatibility-renderer notice is informational (auto-dismissing) and appears once per session, instead of a persistent warning re-raised for every splat file.
+
 ## [0.11.0] - 2026-08-29
 
 ### Added
