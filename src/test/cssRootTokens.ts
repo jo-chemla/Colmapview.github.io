@@ -48,6 +48,11 @@ export function readRootTokens(cssPath: string = INDEX_CSS_PATH): Map<string, st
  * contract test that measures a utility must fail loudly on a rung it cannot
  * read, never report a silent 0 or NaN.
  */
+function finitePixels(pixels: number, value: string): number {
+  if (!Number.isFinite(pixels)) throw new Error(`cannot resolve "${value}" to pixels`);
+  return pixels;
+}
+
 export function resolveValueToPixels(tokens: Map<string, string>, value: string): number {
   const trimmed = value.trim();
   const reference = trimmed.match(/^var\((--(?:[\w-]|\\.)+)\)$/);
@@ -59,10 +64,13 @@ export function resolveValueToPixels(tokens: Map<string, string>, value: string)
     }
     return resolveValueToPixels(tokens, next);
   }
+  // `[\d.]+` also admits malformed numerals like `1.2.3`, which Number() turns
+  // into NaN — the silent value this parser exists to refuse. Check the result,
+  // not just the shape.
   const rem = trimmed.match(/^([\d.]+)rem$/);
-  if (rem) return Number(rem[1]) * ROOT_FONT_SIZE;
+  if (rem) return finitePixels(Number(rem[1]) * ROOT_FONT_SIZE, value);
   const px = trimmed.match(/^([\d.]+)px$/);
-  if (px) return Number(px[1]);
+  if (px) return finitePixels(Number(px[1]), value);
   if (trimmed === '0') return 0;
   throw new Error(`cannot resolve "${value}" to pixels`);
 }

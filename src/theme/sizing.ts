@@ -115,7 +115,7 @@ export const TOUCH = {
   preferredTapTarget: 48,   // Preferred touch target in px
 
   // UI component sizes
-  statusBarHeight: 24,      // Simplified status bar height
+  statusBarHeight: 44,      // Touch status bar height, = TouchStatusBar's h-11 (no current consumer)
   fabSize: 44,              // Reserved primary floating-action diameter, = minTapTarget (no current consumer)
   fabSecondarySize: 40,     // Reserved secondary floating-action diameter, matches desktop controls (no current consumer)
 

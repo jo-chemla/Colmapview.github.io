@@ -24,5 +24,10 @@ describe('cssRootTokens', () => {
     // any rung it could not parse; the shared parser refuses instead.
     expect(() => resolveValueToPixels(tokens, 'calc(1px + 1px)')).toThrow();
     expect(() => resolveValueToPixels(tokens, 'var(--does-not-exist)')).toThrow();
+    // Shape-matched but not a number: `[\d.]+` accepts `1.2.3`, and Number()
+    // makes it NaN. The unit branches check the parsed result, not just the
+    // suffix, so these throw like everything else unreadable.
+    expect(() => resolveValueToPixels(tokens, '1.2.3px')).toThrow();
+    expect(() => resolveValueToPixels(tokens, '..rem')).toThrow();
   });
 });

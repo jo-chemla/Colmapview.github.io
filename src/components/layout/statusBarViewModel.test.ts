@@ -94,8 +94,10 @@ describe('status bar view model', () => {
     expect(TOUCH_STATUS_BAR_HELP_LABEL).toBe('? Help');
     // No (I) suffix: the hotkey it names is unreachable without a keyboard.
     expect(TOUCH_STATUS_BAR_HELP_TITLE).not.toContain('(');
-    // The bar itself is 44px tall (TouchStatusBar h-11) and the button stretches
-    // to it, so the button needs no synthetic tap box — and must not carry one:
+    // The bar is a 44px border box (TouchStatusBar h-11) whose 1px border-t
+    // leaves 43px of content, and the button stretches to that — within 1px of
+    // the 44px guideline, so it needs no synthetic tap box, and must not carry
+    // one:
     // touch-hit-44 centered on the old 24px bar overhung 10px of live canvas
     // above the bar and stole orbit gestures.
     expect(TOUCH_STATUS_BAR_HELP_BUTTON_CLASS).toBe(STATUS_BAR_SHORTCUTS_BUTTON_CLASS);

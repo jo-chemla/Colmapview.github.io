@@ -21,9 +21,11 @@ export const STATUS_BAR_SHORTCUTS_BUTTON_CLASS =
 export const TOUCH_STATUS_BAR_HELP_LABEL = '? Help';
 // Aliased, not re-typed: renaming the panel must rename this tooltip with it.
 export const TOUCH_STATUS_BAR_HELP_TITLE = HOTKEY_HELP_TITLE;
-// No synthetic tap box: the touch bar itself is 44px tall (h-11 in
-// TouchStatusBar) and the button stretches to fill it (self-stretch, applied
-// at the usage site), so the button's real box meets the tap minimum.
+// No synthetic tap box: the touch bar is a 44px border box (h-11 in
+// TouchStatusBar) whose 1px border-t leaves a 43px content box, and the button
+// stretches to fill that (self-stretch, applied at the usage site) — its real
+// box is 43px, above the 40px desktop status bar and within 1px of the 44px
+// guideline, so the remaining pixel is not worth buying.
 // touch-hit-44 is BANNED here — centered on a bottom-of-screen bar it can
 // only overhang upward, over the live canvas, where it steals orbit
 // gestures (found by adversarial review 2026-08-29).

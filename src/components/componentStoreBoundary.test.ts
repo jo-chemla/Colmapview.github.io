@@ -142,6 +142,9 @@ describe('component store boundaries', () => {
 
   it('keeps store facades covered by colocated tests', async () => {
     const files = await componentFilesPromise;
+    // Rename src/components and every list below goes empty, which would make
+    // this assertion pass by scanning nothing. Prove the scan found the tree.
+    expect(files.length).toBeGreaterThan(0);
     const facadeFiles = files
       .map((file) => path.relative(process.cwd(), file).replace(/\\/g, '/'))
       .filter(isStoreFacadeFile);

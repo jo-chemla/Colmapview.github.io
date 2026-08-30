@@ -12,8 +12,11 @@ import { useTouchStatusBarStoreFacade } from './useTouchStatusBarStoreFacade';
 /**
  * Simplified status bar for touch mode.
  * Shows FPS and the Help entry - removes histograms, cache stats, and links.
- * Height: 44px — the tap-target minimum, so the Help button needs no synthetic
- * tap box (vs 40px desktop status bar)
+ * Height: h-11 is a 44px BORDER box (`* { box-sizing: border-box }`), and the
+ * 1px border-t comes out of it, so the stretched Help button gets the 43px
+ * content box — comfortably above the 40px desktop status bar and within 1px of
+ * the 44px guideline, which is close enough that no synthetic tap box is worth
+ * the canvas it would steal (see TOUCH_STATUS_BAR_HELP_BUTTON_CLASS).
  * Visibility controlled by touchUI.statusBar.
  *
  * The Help entry is this layout's only pointer route into HotkeyHelpModal: the
@@ -48,9 +51,10 @@ export function TouchStatusBar() {
           {emptyStatusText}
         </span>
       )}
-      {/* self-stretch is what makes the h-11 bar the button's OWN box: the row
-          is `items-center`, which would otherwise shrink the button to one line
-          of text-xs (~16px) and leave the 44px purely decorative. */}
+      {/* self-stretch is what gives the button the bar's 43px content box as
+          its OWN box: the row is `items-center`, which would otherwise shrink
+          the button to one line of text-xs (~16px) and leave the bar's height
+          purely decorative. */}
       <button
         type="button"
         onClick={() => setShowHotkeyHelp(true)}

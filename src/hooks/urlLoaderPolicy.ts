@@ -556,10 +556,13 @@ export interface ByteLessSplatLoaderInputs {
   webGpuAvailability: WebGpuSplatBackendState;
   /**
    * Whether the Spark renderer module is currently loaded/available (the backend
-   * store's `availability.spark`). In auto mode the resolver picks Spark the
-   * instant this is true while WebGPU is not yet ready - e.g. a prior splat
-   * rendered via Spark this session - so byte-less must consult it, not assume
-   * WebGPU will win.
+   * store's `availability.spark`) - e.g. a prior splat rendered via Spark this
+   * session. In auto mode the resolver hands the file to Spark once this is true
+   * AND WebGPU has settled outside the init window ('unsupported' or 'failed');
+   * while WebGPU is still 'unavailable' (capable, initializing) the resolver
+   * stays pending rather than naming Spark. Byte-less consults it anyway because
+   * that pending window can END in 'failed', which does hand the file to Spark -
+   * and Spark would meet the zero-byte placeholder.
    */
   sparkBackendAvailable: boolean;
 }

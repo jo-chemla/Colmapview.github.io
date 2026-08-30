@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The gallery's collapse tab stays fully on-screen while the gallery is collapsed; it previously lost half its width to the window edge, leaving a ~6px sliver as the reopen affordance.
 - The Help panel can now be opened on touch devices, from the status bar.
 - On touch devices, a tap anywhere — including the bare canvas — now wakes chrome hidden by the idle fade. Previously the only touch wake surface was the invisible box of a faded control, which nothing on screen hinted at, so idle chrome was effectively unrecoverable in practice.
-- The touch status bar is 44px tall so its Help entry is a real 44px target; the previous invisible tap box was centered on a 24px bar and swallowed orbit gestures that began in the strip of canvas above it.
+- The touch status bar is 44px tall and its Help entry fills the bar, so the tap target is the visible control itself; the previous invisible tap box was centered on a 24px bar and swallowed orbit gestures that began in the strip of canvas above it.
 - Text labels drawn inside the 3D scene now use the interface typeface once fonts finish loading, instead of staying on a system fallback.
 - Floating tool windows no longer drift upward in the stacking order across a long session; the counter resets once the last window closes.
 - The "unavailable" marker in the cache-statistics tooltip is visible again.
