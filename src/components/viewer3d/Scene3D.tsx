@@ -36,7 +36,10 @@ import { useAxesNode, useGridNode, useGizmoNode, useCamerasNode } from '../../no
 import { useIsAlignmentMode } from '../../hooks/useAlignmentMode';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { preloadSparkModule } from '../../utils/sparkSplatRuntime';
-import { shouldPreloadSparkSplatRuntime } from '../../utils/splatBackendPolicy';
+import {
+  isSparkSplatRuntimePreloadPending,
+  shouldPreloadSparkSplatRuntime,
+} from '../../utils/splatBackendPolicy';
 import { isSplatLoadingProgressForFile } from '../../utils/splatLoadingProgressPolicy';
 import type { SplatBackendAvailability } from '../../utils/splatBackendPolicy';
 import {
@@ -339,6 +342,8 @@ export function Scene3D() {
     splatFile,
     splatsVisible
   ) && pointsLayerVisible;
+  const sparkPreloadPending = Boolean(splatFile)
+    && isSparkSplatRuntimePreloadPending(requestedSplatBackend, splatBackendAvailability);
   const webGpuSplatBackendSelected = splatBackendResolution.status === 'resolved'
     && splatBackendResolution.backend === 'webgpu';
   const webGpuSplatCanvasReportsLoading = requestedSplatBackend === 'webgpu'
@@ -429,10 +434,7 @@ export function Scene3D() {
         splatBackendResolution={splatBackendResolution}
         splatFile={splatFile}
         webGpuSplatCanvasMounted={webGpuSplatCanvasMounted}
-        sparkPreloadPending={
-          shouldPreloadSparkSplatRuntime(requestedSplatBackend, splatBackendAvailability)
-          && !splatBackendAvailability.spark
-        }
+        sparkPreloadPending={sparkPreloadPending}
       />
       <Scene3DErrorBoundary backgroundColor={backgroundColor}>
         <Canvas

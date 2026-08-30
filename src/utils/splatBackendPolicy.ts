@@ -71,6 +71,10 @@ export const FIREFOX_LINUX_WEBGPU_UNSUPPORTED_REASON =
 export const WEBGPU_INSECURE_CONTEXT_REASON =
   'WebGPU needs a secure (HTTPS) connection and this page was loaded over plain HTTP';
 
+// Exported because the notice policy keys behavior off this exact string: an
+// unshared literal let the two sides drift apart without any test noticing.
+export const PREPARING_WEBGPU_SPLAT_RENDERER_REASON = 'Preparing WebGPU splat renderer';
+
 export interface BrowserWebGpuCompatibilityNavigator {
   gpu?: unknown;
   platform?: string;
@@ -234,7 +238,7 @@ export function resolveSplatBackend(
     backend: null,
     gpuPsnr: false,
     reason: availability.webGpu === 'unavailable'
-      ? availability.webGpuFailureReason ?? 'Preparing WebGPU splat renderer'
+      ? availability.webGpuFailureReason ?? PREPARING_WEBGPU_SPLAT_RENDERER_REASON
       : availability.webGpu === 'failed'
       ? getWebGpuUnavailableReason(availability)
       : 'No splat renderer is available',
@@ -266,6 +270,20 @@ export function shouldPreloadSparkSplatRuntime(
       requested === 'auto'
       && (availability.webGpu === 'unsupported' || availability.webGpu === 'failed')
     );
+}
+
+/**
+ * True while the Spark download is the expected next step: the gate above
+ * fired and the module has not landed yet. The notice policy treats an
+ * "unavailable" resolution in this window as a loading state rather than an
+ * outcome, so the derived predicate lives here, beside the gate whose
+ * semantics it mirrors, instead of being re-composed at call sites.
+ */
+export function isSparkSplatRuntimePreloadPending(
+  requested: SplatBackendPreference,
+  availability: Pick<SplatBackendAvailability, 'webGpu' | 'spark'>
+): boolean {
+  return shouldPreloadSparkSplatRuntime(requested, availability) && !availability.spark;
 }
 
 export function resolveSplatMetricCapability(

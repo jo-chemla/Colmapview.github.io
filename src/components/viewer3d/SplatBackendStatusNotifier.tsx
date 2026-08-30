@@ -4,10 +4,8 @@ import type {
   SplatBackendPreference,
   SplatBackendResolution,
 } from '../../utils/splatBackendPolicy';
-import {
-  SPLAT_RENDERER_PREPARING_MESSAGE,
-  getWebGpuSplatBackendNotice,
-} from './splatBackendNoticePolicy';
+import { SPLAT_LOADING_PROGRESS_MESSAGE } from '../../utils/splatLoadingProgressPolicy';
+import { getWebGpuSplatBackendNotice } from './splatBackendNoticePolicy';
 
 export function SplatBackendStatusNotifier({
   addNotification,
@@ -30,28 +28,19 @@ export function SplatBackendStatusNotifier({
   // sequence re-announces A. Every key is a fact about this session the user
   // has already been told once.
   const seenNoticeKeysRef = useRef(new Set<string>());
-  const preparingIdRef = useRef<string | null>(null);
 
   // A pending Spark download is a loading state, not an outcome: show one
-  // self-removing info line instead of the "unavailable" warning the resolver
-  // reports during the window. The 60s duration is a leak guard only — a
-  // settled preload removes the notification far earlier.
+  // caller-owned info line (duration 0 = sticky, the repo convention for
+  // notifications whose lifetime an effect owns — see SplatLayer's loading
+  // notification) instead of the "unavailable" warning the resolver reports
+  // during the window. The effect cleanup removes it when the preload
+  // settles or the component unmounts; the message is the same one the splat
+  // loading progress uses for this phase, so the two surfaces always agree.
   useEffect(() => {
-    const showPreparing = Boolean(splatFile) && sparkPreloadPending;
-    if (showPreparing && preparingIdRef.current === null) {
-      preparingIdRef.current = addNotification('info', SPLAT_RENDERER_PREPARING_MESSAGE, 60000);
-    }
-    if (!showPreparing && preparingIdRef.current !== null) {
-      removeNotification(preparingIdRef.current);
-      preparingIdRef.current = null;
-    }
-    return () => {
-      if (preparingIdRef.current !== null) {
-        removeNotification(preparingIdRef.current);
-        preparingIdRef.current = null;
-      }
-    };
-  }, [addNotification, removeNotification, splatFile, sparkPreloadPending]);
+    if (!sparkPreloadPending) return;
+    const preparingId = addNotification('info', SPLAT_LOADING_PROGRESS_MESSAGE, 0);
+    return () => removeNotification(preparingId);
+  }, [addNotification, removeNotification, sparkPreloadPending]);
 
   useEffect(() => {
     const notice = getWebGpuSplatBackendNotice({

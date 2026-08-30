@@ -3,6 +3,7 @@ import {
   FIREFOX_LINUX_WEBGPU_UNSUPPORTED_REASON,
   WEBGPU_INSECURE_CONTEXT_REASON,
   getBrowserWebGpuCompatibilityBlockReason,
+  isSparkSplatRuntimePreloadPending,
   parseSplatBackendPreference,
   resolveSplatBackend,
   resolveSplatMetricCapability,
@@ -81,6 +82,17 @@ describe('splat backend policy', () => {
       platform: 'Linux x86_64',
       userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/126.0.0.0 Safari/537.36',
     })).toBeNull();
+  });
+
+  it('reports the Spark preload as pending only until the module lands', () => {
+    // Gate fires + module absent = the window the preparing note covers.
+    expect(isSparkSplatRuntimePreloadPending('auto', { webGpu: 'unsupported', spark: false })).toBe(true);
+    expect(isSparkSplatRuntimePreloadPending('spark', { webGpu: 'ready', spark: false })).toBe(true);
+    // Module landed: no longer pending, whatever the gate says.
+    expect(isSparkSplatRuntimePreloadPending('auto', { webGpu: 'unsupported', spark: true })).toBe(false);
+    // Gate never fired: nothing is pending.
+    expect(isSparkSplatRuntimePreloadPending('auto', { webGpu: 'ready', spark: false })).toBe(false);
+    expect(isSparkSplatRuntimePreloadPending('auto', { webGpu: 'unavailable', spark: false })).toBe(false);
   });
 
   it('names the insecure context when WebGPU is hidden by plain HTTP', () => {

@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { SPLAT_LOADING_PROGRESS_MESSAGE } from '../../utils/splatLoadingProgressPolicy';
 import { SplatBackendStatusNotifier } from './SplatBackendStatusNotifier';
 import type { SplatBackendResolution } from '../../utils/splatBackendPolicy';
 
@@ -166,7 +167,9 @@ describe('SplatBackendStatusNotifier', () => {
     );
 
     expect(addNotification).toHaveBeenCalledTimes(1);
-    expect(addNotification).toHaveBeenCalledWith('info', 'Preparing splat renderer…', 60000);
+    // Same message the splat loading progress uses for this phase; duration 0
+    // is the repo's caller-owned (sticky) notification convention.
+    expect(addNotification).toHaveBeenCalledWith('info', SPLAT_LOADING_PROGRESS_MESSAGE, 0);
   });
 
   it('removes the preparing note and warns once the preload settles without Spark', () => {
