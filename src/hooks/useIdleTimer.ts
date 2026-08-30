@@ -3,8 +3,10 @@ import { useUIStore } from '../store';
 import {
   beginIdlePointerTravel,
   extendIdlePointerTravel,
+  getIdleHoverPauseTarget,
   getIdleTimeoutDelayMs,
   isIdleFocusPauseTarget,
+  isIdleHoverPauseActive,
   isIdleIgnoredTarget,
   isIdlePauseTarget,
   isIdleWakeTap,
@@ -21,7 +23,10 @@ import {
 export function useIdleTimer() {
   const containerRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const hoveringPauseTargetRef = useRef(false);
+  // The hovered element itself, not a flag: an element that unmounts under the
+  // cursor sends no mouseout, so the pause has to expire by noticing the
+  // element left the document (see isIdleHoverPauseActive).
+  const hoveringPauseTargetRef = useRef<Element | null>(null);
   const focusPauseTargetRef = useRef(false);
   // Keyed on pointerId: a pinch has two live touches at once, and a single
   // shared slot would pair one finger's down with the other's up.
@@ -30,7 +35,7 @@ export function useIdleTimer() {
 
   const isPausedByUi = useCallback(
     () =>
-      hoveringPauseTargetRef.current ||
+      isIdleHoverPauseActive(hoveringPauseTargetRef.current) ||
       (focusPauseTargetRef.current && isIdleFocusPauseTarget(document.activeElement)),
     []
   );
@@ -148,16 +153,19 @@ export function useIdleTimer() {
 
     // Hover on popup/control surfaces — pause hiding, show if hidden.
     // These can be rendered through portals, so listen at document level.
+    // The element is remembered rather than a flag so the pause can end on its
+    // own when the element unmounts without ever sending a mouseout.
     const onMouseOver = (e: MouseEvent) => {
-      if (isIdlePauseTarget(e.target)) {
-        hoveringPauseTargetRef.current = true;
+      const pauseTarget = getIdleHoverPauseTarget(e.target);
+      if (pauseTarget) {
+        hoveringPauseTargetRef.current = pauseTarget;
         clearTimeout(timerRef.current);
         showFromIdle();
       }
     };
     const onMouseOut = (e: MouseEvent) => {
       if (shouldResumeIdleTimerAfterMouseOut(e.relatedTarget)) {
-        hoveringPauseTargetRef.current = false;
+        hoveringPauseTargetRef.current = null;
         if (!isPausedByUi()) startTimer();
       }
     };

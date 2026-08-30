@@ -241,6 +241,30 @@ describe('useIdleTimer', () => {
     expect(useUIStore.getState().isIdle).toBe(true);
   });
 
+  it('resumes hiding after a hovered control unmounts under the cursor', () => {
+    render(<IdleTimerHarness />);
+    const scene = screen.getByTestId('scene');
+
+    // The toy-loader and splat-chooser buttons close with the click that hits
+    // them. The browser fires no mouseout for an element that is gone, so a
+    // boolean hover latch stayed set for the rest of the session and every
+    // later timer refused to hide.
+    const closingButton = document.createElement('button');
+    scene.appendChild(closingButton);
+    closingButton.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+
+    // The click's own pointer event arms a fresh timer before the unmount.
+    fireEvent.pointerDown(closingButton, { pointerId: 1, pointerType: 'mouse', clientX: 5, clientY: 5 });
+    closingButton.remove();
+
+    act(() => {
+      vi.advanceTimersByTime(1_100);
+    });
+
+    expect(scene).toHaveAttribute('data-idle', 'true');
+    expect(useUIStore.getState().isIdle).toBe(true);
+  });
+
   it('does not postpone hiding during repeated scene movement outside functional UI', () => {
     render(<IdleTimerHarness />);
     const scene = screen.getByTestId('scene');

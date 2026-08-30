@@ -118,6 +118,24 @@ export function isIdlePauseTarget(target: EventTarget | null): boolean {
     target.closest(IDLE_PAUSE_TARGET_SELECTOR) !== null;
 }
 
+/** The pause-target element a hover event lands on, or null — ignored scopes included. */
+export function getIdleHoverPauseTarget(target: EventTarget | null): Element | null {
+  if (!isElementTarget(target) || isIdleIgnoredTarget(target)) return null;
+  return target.closest(IDLE_PAUSE_TARGET_SELECTOR);
+}
+
+/**
+ * A latched hover pause is only real while its element is still in the
+ * document. Pause targets routinely unmount mid-hover — a button that closes
+ * its own modal fires no mouseout afterwards — and a boolean latch therefore
+ * stayed set for the rest of the session, so chrome never auto-hid again after
+ * the first such click. Connectedness is re-checked at decision time rather
+ * than at event time because no DOM event marks the unmount.
+ */
+export function isIdleHoverPauseActive(element: Element | null): boolean {
+  return element !== null && element.isConnected;
+}
+
 export function isIdleFocusPauseTarget(target: EventTarget | null): boolean {
   return isElementTarget(target) &&
     !isIdleIgnoredTarget(target) &&

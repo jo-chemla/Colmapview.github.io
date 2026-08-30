@@ -7,8 +7,10 @@ import {
   IDLE_IGNORE_SELECTOR,
   IDLE_PAUSE_TARGET_SELECTOR,
   IDLE_WAKE_TAP_MAX_MOVE_PX,
+  getIdleHoverPauseTarget,
   isIdleFocusPauseTarget,
   isIdleHideableTarget,
+  isIdleHoverPauseActive,
   isIdleIgnoredTarget,
   isIdlePauseTarget,
   isIdleWakeTap,
@@ -102,6 +104,38 @@ describe('idle timer policy', () => {
     expect(shouldResumeIdleTimerAfterMouseOut(document.createElement('button'))).toBe(false);
     expect(shouldResumeIdleTimerAfterMouseOut(document.createElement('div'))).toBe(true);
     expect(shouldResumeIdleTimerAfterMouseOut(null)).toBe(true);
+  });
+
+  it('resolves the pause-target element a hover lands on, honouring the ignore scope', () => {
+    const button = document.createElement('button');
+    const label = document.createElement('span');
+    button.appendChild(label);
+
+    const gallery = document.createElement('div');
+    gallery.dataset.idleIgnore = 'true';
+    const galleryButton = document.createElement('button');
+    gallery.appendChild(galleryButton);
+
+    expect(getIdleHoverPauseTarget(label)).toBe(button);
+    expect(getIdleHoverPauseTarget(button)).toBe(button);
+    expect(getIdleHoverPauseTarget(document.createElement('div'))).toBeNull();
+    expect(getIdleHoverPauseTarget(galleryButton)).toBeNull();
+    expect(getIdleHoverPauseTarget(document.createTextNode('label'))).toBeNull();
+    expect(getIdleHoverPauseTarget(null)).toBeNull();
+  });
+
+  it('drops a hover pause once its element leaves the document', () => {
+    const button = document.createElement('button');
+    document.body.appendChild(button);
+
+    expect(isIdleHoverPauseActive(button)).toBe(true);
+
+    // A control that closes with the click — the toy loader, the splat chooser —
+    // unmounts under the cursor and never fires a mouseout.
+    button.remove();
+
+    expect(isIdleHoverPauseActive(button)).toBe(false);
+    expect(isIdleHoverPauseActive(null)).toBe(false);
   });
 
   it('resumes the timer only when focus leaves focus pause UI', () => {
