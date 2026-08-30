@@ -36,6 +36,40 @@ export function getIdleTimeoutDelayMs(timeoutSeconds: number): number | null {
 export const IDLE_WAKE_TAP_MAX_MOVE_PX = 10;
 
 /**
+ * One touch pointer's journey since its pointerdown: where it went down, and
+ * the FURTHEST it has been from there (squared, to keep the hot path free of
+ * sqrt). Endpoint distance alone would call a round-trip orbit — swing 200px
+ * out and drift back onto the start — a tap, because it only ever compares the
+ * two ends. Tracking the maximum makes any excursion disqualifying.
+ */
+export interface IdlePointerTravel {
+  readonly downPosition: IdlePointerPosition;
+  readonly maxTravelSquaredPx: number;
+}
+
+/** Start tracking a pointer from its pointerdown position. */
+export function beginIdlePointerTravel(downPosition: IdlePointerPosition): IdlePointerTravel {
+  return { downPosition, maxTravelSquaredPx: 0 };
+}
+
+/**
+ * Fold one more sample (a pointermove, or the pointerup itself) into a
+ * pointer's travel, keeping the largest distance from the down position seen so
+ * far. Pure: returns the same object when the sample does not extend the reach.
+ */
+export function extendIdlePointerTravel(
+  travel: IdlePointerTravel,
+  position: IdlePointerPosition
+): IdlePointerTravel {
+  const dx = position.x - travel.downPosition.x;
+  const dy = position.y - travel.downPosition.y;
+  const travelSquaredPx = dx * dx + dy * dy;
+  return travelSquaredPx > travel.maxTravelSquaredPx
+    ? { downPosition: travel.downPosition, maxTravelSquaredPx: travelSquaredPx }
+    : travel;
+}
+
+/**
  * A completed touch TAP — on anything, bare canvas included — wakes hidden
  * chrome. Desktop has two discoverable wake paths: Tab, and mousing over the
  * opacity-0 status bar, which stays hit-testable. Touch has neither, and the
@@ -47,20 +81,23 @@ export const IDLE_WAKE_TAP_MAX_MOVE_PX = 10;
  * covering most of the screen matches no pause selector, and the touch status
  * bar unmounts entirely (TouchStatusBar returns null), leaving no box to aim
  * at where desktop keeps one. Waking on any tap replaces that guesswork.
- * Taps only: orbit/pinch gestures travel past the threshold and keep chrome
+ *
+ * Taps only, judged on the pointer's MAXIMUM travel (`travel`, accumulated per
+ * pointerId by the caller) rather than on where it happened to end: orbit and
+ * pinch gestures pass the threshold somewhere along the way and keep chrome
  * hidden while the scene is being driven, matching the desktop rule that scene
- * interaction does not postpone hiding.
+ * interaction does not postpone hiding. `travel` is null when no pointerdown
+ * was recorded for this pointer — a pointerup with no history is never a tap.
  */
 export function isIdleWakeTap(
   pointerType: string,
-  downPosition: IdlePointerPosition | null,
+  travel: IdlePointerTravel | null,
   upPosition: IdlePointerPosition,
   threshold = IDLE_WAKE_TAP_MAX_MOVE_PX
 ): boolean {
-  if (pointerType !== 'touch' || !downPosition) return false;
-  const dx = upPosition.x - downPosition.x;
-  const dy = upPosition.y - downPosition.y;
-  return dx * dx + dy * dy <= threshold * threshold;
+  if (pointerType !== 'touch' || !travel) return false;
+  const { maxTravelSquaredPx } = extendIdlePointerTravel(travel, upPosition);
+  return maxTravelSquaredPx <= threshold * threshold;
 }
 
 function isElementTarget(target: EventTarget | null): target is Element {

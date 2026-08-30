@@ -1,6 +1,8 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useUIStore } from '../store';
 import {
+  beginIdlePointerTravel,
+  extendIdlePointerTravel,
   getIdleTimeoutDelayMs,
   isIdleFocusPauseTarget,
   isIdleIgnoredTarget,
@@ -8,7 +10,7 @@ import {
   isIdleWakeTap,
   shouldResumeIdleTimerAfterFocusOut,
   shouldResumeIdleTimerAfterMouseOut,
-  type IdlePointerPosition,
+  type IdlePointerTravel,
 } from './idleTimerPolicy';
 
 /**
@@ -21,7 +23,9 @@ export function useIdleTimer() {
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const hoveringPauseTargetRef = useRef(false);
   const focusPauseTargetRef = useRef(false);
-  const touchDownPositionRef = useRef<IdlePointerPosition | null>(null);
+  // Keyed on pointerId: a pinch has two live touches at once, and a single
+  // shared slot would pair one finger's down with the other's up.
+  const touchTravelRef = useRef<Map<number, IdlePointerTravel>>(new Map());
   const timeoutRef = useRef(useUIStore.getState().idleHideTimeout);
 
   const isPausedByUi = useCallback(
@@ -85,22 +89,40 @@ export function useIdleTimer() {
 
     // Touch tap-to-wake (see isIdleWakeTap). The generic activity handler above
     // deliberately filters to pause targets; these wrappers add the one touch
-    // exception without loosening that filter for mouse/pen.
+    // exception without loosening that filter for mouse/pen. pointermove is
+    // wrapped for the same reason: the tap test needs EVERY touch move to
+    // measure travel, including the ones over bare canvas that the filtered
+    // handler ignores.
+    const touchTravel = touchTravelRef.current;
     const onPointerDown = (e: PointerEvent) => {
-      touchDownPositionRef.current = e.pointerType === 'touch'
-        ? { x: e.clientX, y: e.clientY }
-        : null;
+      if (e.pointerType === 'touch') {
+        touchTravel.set(e.pointerId, beginIdlePointerTravel({ x: e.clientX, y: e.clientY }));
+      }
+      onPointerActivity(e);
+    };
+    const onPointerMove = (e: PointerEvent) => {
+      const travel = touchTravel.get(e.pointerId);
+      if (travel) {
+        touchTravel.set(e.pointerId, extendIdlePointerTravel(travel, { x: e.clientX, y: e.clientY }));
+      }
       onPointerActivity(e);
     };
     const onPointerUp = (e: PointerEvent) => {
+      const travel = touchTravel.get(e.pointerId) ?? null;
+      touchTravel.delete(e.pointerId);
       if (
         !isIdleIgnoredTarget(e.target) &&
-        isIdleWakeTap(e.pointerType, touchDownPositionRef.current, { x: e.clientX, y: e.clientY })
+        isIdleWakeTap(e.pointerType, travel, { x: e.clientX, y: e.clientY })
       ) {
         resetTimer();
       }
-      touchDownPositionRef.current = null;
       onPointerActivity(e);
+    };
+    // A cancelled pointer (the browser claiming the gesture, a lost touch)
+    // never produces a pointerup, so it has to drop its own entry — otherwise
+    // the stale travel outlives the gesture. No wake check: nothing completed.
+    const onPointerCancel = (e: PointerEvent) => {
+      touchTravel.delete(e.pointerId);
     };
 
     const onKeyDown = () => {
@@ -167,7 +189,8 @@ export function useIdleTimer() {
 
     el.addEventListener('pointerdown', onPointerDown, { passive: true });
     el.addEventListener('pointerup', onPointerUp, { passive: true });
-    el.addEventListener('pointermove', onPointerActivity, { passive: true });
+    el.addEventListener('pointercancel', onPointerCancel, { passive: true });
+    el.addEventListener('pointermove', onPointerMove, { passive: true });
     el.addEventListener('keydown', onKeyDown, { passive: true });
     el.addEventListener('wheel', onPointerActivity, { passive: true });
     document.addEventListener('mouseover', onMouseOver, { passive: true });
@@ -179,9 +202,11 @@ export function useIdleTimer() {
 
     return () => {
       clearTimeout(timerRef.current);
+      touchTravel.clear();
       el.removeEventListener('pointerdown', onPointerDown);
       el.removeEventListener('pointerup', onPointerUp);
-      el.removeEventListener('pointermove', onPointerActivity);
+      el.removeEventListener('pointercancel', onPointerCancel);
+      el.removeEventListener('pointermove', onPointerMove);
       el.removeEventListener('keydown', onKeyDown);
       el.removeEventListener('wheel', onPointerActivity);
       document.removeEventListener('mouseover', onMouseOver);

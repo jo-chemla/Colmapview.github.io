@@ -14,6 +14,22 @@ function dispatchMouseOut(target: Element, relatedTarget: Element | null) {
   target.dispatchEvent(event);
 }
 
+type TouchEventName = 'pointerDown' | 'pointerMove' | 'pointerUp' | 'pointerCancel';
+
+function touch(target: Element, name: TouchEventName, pointerId: number, x: number, y: number) {
+  fireEvent[name](target, { pointerId, pointerType: 'touch', clientX: x, clientY: y });
+}
+
+/** Run the timer out so the chrome is hidden, which is what a tap must undo. */
+function hideChrome(): HTMLElement {
+  const scene = screen.getByTestId('scene');
+  act(() => {
+    vi.advanceTimersByTime(1_100);
+  });
+  expect(scene).toHaveAttribute('data-idle', 'true');
+  return scene;
+}
+
 function expectHoverToPauseIdleHiding(target: Element) {
   const scene = screen.getByTestId('scene');
 
@@ -165,6 +181,61 @@ describe('useIdleTimer', () => {
     // whole flight.
     fireEvent.keyDown(document, { key: 'w' });
     fireEvent.keyDown(document, { key: 'Shift' });
+
+    expect(scene).toHaveAttribute('data-idle', 'true');
+    expect(useUIStore.getState().isIdle).toBe(true);
+  });
+
+  it('wakes hidden chrome on a still touch tap anywhere in the scene', () => {
+    render(<IdleTimerHarness />);
+    const scene = hideChrome();
+
+    touch(scene, 'pointerDown', 1, 100, 100);
+    touch(scene, 'pointerUp', 1, 103, 101);
+
+    expect(scene).toHaveAttribute('data-idle', 'false');
+    expect(useUIStore.getState().isIdle).toBe(false);
+  });
+
+  it('keeps chrome hidden for an orbit that returns to where it started', () => {
+    render(<IdleTimerHarness />);
+    const scene = hideChrome();
+
+    // Endpoint-only measurement called this a tap: the pointer ends on the
+    // pixel it started from, so down-to-up distance is zero even though the
+    // scene was being orbited the whole time. Travel is measured along the way.
+    touch(scene, 'pointerDown', 1, 100, 100);
+    touch(scene, 'pointerMove', 1, 200, 100);
+    touch(scene, 'pointerMove', 1, 100, 100);
+    touch(scene, 'pointerUp', 1, 100, 100);
+
+    expect(scene).toHaveAttribute('data-idle', 'true');
+    expect(useUIStore.getState().isIdle).toBe(true);
+  });
+
+  it('measures each finger against its own down position when a second joins', () => {
+    render(<IdleTimerHarness />);
+    const scene = hideChrome();
+
+    // A single shared down slot paired the fingers: the second finger's landing
+    // spot became the first finger's origin, so lifting the orbiting finger
+    // next to it read as a still tap and woke chrome mid-gesture.
+    touch(scene, 'pointerDown', 1, 100, 100);
+    touch(scene, 'pointerMove', 1, 400, 100);
+    touch(scene, 'pointerDown', 2, 395, 100);
+    touch(scene, 'pointerUp', 1, 400, 100);
+
+    expect(scene).toHaveAttribute('data-idle', 'true');
+    expect(useUIStore.getState().isIdle).toBe(true);
+  });
+
+  it('drops a cancelled pointer so a later stray pointerup cannot wake chrome', () => {
+    render(<IdleTimerHarness />);
+    const scene = hideChrome();
+
+    touch(scene, 'pointerDown', 1, 100, 100);
+    touch(scene, 'pointerCancel', 1, 100, 100);
+    touch(scene, 'pointerUp', 1, 100, 100);
 
     expect(scene).toHaveAttribute('data-idle', 'true');
     expect(useUIStore.getState().isIdle).toBe(true);
