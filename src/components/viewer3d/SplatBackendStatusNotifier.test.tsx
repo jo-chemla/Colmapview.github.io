@@ -13,6 +13,10 @@ function makeUnavailable(reason: string): SplatBackendResolution {
   };
 }
 
+// Shared no-op for tests that don't assert removal; lifecycle tests below
+// create their own local spies.
+const removeNotification = vi.fn();
+
 describe('SplatBackendStatusNotifier', () => {
   it('adds one warning for each forced-WebGPU failure key', () => {
     const addNotification = vi.fn(() => 'notification-1');
@@ -21,6 +25,8 @@ describe('SplatBackendStatusNotifier', () => {
     const { rerender } = render(
       <SplatBackendStatusNotifier
         addNotification={addNotification}
+        removeNotification={removeNotification}
+        sparkPreloadPending={false}
         requestedBackend="webgpu"
         splatBackendResolution={firstResolution}
         splatFile={file}
@@ -37,6 +43,8 @@ describe('SplatBackendStatusNotifier', () => {
     rerender(
       <SplatBackendStatusNotifier
         addNotification={addNotification}
+        removeNotification={removeNotification}
+        sparkPreloadPending={false}
         requestedBackend="webgpu"
         splatBackendResolution={firstResolution}
         splatFile={file}
@@ -48,6 +56,8 @@ describe('SplatBackendStatusNotifier', () => {
     rerender(
       <SplatBackendStatusNotifier
         addNotification={addNotification}
+        removeNotification={removeNotification}
+        sparkPreloadPending={false}
         requestedBackend="webgpu"
         splatBackendResolution={makeUnavailable('WebGPU splat renderer failed to initialize: adapter lost')}
         splatFile={file}
@@ -63,6 +73,8 @@ describe('SplatBackendStatusNotifier', () => {
     render(
       <SplatBackendStatusNotifier
         addNotification={addNotification}
+        removeNotification={removeNotification}
+        sparkPreloadPending={false}
         requestedBackend="webgpu"
         splatBackendResolution={makeUnavailable('WebGPU splat renderer is not available')}
         splatFile={new File(['x'], 'scene.spz')}
@@ -86,6 +98,8 @@ describe('SplatBackendStatusNotifier', () => {
     render(
       <SplatBackendStatusNotifier
         addNotification={addNotification}
+        removeNotification={removeNotification}
+        sparkPreloadPending={false}
         requestedBackend="auto"
         splatBackendResolution={fallbackResolution}
         splatFile={new File(['x'], 'scene.spz')}
@@ -112,6 +126,8 @@ describe('SplatBackendStatusNotifier', () => {
     render(
       <SplatBackendStatusNotifier
         addNotification={addNotification}
+        removeNotification={removeNotification}
+        sparkPreloadPending={false}
         requestedBackend="auto"
         splatBackendResolution={fallbackResolution}
         splatFile={new File(['x'], 'scene.spz')}
@@ -122,6 +138,108 @@ describe('SplatBackendStatusNotifier', () => {
     expect(addNotification).toHaveBeenCalledWith(
       'warning',
       'Using Spark fallback: WebGPU is unsupported. Enable WebGPU in your browser, or use a WebGPU-capable browser, for full features.'
+    );
+  });
+
+  it('shows a preparing note instead of a warning while the Spark download is pending', () => {
+    const addNotification = vi.fn(() => 'preparing-1');
+    const removePreparing = vi.fn();
+
+    render(
+      <SplatBackendStatusNotifier
+        addNotification={addNotification}
+        removeNotification={removePreparing}
+        sparkPreloadPending={true}
+        requestedBackend="auto"
+        splatBackendResolution={{
+          status: 'unavailable',
+          requested: 'auto',
+          backend: null,
+          gpuPsnr: false,
+          reason: 'No splat renderer is available',
+        }}
+        splatFile={new File(['x'], 'scene.ply')}
+        webGpuSplatCanvasMounted={false}
+      />
+    );
+
+    expect(addNotification).toHaveBeenCalledTimes(1);
+    expect(addNotification).toHaveBeenCalledWith('info', 'Preparing splat renderer…', 60000);
+  });
+
+  it('removes the preparing note and warns once the preload settles without Spark', () => {
+    const addNotification = vi.fn(() => 'preparing-1');
+    const removePreparing = vi.fn();
+    const unavailable: SplatBackendResolution = {
+      status: 'unavailable',
+      requested: 'auto',
+      backend: null,
+      gpuPsnr: false,
+      reason: 'No splat renderer is available',
+    };
+    const props = {
+      addNotification,
+      removeNotification: removePreparing,
+      requestedBackend: 'auto',
+      splatBackendResolution: unavailable,
+      splatFile: new File(['x'], 'scene.ply'),
+      webGpuSplatCanvasMounted: false,
+    } as const;
+
+    const { rerender } = render(
+      <SplatBackendStatusNotifier {...props} sparkPreloadPending={true} />
+    );
+    rerender(<SplatBackendStatusNotifier {...props} sparkPreloadPending={false} />);
+
+    expect(removePreparing).toHaveBeenCalledWith('preparing-1');
+    expect(addNotification).toHaveBeenCalledWith(
+      'warning',
+      expect.stringContaining('WebGPU splat renderer unavailable')
+    );
+  });
+
+  it('removes the preparing note quietly when Spark takes over', () => {
+    const addNotification = vi.fn(() => 'preparing-1');
+    const removePreparing = vi.fn();
+    const props = {
+      addNotification,
+      removeNotification: removePreparing,
+      requestedBackend: 'auto',
+      splatFile: new File(['x'], 'scene.ply'),
+      webGpuSplatCanvasMounted: false,
+    } as const;
+
+    const { rerender } = render(
+      <SplatBackendStatusNotifier
+        {...props}
+        sparkPreloadPending={true}
+        splatBackendResolution={{
+          status: 'unavailable',
+          requested: 'auto',
+          backend: null,
+          gpuPsnr: false,
+          reason: 'No splat renderer is available',
+        }}
+      />
+    );
+    rerender(
+      <SplatBackendStatusNotifier
+        {...props}
+        sparkPreloadPending={false}
+        splatBackendResolution={{
+          status: 'resolved',
+          requested: 'auto',
+          backend: 'spark',
+          gpuPsnr: false,
+          reason: 'Spark fallback selected because WebGPU is unsupported',
+        }}
+      />
+    );
+
+    expect(removePreparing).toHaveBeenCalledWith('preparing-1');
+    expect(addNotification).toHaveBeenCalledWith(
+      'warning',
+      expect.stringContaining('Using Spark fallback')
     );
   });
 });

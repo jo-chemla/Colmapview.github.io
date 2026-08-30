@@ -424,10 +424,15 @@ export function Scene3D() {
       />
       <SplatBackendStatusNotifier
         addNotification={addNotification}
+        removeNotification={removeNotification}
         requestedBackend={requestedSplatBackend}
         splatBackendResolution={splatBackendResolution}
         splatFile={splatFile}
         webGpuSplatCanvasMounted={webGpuSplatCanvasMounted}
+        sparkPreloadPending={
+          shouldPreloadSparkSplatRuntime(requestedSplatBackend, splatBackendAvailability)
+          && !splatBackendAvailability.spark
+        }
       />
       <Scene3DErrorBoundary backgroundColor={backgroundColor}>
         <Canvas

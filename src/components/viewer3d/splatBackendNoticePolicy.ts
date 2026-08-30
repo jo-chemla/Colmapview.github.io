@@ -9,7 +9,17 @@ export interface ForcedWebGpuSplatFailureNoticeOptions {
   splatFile?: Pick<File, 'name'>;
   splatBackendResolution: SplatBackendResolution;
   webGpuSplatCanvasMounted: boolean;
+  /**
+   * True while the Spark module download is the expected next step (the
+   * preload gate fired and availability.spark has not settled). An
+   * "unavailable" resolution during that window is a loading state, not an
+   * outcome, and must not raise the no-renderer warning.
+   */
+  sparkPreloadPending: boolean;
 }
+
+/** Shown (as an info notification) instead of a notice while the download runs. */
+export const SPLAT_RENDERER_PREPARING_MESSAGE = 'Preparing splat renderer…';
 
 export interface ForcedWebGpuSplatFailureNotice {
   key: string;
@@ -57,11 +67,18 @@ function getAutoWebGpuUnavailableNotice({
   requestedBackend,
   splatFile,
   splatBackendResolution,
+  sparkPreloadPending,
 }: ForcedWebGpuSplatFailureNoticeOptions): ForcedWebGpuSplatFailureNotice | null {
+  // Two loading states must stay silent, and they need separate guards:
+  // sparkPreloadPending covers the Spark download window (webGpu unsupported/
+  // failed, module in flight), while the string check covers the WebGPU init
+  // window (webGpu 'unavailable' with Spark already loaded), where the preload
+  // gate never fires and pending is therefore false.
   if (
     !splatFile ||
     requestedBackend !== 'auto' ||
     splatBackendResolution.status !== 'unavailable' ||
+    sparkPreloadPending ||
     splatBackendResolution.reason === 'Preparing WebGPU splat renderer'
   ) {
     return null;
