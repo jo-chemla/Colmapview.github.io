@@ -31,5 +31,9 @@
     "noUncheckedSideEffectImports": true
   },
   "include": ["src"],
-  "exclude": ["src/**/*_test.ts", "src/**/*.test.ts"]
+  /* Test sources are checked by vitest, not by the app project, which has no
+     node types. `src/test/cssRootTokens.ts` is a node-only helper shared by the
+     :root contract suites — it reads index.css off disk and never ships — so it
+     belongs on this list beside the *.test.ts files that consume it. */
+  "exclude": ["src/**/*_test.ts", "src/**/*.test.ts", "src/test/cssRootTokens.ts"]
 }

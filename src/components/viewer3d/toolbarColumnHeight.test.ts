@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { readRootTokens, resolveValueToPixels } from '../../test/cssRootTokens';
 import { controlPanelStyles, statusBarStyles } from '../../theme';
 
 /**
@@ -37,42 +38,18 @@ const toolbarSource = readFileSync(TOOLBAR_PATH, 'utf8');
 /** The shortest desktop window in which the whole column must stay reachable. */
 const MIN_SUPPORTED_VIEWPORT_HEIGHT = 540;
 
-const ROOT_FONT_SIZE = 16;
-
 /**
  * The --sp-* ladder from :root. The spacing utilities read it instead of
  * inlining rems — that indirection is what lets the compact tier re-scale every
  * padding/margin/gap inside a panel from a handful of rung declarations — so a
  * contract that measures a utility has to resolve one hop of `var()` to get a
- * real length back.
+ * real length back. The parser is shared (src/test/cssRootTokens.ts) and still
+ * THROWS on an unresolvable token rather than defaulting: a utility pointing at
+ * a rung that :root does not declare is a dead rule, and a silent 0 here would
+ * report the column as fitting when it does not.
  */
-const rootTokens = new Map<string, string>();
-{
-  const root = /:root\s*\{([^}]*)\}/.exec(css);
-  if (!root) throw new Error(`no :root block found in ${CSS_PATH}`);
-  for (const match of root[1].matchAll(/(--(?:[\w-]|\\.)+)\s*:\s*([^;]+);/g)) {
-    rootTokens.set(match[1].replace(/\\(.)/g, '$1'), match[2].trim());
-  }
-}
-
-function toPixels(value: string): number {
-  // Deliberately still THROWS on an unresolvable token rather than defaulting:
-  // a utility pointing at a rung that :root does not declare is a dead rule,
-  // and a silent 0 here would report the column as fitting when it does not.
-  const reference = value.match(/^var\((--(?:[\w-]|\\.)+)\)$/);
-  if (reference) {
-    const name = reference[1].replace(/\\(.)/g, '$1');
-    const resolved = rootTokens.get(name);
-    if (resolved === undefined) throw new Error(`${name} is not declared in :root`);
-    return toPixels(resolved);
-  }
-  if (value === '0') return 0;
-  const rem = value.match(/^([\d.]+)rem$/);
-  if (rem) return Number(rem[1]) * ROOT_FONT_SIZE;
-  const px = value.match(/^([\d.]+)px$/);
-  if (px) return Number(px[1]);
-  throw new Error(`Unsupported length: ${value}`);
-}
+const rootTokens = readRootTokens();
+const toPixels = (value: string): number => resolveValueToPixels(rootTokens, value);
 
 /** First declaration block for `selector` inside `source`. */
 function ruleBody(source: string, selector: string): string {

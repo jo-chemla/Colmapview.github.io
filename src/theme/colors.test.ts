@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { readRootTokens } from '../test/cssRootTokens';
 import { CANVAS_COLORS, CHART_COLORS, LINK_COLORS } from './colors';
 import {
   SPLAT_PSNR_GREEN,
@@ -29,23 +28,7 @@ import {
  * one, so "exempt" cannot quietly become "drifted".
  */
 
-const CSS_PATH = resolve(__dirname, '../index.css');
-
-// The :root block is thick with explanatory comments that quote hex values and
-// contrast arithmetic ("L >= 4.5 * (0.0129830 + 0.05) ..."). Strip them first so a
-// value named in prose can never be mistaken for a declaration — the same rule
-// classContract.test.ts applies to both sides of its contract.
-function readRootTokens(): Map<string, string> {
-  const css = readFileSync(CSS_PATH, 'utf8').replace(/\/\*[\s\S]*?\*\//g, ' ');
-  const root = /:root\s*\{([^}]*)\}/.exec(css);
-  if (!root) throw new Error(`no :root block found in ${CSS_PATH}`);
-  const tokens = new Map<string, string>();
-  for (const m of root[1].matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) {
-    tokens.set(m[1], m[2].trim());
-  }
-  return tokens;
-}
-
+// Token parsing lives in src/test/cssRootTokens.ts, shared with the other :root contracts.
 const tokens = readRootTokens();
 
 function token(name: string): string {

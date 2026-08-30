@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { readRootTokens, resolveValueToPixels } from '../test/cssRootTokens';
 import { TOUCH } from './sizing';
 
 /**
@@ -203,7 +204,6 @@ describe('utility class contract', () => {
  */
 describe('spacing ladder contract', () => {
   const rawCss = readFileSync(CSS_PATH, 'utf8');
-  const ROOT_FONT_SIZE = 16;
 
   const SPACING_UTILITY = /^-?(?:p|px|py|pt|pr|pb|pl|m|mx|my|mt|mr|mb|ml|gap|gap-x|gap-y|space-x|space-y)-/;
   const SPACING_DECLARATION =
@@ -237,24 +237,18 @@ describe('spacing ladder contract', () => {
     throw new Error('compact tier media query is unbalanced');
   }
 
-  /** :root spacing rungs, in px. Escaped names are resolved (`--sp-1\.5`). */
-  function rootLadder(): Map<string, number> {
-    const root = /:root\s*\{([^}]*)\}/.exec(rawCss.replace(/\/\*[\s\S]*?\*\//g, ' '));
-    if (!root) throw new Error(`no :root block found in ${CSS_PATH}`);
-    const ladder = new Map<string, number>();
-    for (const match of root[1].matchAll(/(--sp-(?:[\w-]|\\.)+)\s*:\s*([^;]+);/g)) {
-      const value = match[2].trim();
-      const rem = value.match(/^([\d.]+)rem$/);
-      const px = value.match(/^([\d.]+)px$/);
-      const pixels = rem
-        ? Number(rem[1]) * ROOT_FONT_SIZE
-        : px ? Number(px[1]) : value === '0' ? 0 : NaN;
-      ladder.set(unescape(match[1]), pixels);
-    }
-    return ladder;
-  }
-
-  const ladder = rootLadder();
+  /**
+   * :root spacing rungs, in px. Escaped names are resolved (`--sp-1\.5`) by the
+   * shared reader (src/test/cssRootTokens.ts). It THROWS on a rung it cannot
+   * read; the private parser this replaced stored NaN, which silently satisfied
+   * the `value <= ladder.get(name)` comparison below for that rung.
+   */
+  const rootTokens = readRootTokens();
+  const ladder = new Map(
+    [...rootTokens]
+      .filter(([name]) => name.startsWith('--sp-'))
+      .map(([name, value]) => [name, resolveValueToPixels(rootTokens, value)] as const)
+  );
 
   it('parses a full ladder out of :root', () => {
     // Guards the parser itself: an empty map would make everything below vacuous.
