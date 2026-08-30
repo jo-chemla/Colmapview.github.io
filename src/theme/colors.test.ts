@@ -123,6 +123,18 @@ describe('TS <-> CSS colour mirrors', () => {
     }
   });
 
+  it('pins the vivid quality-ramp stops by value', () => {
+    // These four are a DATA ENCODING, not chrome (splatPsnrMetric.ts). The
+    // off-the-semantic-ramp guard above cannot stop a re-mute that picks new
+    // near-muted hexes — that exact consolidation shipped and was reverted
+    // (user decision 2026-08-24: vivid). Moving these is a product decision;
+    // update this test only alongside one.
+    expect(SPLAT_PSNR_RED).toBe('#ef4444');
+    expect(SPLAT_PSNR_ORANGE).toBe('#fb923c');
+    expect(SPLAT_PSNR_YELLOW).toBe('#facc15');
+    expect(SPLAT_PSNR_GREEN).toBe('#22c55e');
+  });
+
   it('keeps the About-tab brand hues clear of the token palette', () => {
     // LINK_COLORS is a DOCUMENTED exemption (colors.ts): per-destination brand
     // hue, not status. This does not pin its values — a rebrand is free to move

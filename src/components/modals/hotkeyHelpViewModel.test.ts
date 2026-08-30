@@ -205,6 +205,25 @@ describe('hotkey help toggle labels', () => {
     expect(getHotkeyHelpToggleKeyLabels('escape')).toEqual(['Esc']);
     expect(getHotkeyHelpToggleKeyLabels('i')).toEqual(['I']);
   });
+
+  it('exports no floating info-button view model anymore', async () => {
+    // The top-left ⓘ button was dropped once the status bar gained its visible
+    // ⌨ Shortcuts entry into this same panel (2026-08-13); its predicate,
+    // classes, styles, and labels went with it.
+    const viewModel = await import('./hotkeyHelpViewModel');
+    for (const removed of [
+      'shouldShowHotkeyInfoButton',
+      'getHotkeyInfoButtonClassName',
+      'getHotkeyInfoButtonStyle',
+      'HOTKEY_INFO_BUTTON_CLASS',
+      'HOTKEY_INFO_BUTTON_HIDDEN_CLASS',
+      'HOTKEY_INFO_BUTTON_ICON_CLASS',
+      'HOTKEY_INFO_BUTTON_TITLE',
+      'HOTKEY_INFO_BUTTON_ARIA_LABEL',
+    ]) {
+      expect(viewModel).not.toHaveProperty(removed);
+    }
+  });
 });
 
 describe('hotkey help tabs view model', () => {

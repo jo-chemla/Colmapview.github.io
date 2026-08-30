@@ -62,6 +62,9 @@ describe('resolveColmapPaths', () => {
       'sparse/0/rigs.bin',
       'sparse/0/frames.bin',
     ]);
+    // The ignore is the point (0e96d19 removed the role): no field of the
+    // selection may resolve to the .db path.
+    expect(Object.values(sel ?? {})).not.toContain('sparse/0/database.db');
     expect(sel?.rigs).toBe('sparse/0/rigs.bin');
     expect(sel?.frames).toBe('sparse/0/frames.bin');
   });

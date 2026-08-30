@@ -73,6 +73,22 @@ describe('HotkeyHelpModal', () => {
     expect(screen.getByRole('tab', { name: 'Essentials' })).toBeVisible();
   });
 
+  it('opens from the store in touch mode — the touch status bar Help entry depends on it', () => {
+    useUIStore.setState({ touchMode: true });
+    renderModal();
+    openFromStatusBar();
+
+    expect(screen.getByText('Help')).toBeInTheDocument();
+  });
+
+  it('keeps the i hotkey working in embed mode', () => {
+    useUIStore.setState({ embedMode: true });
+    renderModal();
+
+    pressI();
+    expect(screen.getByText('Help')).toBeInTheDocument();
+  });
+
   it('shows both the ? and I toggle keys in the footer', () => {
     renderModal();
 

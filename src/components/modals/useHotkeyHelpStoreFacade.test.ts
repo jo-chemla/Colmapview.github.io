@@ -52,4 +52,18 @@ describe('useHotkeyHelpStoreFacade', () => {
     // The action never changes identity, so consumers need no memoization.
     expect(result.current.toggleHotkeyHelp).toBe(toggle);
   });
+
+  it('ignores touch mode, embed mode, and idle chrome changes', () => {
+    const { result } = renderHook(() => useHotkeyHelpStoreFacade());
+    const before = result.current;
+
+    act(() => {
+      useUIStore.setState({ touchMode: true, embedMode: true, isIdle: true });
+    });
+
+    // Same object identity: the facade subscribes to none of those keys, so
+    // re-adding a touchMode/embedMode/isIdle gate here (the pre-0.11 shape)
+    // fails this test instead of silently breaking the touch Help entry.
+    expect(result.current).toBe(before);
+  });
 });
