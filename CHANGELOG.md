@@ -29,8 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Splat previews no longer download the 5 MB renderer when the viewer is going to draw them with WebGPU instead.
+- Splat previews no longer download the 5 MB compatibility renderer when WebGPU will draw them — including on the first drop of a fresh session, which previously slipped through because the WebGPU renderer only reports ready after a splat canvas mounts.
+- The divider's grab strip no longer overhangs the 3D viewport, where a drag that started in the canvas's rightmost 4 pixels silently resized the gallery instead of orbiting.
+- The gallery's collapse tab stays fully on-screen while the gallery is collapsed; it previously lost half its width to the window edge, leaving a ~6px sliver as the reopen affordance.
 - The Help panel can now be opened on touch devices, from the status bar.
+- On touch devices, a tap anywhere — including the bare canvas — now wakes chrome hidden by the idle fade. Previously the only touch wake surface was the invisible box of a faded control, which nothing on screen hinted at, so idle chrome was effectively unrecoverable in practice.
+- The touch status bar is 44px tall so its Help entry is a real 44px target; the previous invisible tap box was centered on a 24px bar and swallowed orbit gestures that began in the strip of canvas above it.
 - Text labels drawn inside the 3D scene now use the interface typeface once fonts finish loading, instead of staying on a system fallback.
 - Floating tool windows no longer drift upward in the stacking order across a long session; the counter resets once the last window closes.
 - The "unavailable" marker in the cache-statistics tooltip is visible again.
@@ -39,6 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Notes
 
 - The splat renderer (5 MB) is loaded on demand and is not part of the initial page load; a test now enforces that, so it cannot regress silently.
+- If WebGPU fails after successfully initializing (device loss), the compatibility renderer now starts its 5 MB download at failure time instead of having a head start — an accepted tradeoff, since prefetching it while WebGPU is healthy would re-create the download the gate exists to avoid.
+- On machines whose WebGPU adapter fails intermittently, the viewer now spends up to ~21 seconds retrying (three attempts, backing off) before declaring WebGPU failed and downloading the compatibility renderer — previously the renderer was already warm on such machines. Bounded and self-healing, accepted for the same reason as above.
 
 ## [0.10.0] - 2026-08-12
 
