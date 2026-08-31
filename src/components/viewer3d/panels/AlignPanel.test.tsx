@@ -124,9 +124,9 @@ describe('AlignPanel', () => {
 
     const disabledFloor = screen.getByRole('button', { name: 'Floor Detection' });
     expect(disabledFloor).toBeDisabled();
-    // Still the preset SHAPE while gated, so it lines up under its goal caption
-    // instead of shrinking to a centered action button.
-    expect(disabledFloor.className).toContain('justify-start');
+    // A gated preset stays in the preset family (`w-full`) instead of borrowing
+    // actionButtonDisabled's action-row geometry (`flex-1`). The two render the
+    // same today; this pins which family it belongs to, not a visual difference.
     expect(disabledFloor.className).toContain('w-full');
     expect(disabledFloor.className).not.toContain('flex-1');
     fireEvent.click(disabledFloor);

@@ -432,11 +432,22 @@ export const controlPanelStyles = {
   // margin here would push the caption away from the buttons it labels and flatten
   // the list-gap-vs-group-gap difference that does the grouping.
   presetGroupLabel: 'text-ds-muted text-xs uppercase tracking-wide',
-  presetButton: `${buttonStyles.base} ${buttonStyles.sizes.toggle} ${buttonStyles.variants.toggle} w-full justify-start`,
-  // Disabled preset. Keeps the preset SHAPE (full width, left-aligned, toggle
-  // sizing) and only swaps the variant, so a gated button still lines up under
-  // its goal caption; actionButtonDisabled would render it centered and flex-1.
-  presetButtonDisabled: `${buttonStyles.base} ${buttonStyles.sizes.toggle} ${buttonStyles.disabled} bg-ds-secondary text-ds-muted w-full justify-start`,
+  // Labels are CENTERED: buttonStyles.base sets justify-center, and index.css
+  // declares .justify-center after .justify-start at equal specificity, so a
+  // `justify-start` appended here is inert no matter where it sits in the class
+  // attribute. Both tokens carried one until it was found to do nothing; don't
+  // re-add it. Left-aligning would mean pulling justify-center out of base
+  // (every button in the app) or reordering index.css — not worth it, and
+  // centered reads fine in the panel.
+  presetButton: `${buttonStyles.base} ${buttonStyles.sizes.toggle} ${buttonStyles.variants.toggle} w-full`,
+  // Disabled preset. Exists so a gated preset stays in the preset FAMILY —
+  // toggle padding and `w-full` — rather than borrowing actionButtonDisabled,
+  // whose `px-1`/`flex-1` geometry belongs to the action row. Today the two
+  // render identically here (full-width buttons with centered labels leave the
+  // padding and the width rule invisible); this is hygiene, so the two families
+  // can be retuned independently without a disabled preset silently following
+  // the action row.
+  presetButtonDisabled: `${buttonStyles.base} ${buttonStyles.sizes.toggle} ${buttonStyles.disabled} bg-ds-secondary text-ds-muted w-full`,
   // Action buttons (e.g., Reset, Apply) - references shared action button styles
   actionGroup: actionButtonStyles.group,
   actionButton: actionButtonStyles.button,
