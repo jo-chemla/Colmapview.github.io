@@ -271,9 +271,10 @@ export function resolveSplatBackend(
  * NEED: "is Spark the renderer this splat will be drawn with?" — a
  * forward-looking property of the backend choice alone, deliberately blind to
  * whether the module is downloaded, downloading, or unreachable. Consumers
- * outside the download path depend on exactly that (the byte-less loader gate
- * in urlLoaderPolicy asks what the renderer WILL be), so its semantics must not
- * absorb download state. Two derived predicates below add that state:
+ * outside the download path depend on exactly that — Scene3D and SplatLayer
+ * ask what the renderer WILL be, and urlLoaderPolicy's byte-less loader gate
+ * reasons about the same question — so its semantics must not absorb download
+ * state. Two derived predicates below add that state:
  * shouldStartSparkSplatRuntimePreload (should a download begin now?) and
  * isSparkSplatRuntimePreloadPending (is one in flight?).
  */
@@ -313,9 +314,10 @@ export function shouldPreloadSparkSplatRuntime(
  * write re-runs them — including the write that records the failure — and a
  * need-only guard would let each one re-download and re-warn.
  *
- * Consequence, accepted for this wave: the failure is terminal for the session
- * (only a successful load or a store reset clears it), so dropping a second
- * splat after a failed download does not retry. Retrying coherently needs a
+ * Consequence, accepted for this wave: the failure is terminal for the page.
+ * Nothing in the running app clears it — resetSplatBackendState exists but has
+ * no production caller — so dropping a second splat after a failed download
+ * does not retry; the user reloads. Retrying coherently needs a
  * "retrying" state the notice layer can read, which belongs with the deferred
  * resolver pending-status refactor rather than a silent re-attempt behind an
  * "unavailable" warning.

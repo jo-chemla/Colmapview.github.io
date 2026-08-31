@@ -33,7 +33,10 @@ export function SplatBackendStatusNotifier({
 }) {
   // Info notices are session FACTS — the fallback is a property of this
   // browser, told once ever, so a seen-set (not a last-key ref) is right:
-  // an A→B→A sequence must not re-announce A.
+  // an A→B→A sequence must not re-announce A. "Once ever" means once per
+  // mount of this component: it sits inside Scene3DErrorBoundary, whose Retry
+  // remounts the subtree and so clears the set. That is the behaviour we
+  // want — after a crash the user is starting over and should be told again.
   const seenInfoNoticeKeysRef = useRef(new Set<string>());
   // Warnings are EVENTS. The same failure arriving again after a different
   // one is a real second failure the user is looking at right now (a→b→a

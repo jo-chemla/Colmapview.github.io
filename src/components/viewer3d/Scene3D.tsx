@@ -454,11 +454,15 @@ export function Scene3D() {
         onAdapterUnavailable={handleWebGpuSplatAdapterUnavailable}
       />
       <Scene3DErrorBoundary backgroundColor={backgroundColor}>
-        {/* Inside the boundary on purpose: everything that can settle these
-            flags lives in the canvas subtree, so a canvas crash has to unmount
-            the notifier too — otherwise its sticky preparing note is stranded
-            with nothing left that could remove it. It renders null and uses no
-            R3F hooks, so it is a plain sibling of the Canvas. */}
+        {/* Inside the boundary on purpose. The two settle paths that run while
+            a splat is being prepared — SplatRuntimePreloader and SplatLayer —
+            both live in the canvas subtree, so a canvas crash would leave the
+            sticky preparing note with nothing able to remove it. Unmounting
+            the notifier with the subtree is what clears it. (The drop-time
+            preload in fileDropzoneWorkflow can also record a failure from
+            outside the Canvas, but it does not run for an already-dropped
+            file, so it cannot rescue this case.) The notifier renders null and
+            uses no R3F hooks, so it is a plain sibling of the Canvas. */}
         <SplatBackendStatusNotifier
           addNotification={addNotification}
           removeNotification={removeNotification}

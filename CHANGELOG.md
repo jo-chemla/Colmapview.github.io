@@ -13,13 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Choosing a splat no longer flashes a "no splat renderer is available" warning while the compatibility renderer is still downloading — that window now shows a brief "Preparing splat renderer…" note, and the warning is reserved for the case where the download actually failed.
+- Choosing a splat no longer flashes a "no splat renderer is available" warning while the compatibility renderer is still downloading — that window now shows a brief "Preparing splat renderer..." note, and the warning is reserved for the case where the download actually failed.
 - When WebGPU is hidden because the page was loaded over plain HTTP, the app now says so and suggests HTTPS, instead of wrongly advising a "WebGPU-capable browser".
 - The compatibility-renderer notice is informational (auto-dismissing) and appears once per session, instead of a persistent warning re-raised for every splat file.
-- A compatibility-renderer download that never arrives — offline, blocked CDN, ad-blocker — now settles: the "Preparing splat renderer…" note clears and the honest "no renderer available" warning appears. It previously stayed "preparing" for the rest of the session, with the warning suppressed behind it.
-- On a browser that cannot run WebGPU at all, the app no longer tells the user to reload over HTTPS — advice that could not have helped there. The connection is only blamed when fixing it would actually change the outcome.
-- The "Preparing splat renderer…" line is shown once, not simultaneously by the loading overlay and a notification.
+- A compatibility-renderer download that never arrives — offline, blocked CDN, ad-blocker — now settles: the "Preparing splat renderer..." note clears and the honest "no renderer available" warning appears. It previously stayed "preparing" for the rest of the session, with the warning suppressed behind it. Note that the failure is final for the page: dropping another splat will not retry the download, so reload once the network is back.
+- On a browser the app already knows cannot run WebGPU, the app no longer tells the user to reload over HTTPS — advice that could not have helped there. (Over plain HTTP the browser hides WebGPU entirely, so a browser we have no other reason to rule out is still given the HTTPS advice; that case is indistinguishable from the outside.)
+- The "Preparing splat renderer..." line is shown once, not simultaneously by the loading overlay and a notification.
 - Retrying a splat that failed to render warns again instead of failing silently over a blank viewport, while the once-per-session compatibility notice stays once per session.
+- When the WebGPU renderer fails at runtime, the message reports what the driver said without appending "Enable WebGPU in your browser" — on a machine whose browser is perfectly capable, that advice pointed at the wrong thing.
+- The Align panel's hint says what is actually useful now: results stack onto one pending transform, so several operations can be combined before a single Apply.
 
 ## [0.11.0] - 2026-08-29
 
@@ -449,7 +451,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TypeScript for type safety
 - Deno native test runner for testing
 
-[Unreleased]: https://github.com/ColmapView/colmapview.github.io/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/ColmapView/colmapview.github.io/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/ColmapView/colmapview.github.io/compare/v0.10.0...v0.11.0
+[0.10.0]: https://github.com/ColmapView/colmapview.github.io/compare/v0.9.3...v0.10.0
+[0.9.3]: https://github.com/ColmapView/colmapview.github.io/compare/v0.9.2...v0.9.3
+[0.9.2]: https://github.com/ColmapView/colmapview.github.io/compare/v0.9.1...v0.9.2
+[0.9.1]: https://github.com/ColmapView/colmapview.github.io/compare/v0.9.0...v0.9.1
+[0.9.0]: https://github.com/ColmapView/colmapview.github.io/compare/v0.8.2...v0.9.0
+[0.8.2]: https://github.com/ColmapView/colmapview.github.io/compare/v0.8.1...v0.8.2
+[0.8.1]: https://github.com/ColmapView/colmapview.github.io/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/ColmapView/colmapview.github.io/compare/v0.7.8...v0.8.0
 [0.7.8]: https://github.com/ColmapView/colmapview.github.io/compare/v0.7.7...v0.7.8
 [0.7.7]: https://github.com/ColmapView/colmapview.github.io/compare/v0.7.6...v0.7.7

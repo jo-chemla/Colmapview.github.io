@@ -20,7 +20,7 @@ View point clouds, camera frustums, and image matches directly in your browser. 
 - **3-Point Align** - Click three points clockwise to level that plane with Y-up.
 - **Interactive Gizmo** - Visual rotation/translation/scale controls.
 
-The toolbar's **Align** button holds everything that works out *where the scene should sit*, grouped by goal — *Set the origin* (Center at Origin, or 1-Point Origin), *Set the scale* (2-Point Scale), *Level the scene* (Floor Detection, or 3-Point Align) — so the automatic route and the pick-points route to the same result sit together. **Transform** (`T`) is the other half: the gizmo and the scale/rotate/translate sliders, for a transform you dial in by hand. Results stack onto one pending transform, and both panels offer the **Reset** / **Apply** that commits it. The viewport's right-click menu offers all of these too.
+The toolbar's **Align** button holds everything that works out *where the scene should sit*, grouped by goal — *Set the origin* (Center at Origin, or 1-Point Origin), *Set the scale* (2-Point Scale), *Level the scene* (Floor Detection, or 3-Point Align) — so the automatic route and the pick-points route to the same result sit together. **Transform** (`T`) is the other half: the gizmo and the scale/rotate/translate sliders, for a transform you dial in by hand. Results stack onto one pending transform, and both panels offer the **Reset** / **Apply** that commits it. The viewport's right-click menu offers the same operations (the sliders stay in the panel).
 
 ### Image Viewing
 - **Gallery View** - Grid or list layout with virtual scrolling for large datasets.
