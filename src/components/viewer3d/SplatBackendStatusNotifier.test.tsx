@@ -250,6 +250,39 @@ describe('SplatBackendStatusNotifier', () => {
     );
   });
 
+  it('warns once the forced Spark download settles, not while it runs', () => {
+    // Forcing Spark and losing it used to be silent: the preparing note
+    // cleared and nothing replaced it, leaving a blank viewport unexplained.
+    const addNotification = vi.fn(() => 'preparing-1');
+    const props = {
+      addNotification,
+      removeNotification,
+      requestedBackend: 'spark',
+      splatBackendResolution: {
+        status: 'unavailable',
+        requested: 'spark',
+        backend: null,
+        gpuPsnr: false,
+        reason: 'Spark renderer is unavailable',
+      },
+      splatFile: new File(['x'], 'scene.spz'),
+      webGpuSplatCanvasMounted: false,
+    } as const;
+
+    const { rerender } = render(
+      <SplatBackendStatusNotifier {...props} sparkPreloadPending />
+    );
+    expect(addNotification).toHaveBeenCalledTimes(1);
+    expect(addNotification).toHaveBeenCalledWith('info', SPLAT_LOADING_PROGRESS_MESSAGE, 0);
+
+    rerender(<SplatBackendStatusNotifier {...props} sparkPreloadPending={false} />);
+    expect(addNotification).toHaveBeenCalledTimes(2);
+    expect(addNotification).toHaveBeenLastCalledWith(
+      'warning',
+      expect.stringContaining('Remove ?splatBackend=spark from the URL')
+    );
+  });
+
   it('re-announces a warning when the same failure returns after a different one', () => {
     // Warnings are events, not session facts: a.spz -> b.spz -> a.spz is a
     // genuine retry, and a lifetime seen-set would leave the third attempt

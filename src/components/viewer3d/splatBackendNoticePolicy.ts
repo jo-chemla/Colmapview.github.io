@@ -43,12 +43,16 @@ const WEBGPU_HTTPS_SUGGESTION =
   'Reload the page over HTTPS for full features.';
 
 export function getWebGpuSplatBackendNotice(options: SplatBackendNoticeOptions): SplatBackendNotice | null {
+  // Order is presentational only: every chain below rejects on requestedBackend
+  // first, and the three preferences are disjoint, so no chain can shadow
+  // another. The two forced-backend chains are kept adjacent for that reason.
   return getForcedWebGpuSplatFailureNotice(options)
+    ?? getForcedSparkSplatFailureNotice(options)
     ?? getAutoWebGpuUnavailableNotice(options)
     ?? getAutoSparkFallbackNotice(options);
 }
 
-/** The shared no-renderer warning both unavailable chains produce. */
+/** The shared no-renderer warning the two WebGPU chains produce. */
 function unavailableNotice(
   splatFile: Pick<File, 'name'>,
   splatBackendResolution: SplatBackendResolution
@@ -79,6 +83,53 @@ export function getForcedWebGpuSplatFailureNotice({
   }
 
   return unavailableNotice(splatFile, splatBackendResolution);
+}
+
+/**
+ * The forced-Spark twin of the chain above, and the reason forcing a backend is
+ * now symmetric: forcing WebGPU and failing warns, so forcing Spark and failing
+ * must warn too instead of settling into an unexplained blank viewport.
+ *
+ * "Could not be loaded" is not a guess. resolveSplatBackend reports
+ * 'unavailable' for a forced Spark request exactly when availability.spark is
+ * false, and isSparkSplatRuntimePreloadPending is false there only once
+ * sparkPreloadFailed is set — which nothing but a rejected Spark module preload
+ * sets (all three call sites are preloadSparkModule catch handlers). It claims
+ * nothing about a Spark renderer that loaded and then failed to draw; no
+ * resolution models that today.
+ *
+ * Neither WebGPU suggestion is appended: both are WebGPU-specific advice, and
+ * this user asked for Spark on purpose. The URL param is the lever they have.
+ *
+ * webGpuSplatCanvasMounted is deliberately unread — shouldMountWebGpuSplatCanvas
+ * refuses to mount for a forced Spark request, so it is always false here.
+ */
+function getForcedSparkSplatFailureNotice({
+  requestedBackend,
+  splatFile,
+  splatBackendResolution,
+  sparkPreloadPending,
+}: SplatBackendNoticeOptions): SplatBackendNotice | null {
+  if (
+    !splatFile ||
+    requestedBackend !== 'spark' ||
+    splatBackendResolution.status !== 'unavailable' ||
+    // A download still in flight is a loading state, not an outcome; the sticky
+    // preparing note owns that window, exactly as in the auto chain below.
+    sparkPreloadPending
+  ) {
+    return null;
+  }
+
+  return {
+    // Per-file, like the forced-WebGPU chain: each file's failure is its own
+    // event, so a retry re-announces. The session-scoped `fallback:` key shape
+    // is for environment facts, which this is not.
+    key: `${splatFile.name}:${splatBackendResolution.reason}`,
+    message: `${splatBackendResolution.reason}: it could not be loaded, so the splat cannot be drawn. `
+      + 'Remove ?splatBackend=spark from the URL to let the app choose a renderer, or reload to try again.',
+    severity: 'warning',
+  };
 }
 
 function getAutoWebGpuUnavailableNotice({

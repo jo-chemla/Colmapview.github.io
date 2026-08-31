@@ -17,6 +17,19 @@ const unavailableResolution: SplatBackendResolution = {
   reason: 'WebGPU is unsupported in this browser',
 };
 
+// The one shape resolveSplatBackend produces for a forced-Spark failure.
+const forcedSparkUnavailableResolution: SplatBackendResolution = {
+  status: 'unavailable',
+  requested: 'spark',
+  backend: null,
+  gpuPsnr: false,
+  reason: 'Spark renderer is unavailable',
+};
+
+const forcedSparkMessage =
+  'Spark renderer is unavailable: it could not be loaded, so the splat cannot be drawn. '
+  + 'Remove ?splatBackend=spark from the URL to let the app choose a renderer, or reload to try again.';
+
 describe('splat backend notice policy', () => {
   it('creates a forced-WebGPU warning when no WebGPU canvas attempt is active', () => {
     const options = {
@@ -78,6 +91,99 @@ describe('splat backend notice policy', () => {
       webGpuSplatCanvasMounted: false,
       sparkPreloadPending: false,
     })).toBeNull();
+  });
+
+  it('warns when the forced Spark renderer never arrives', () => {
+    expect(getWebGpuSplatBackendNotice({
+      requestedBackend: 'spark',
+      splatFile: new File(['x'], 'scene.spz'),
+      splatBackendResolution: forcedSparkUnavailableResolution,
+      webGpuSplatCanvasMounted: false,
+      sparkPreloadPending: false,
+    })).toEqual({
+      key: 'scene.spz:Spark renderer is unavailable',
+      message: forcedSparkMessage,
+      severity: 'warning',
+    });
+  });
+
+  it('stays silent while the forced Spark download is still in flight', () => {
+    expect(getWebGpuSplatBackendNotice({
+      requestedBackend: 'spark',
+      splatFile: new File(['x'], 'scene.spz'),
+      splatBackendResolution: forcedSparkUnavailableResolution,
+      webGpuSplatCanvasMounted: false,
+      sparkPreloadPending: true,
+    })).toBeNull();
+  });
+
+  it('says nothing when the forced Spark renderer resolves, or without a file', () => {
+    expect(getWebGpuSplatBackendNotice({
+      requestedBackend: 'spark',
+      splatFile: new File(['x'], 'scene.spz'),
+      splatBackendResolution: {
+        status: 'resolved',
+        requested: 'spark',
+        backend: 'spark',
+        gpuPsnr: false,
+        reason: 'Spark renderer forced by splatBackend=spark',
+      },
+      webGpuSplatCanvasMounted: false,
+      sparkPreloadPending: false,
+    })).toBeNull();
+
+    expect(getWebGpuSplatBackendNotice({
+      requestedBackend: 'spark',
+      splatBackendResolution: forcedSparkUnavailableResolution,
+      webGpuSplatCanvasMounted: false,
+      sparkPreloadPending: false,
+    })).toBeNull();
+  });
+
+  it('keys forced-Spark failures per file and never gives WebGPU advice', () => {
+    const base = {
+      requestedBackend: 'spark',
+      splatBackendResolution: forcedSparkUnavailableResolution,
+      webGpuSplatCanvasMounted: false,
+      sparkPreloadPending: false,
+    } as const;
+
+    // Each file's failure is its own event, so a retry re-announces.
+    const first = getWebGpuSplatBackendNotice({ ...base, splatFile: new File(['x'], 'a.spz') });
+    const second = getWebGpuSplatBackendNotice({ ...base, splatFile: new File(['x'], 'b.spz') });
+    expect(first!.key).not.toBe(second!.key);
+
+    // Both WebGPU suggestions are nonsense for a user who forced Spark.
+    expect(first!.message).not.toContain('WebGPU');
+    expect(first!.message).not.toContain('HTTPS');
+  });
+
+  it('routes each requested backend to exactly one notice chain', () => {
+    // Every chain guards on requestedBackend ('auto' | 'webgpu' | 'spark'), so
+    // ordering in the wrapper cannot shadow. Prove it rather than assume it.
+    const base = {
+      splatFile: new File(['x'], 'scene.spz'),
+      webGpuSplatCanvasMounted: false,
+      sparkPreloadPending: false,
+    } as const;
+
+    expect(getWebGpuSplatBackendNotice({
+      ...base,
+      requestedBackend: 'webgpu',
+      splatBackendResolution: unavailableResolution,
+    })!.message).toContain('WebGPU splat renderer unavailable');
+
+    expect(getWebGpuSplatBackendNotice({
+      ...base,
+      requestedBackend: 'auto',
+      splatBackendResolution: { ...unavailableResolution, requested: 'auto' },
+    })!.message).toContain('WebGPU splat renderer unavailable');
+
+    expect(getWebGpuSplatBackendNotice({
+      ...base,
+      requestedBackend: 'spark',
+      splatBackendResolution: forcedSparkUnavailableResolution,
+    })!.message).toContain('?splatBackend=spark');
   });
 
   it('creates an auto-mode Spark fallback warning after WebGPU initialization fails', () => {
