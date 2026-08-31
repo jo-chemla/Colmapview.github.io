@@ -8,6 +8,7 @@ import {
 import { buildReconstruction } from '../../../test/builders';
 import { createIdentityEuler } from '../../../utils/sim3dTransforms';
 import { TransformPanel, type TransformPanelProps } from './TransformPanel';
+import { TRANSFORM_PENDING_HINT } from './transformPanelViewModel';
 
 function renderPanel(overrides: Partial<TransformPanelProps> = {}) {
   const props: TransformPanelProps = {
@@ -57,6 +58,9 @@ describe('TransformPanel', () => {
 
     expect(screen.getByRole('button', { name: 'Apply' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Reload' })).toBeInTheDocument();
+    // Same constant AlignPanel.test.tsx asserts. Without this, editing the copy
+    // in one panel would ship with the other left saying something else.
+    expect(screen.getByText(TRANSFORM_PENDING_HINT)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
 

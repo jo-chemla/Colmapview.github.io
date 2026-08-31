@@ -1,5 +1,4 @@
 import type { ColorMode, PointPickingMode } from '../../../store';
-import type { Sim3dEuler } from '../../../types/sim3d';
 import { getNextPickingMode } from '../contextMenu/globalContextMenuActionPolicy';
 import {
   getTransformCommitState,
@@ -92,10 +91,14 @@ export const ALIGN_GOALS: readonly AlignGoalDescriptor[] = [
 export const ALIGN_TOOLS: readonly AlignToolDescriptor[] = ALIGN_GOALS.map((goal) => goal.pick);
 
 export const ALIGN_PANEL_IDLE_TOOLTIP = 'Align tools';
-// Names the two METHODS, not the goals: the group captions above already carry
-// the goals, and repeating them here read as an echo rather than a hint.
+// States the one thing the panel cannot show: every operation here COMPOSES
+// onto the pending transform instead of replacing it or touching the data
+// (applyTransformPreset, distanceInputModalViewModel and floorPlaneAlignmentPolicy
+// all composeSim3d with the current transform), so several can be stacked before
+// a single Apply. Earlier drafts named the goals or the methods, which the group
+// captions and the button labels already say.
 export const ALIGN_PANEL_IDLE_HINT =
-  'Compute the transform automatically, or by picking points in the viewport.';
+  'Each result stacks onto the pending transform — combine several, then Apply once.';
 
 export interface AlignPanelState extends TransformCommitState {
   tooltip: string;
@@ -107,8 +110,11 @@ export interface AlignPanelState extends TransformCommitState {
 
 export interface AlignPanelStateInput {
   pickingMode: PointPickingMode;
-  /** The pending Sim3D transform every operation in this panel writes. */
-  transform: Sim3dEuler;
+  /**
+   * Whether the shared Sim3D transform every operation here writes is
+   * uncommitted. A boolean, not the transform: see `selectHasPendingTransform`.
+   */
+  hasPendingTransform: boolean;
   /** RANSAC needs a point cloud to fit a plane to. */
   hasPoints: boolean;
 }
@@ -171,11 +177,11 @@ export function getAlignToolLabel(pickingMode: PointPickingMode): string | null 
  */
 export function getAlignPanelState({
   pickingMode,
-  transform,
+  hasPendingTransform,
   hasPoints,
 }: AlignPanelStateInput): AlignPanelState {
   const activeToolLabel = getAlignToolLabel(pickingMode);
-  const commit = getTransformCommitState(transform);
+  const commit = getTransformCommitState(hasPendingTransform);
 
   if (!activeToolLabel) {
     return {

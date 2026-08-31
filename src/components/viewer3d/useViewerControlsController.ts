@@ -62,6 +62,13 @@ const styles = controlPanelStyles;
 export function useViewerControlsController(): ViewerControlsController {
   const panelState = useViewerControlPanelState();
   const modals = useViewerToolModalState();
+  // Stable identity, so it does not defeat memo(AlignPanel) on every controller
+  // render. The setter is destructured rather than used as `modals.setShow…` in
+  // the dependency list: a member expression there trips
+  // react-hooks/preserve-manual-memoization, and `modals` itself is a fresh
+  // object each render, which would defeat the memo it exists to keep.
+  const { setShowFloorModal } = modals;
+  const openFloorModal = useCallback(() => setShowFloorModal(true), [setShowFloorModal]);
   const { ui, nodes, actions, metrics, splats, reconstruction } = useViewerControlsStoreFacade();
   const {
     touchMode,
@@ -337,7 +344,7 @@ export function useViewerControlsController(): ViewerControlsController {
     transformPanel: panelState,
     alignPanel: {
       ...panelState,
-      onOpenFloorModal: () => modals.setShowFloorModal(true),
+      onOpenFloorModal: openFloorModal,
     },
     pointCloudPanel: {
       ...panelState,

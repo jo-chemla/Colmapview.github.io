@@ -16,6 +16,7 @@ import {
   formatTransformTranslationValue,
   getTransformPanelState,
   radiansToDegrees,
+  TRANSFORM_PENDING_HINT,
 } from './transformPanelViewModel';
 import { useTransformPanelStoreFacade } from './useTransformPanelStoreFacade';
 
@@ -183,9 +184,7 @@ export const TransformPanel = memo(function TransformPanel({
         </div>
 
         {panelState.hasChanges && (
-          <div className={styles.hint}>
-            Transform will be applied to reconstruction data when you click "Apply".
-          </div>
+          <div className={styles.hint}>{TRANSFORM_PENDING_HINT}</div>
         )}
       </div>
     </ControlButton>

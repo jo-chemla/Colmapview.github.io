@@ -20,7 +20,7 @@ View point clouds, camera frustums, and image matches directly in your browser. 
 - **3-Point Align** - Click three points clockwise to level that plane with Y-up.
 - **Interactive Gizmo** - Visual rotation/translation/scale controls.
 
-The three point-picking tools live in the toolbar's **Align** button; the gizmo lives in **Transform** (`T`). The viewport's right-click menu offers all four.
+The toolbar's **Align** button holds everything that works out *where the scene should sit*, grouped by goal — *Set the origin* (Center at Origin, or 1-Point Origin), *Set the scale* (2-Point Scale), *Level the scene* (Floor Detection, or 3-Point Align) — so the automatic route and the pick-points route to the same result sit together. **Transform** (`T`) is the other half: the gizmo and the scale/rotate/translate sliders, for a transform you dial in by hand. Results stack onto one pending transform, and both panels offer the **Reset** / **Apply** that commits it. The viewport's right-click menu offers all of these too.
 
 ### Image Viewing
 - **Gallery View** - Grid or list layout with virtual scrolling for large datasets.
@@ -85,7 +85,7 @@ Subfolders are scanned automatically (`sparse/0/`, `sparse/`, or any subfolder).
 
 The matches and selection-highlight buttons appear only while cameras are shown.
 
-**Settings > Tools** lists the app's tool windows in one place: *Delete Images from Model*, *Convert Camera Model*, *Floor Detection*, and *Auto-hide 3D Elements* (the last appears once the idle-hide timeout is on). Each keeps its original entry point too — deletion and camera conversion also live in Export, floor detection also in Transform.
+**Settings > Tools** lists the app's tool windows in one place: *Delete Images from Model*, *Convert Camera Model*, *Floor Detection*, and *Auto-hide 3D Elements* (the last appears once the idle-hide timeout is on). Each keeps its original entry point too — deletion and camera conversion also live in Export, floor detection also in Align.
 
 **Help panel** - titled *Help*, with **Essentials**, **Camera Controls**, and **About** tabs. Open it with `I` or `?`, or from the status bar's `⌨ Shortcuts` entry (on a phone, the touch status bar's `? Help`).
 

@@ -12,6 +12,7 @@ import {
 } from '../../../store';
 import type { Reconstruction } from '../../../types/colmap';
 import type { WasmReconstructionWrapper } from '../../../wasm/reconstruction';
+import { selectHasPendingTransform } from './transformPanelViewModel';
 
 interface AlignPanelDataFacade {
   reconstruction: Reconstruction | null;
@@ -29,9 +30,13 @@ interface AlignPanelPointPickingFacade {
  * Apply are enabled by whether the transform differs from identity, so the panel
  * has to re-render when any alignment op writes one — including the picking
  * tools' own results, which land while this panel is open.
+ *
+ * The subscription is to the derived BOOLEAN, not the transform itself. Nothing
+ * this panel draws depends on the transform's components, and subscribing to the
+ * object re-rendered the panel on every frame of a gizmo drag.
  */
 interface AlignPanelTransformFacade {
-  transform: TransformState['transform'];
+  hasPendingTransform: boolean;
   resetTransform: TransformState['resetTransform'];
 }
 
@@ -88,7 +93,7 @@ export function useAlignPanelStoreFacade(): AlignPanelStoreFacade {
   const setShowPointCloud = usePointCloudStore((s) => s.setShowPointCloud);
   const setColorMode = usePointCloudStore((s) => s.setColorMode);
 
-  const transform = useTransformStore((s) => s.transform);
+  const hasPendingTransform = useTransformStore(selectHasPendingTransform);
   const resetTransform = useTransformStore((s) => s.resetTransform);
 
   return {
@@ -106,7 +111,7 @@ export function useAlignPanelStoreFacade(): AlignPanelStoreFacade {
       setColorMode,
     },
     transform: {
-      transform,
+      hasPendingTransform,
       resetTransform,
     },
     actions: {

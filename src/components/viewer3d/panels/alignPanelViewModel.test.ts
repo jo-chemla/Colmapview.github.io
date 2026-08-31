@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import type { Sim3dEuler } from '../../../types/sim3d';
 import {
   ALIGN_GOALS,
   ALIGN_PANEL_IDLE_HINT,
@@ -12,19 +11,9 @@ import {
   getAlignToolLabel,
 } from './alignPanelViewModel';
 
-const identityTransform: Sim3dEuler = {
-  scale: 1,
-  rotationX: 0,
-  rotationY: 0,
-  rotationZ: 0,
-  translationX: 0,
-  translationY: 0,
-  translationZ: 0,
-};
-
 const idleInput = {
   pickingMode: 'off',
-  transform: identityTransform,
+  hasPendingTransform: false,
   hasPoints: false,
 } as const;
 
@@ -100,7 +89,7 @@ describe('align panel view-model helpers', () => {
   it('carries the shared transform commit state, so Reset/Apply match the Transform panel', () => {
     expect(getAlignPanelState({
       ...idleInput,
-      transform: { ...identityTransform, translationY: -3 },
+      hasPendingTransform: true,
     })).toMatchObject({
       hasChanges: true,
       canApplyTransform: true,

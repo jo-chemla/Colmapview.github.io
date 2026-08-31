@@ -37,7 +37,7 @@ describe('useAlignPanelStoreFacade', () => {
     expect(result.current.data.reconstruction).toBe(reconstruction);
     expect(result.current.data.wasmReconstruction).toBe(wasmReconstruction);
     expect(result.current.pointPicking.pickingMode).toBe('origin-1pt');
-    expect(result.current.transform.transform).toBe(transform);
+    expect(result.current.transform.hasPendingTransform).toBe(true);
     expect(result.current.pointCloud.getPointCloudSnapshot()).toEqual({
       showPointCloud: false,
       colorMode: 'splats',
@@ -102,6 +102,30 @@ describe('useAlignPanelStoreFacade', () => {
     });
 
     expect(useTransformStore.getState().transform).toEqual(createIdentityEuler());
+  });
+
+  it('subscribes to the pending-transform flag, not the transform, so drags do not re-render it', () => {
+    let renderCount = 0;
+    const { result } = renderHook(() => {
+      renderCount += 1;
+      return useAlignPanelStoreFacade();
+    });
+
+    act(() => {
+      useTransformStore.getState().setTransform({ translationX: 1 });
+    });
+    const rendersAfterFlip = renderCount;
+    expect(result.current.transform.hasPendingTransform).toBe(true);
+
+    // Two more slider/gizmo steps. The flag does not change, so neither does the
+    // panel: subscribing to the transform object would re-render on all of them.
+    act(() => {
+      useTransformStore.getState().setTransform({ translationX: 2 });
+      useTransformStore.getState().setTransform({ translationX: 3 });
+    });
+
+    expect(renderCount).toBe(rendersAfterFlip);
+    expect(result.current.transform.hasPendingTransform).toBe(true);
   });
 
   it('routes point-picking and point-cloud actions back to owning stores', () => {

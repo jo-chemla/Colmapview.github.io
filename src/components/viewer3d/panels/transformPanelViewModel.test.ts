@@ -8,6 +8,7 @@ import {
   getTransformCommitState,
   getTransformPanelState,
   radiansToDegrees,
+  selectHasPendingTransform,
 } from './transformPanelViewModel';
 
 const identityTransform: Sim3dEuler = {
@@ -65,13 +66,13 @@ describe('transform panel view-model helpers', () => {
 });
 
 describe('getTransformCommitState', () => {
-  it('gates Reset and Apply on the transform differing from identity', () => {
-    expect(getTransformCommitState(identityTransform)).toEqual({
+  it('gates Reset and Apply on there being a pending transform', () => {
+    expect(getTransformCommitState(false)).toEqual({
       hasChanges: false,
       canApplyTransform: false,
       canResetTransform: false,
     });
-    expect(getTransformCommitState({ ...identityTransform, scale: 2 })).toEqual({
+    expect(getTransformCommitState(true)).toEqual({
       hasChanges: true,
       canApplyTransform: true,
       canResetTransform: true,
@@ -83,11 +84,28 @@ describe('getTransformCommitState', () => {
     // one transformStore value. If these ever disagree, one panel offers Apply
     // while the other refuses it for the same scene.
     const transform = { ...identityTransform, rotationZ: 0.25 };
-    const commit = getTransformCommitState(transform);
+    const commit = getTransformCommitState(selectHasPendingTransform({ transform }));
     expect(getTransformPanelState({
       transform,
       showGizmo: false,
       hasDroppedFiles: false,
     })).toMatchObject(commit);
+  });
+});
+
+describe('selectHasPendingTransform', () => {
+  it('reads identity as nothing pending, and any change as pending', () => {
+    expect(selectHasPendingTransform({ transform: identityTransform })).toBe(false);
+    expect(selectHasPendingTransform({ transform: { ...identityTransform, scale: 2 } })).toBe(true);
+    expect(selectHasPendingTransform({ transform: { ...identityTransform, rotationY: -0.1 } })).toBe(true);
+  });
+
+  it('returns a primitive, so a subscriber re-renders on the flip and not per drag frame', () => {
+    // The whole point of selecting the boolean: two different non-identity
+    // transforms are the same value here, so no re-render between them.
+    const first = selectHasPendingTransform({ transform: { ...identityTransform, translationX: 1 } });
+    const second = selectHasPendingTransform({ transform: { ...identityTransform, translationX: 2 } });
+    expect(typeof first).toBe('boolean');
+    expect(Object.is(first, second)).toBe(true);
   });
 });

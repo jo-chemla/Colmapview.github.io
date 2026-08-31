@@ -13,6 +13,7 @@ import {
 import { createIdentityEuler } from '../../../utils/sim3dTransforms';
 import { AlignPanel, type AlignPanelProps } from './AlignPanel';
 import { ALIGN_GOALS, ALIGN_TOOLS } from './alignPanelViewModel';
+import { TRANSFORM_PENDING_HINT } from './transformPanelViewModel';
 
 function renderPanel(overrides: Partial<AlignPanelProps> = {}) {
   const props: AlignPanelProps = {
@@ -121,8 +122,14 @@ describe('AlignPanel', () => {
     const onOpenFloorModal = vi.fn();
     renderPanel({ onOpenFloorModal });
 
-    expect(screen.getByRole('button', { name: 'Floor Detection' })).toBeDisabled();
-    fireEvent.click(screen.getByRole('button', { name: 'Floor Detection' }));
+    const disabledFloor = screen.getByRole('button', { name: 'Floor Detection' });
+    expect(disabledFloor).toBeDisabled();
+    // Still the preset SHAPE while gated, so it lines up under its goal caption
+    // instead of shrinking to a centered action button.
+    expect(disabledFloor.className).toContain('justify-start');
+    expect(disabledFloor.className).toContain('w-full');
+    expect(disabledFloor.className).not.toContain('flex-1');
+    fireEvent.click(disabledFloor);
     expect(onOpenFloorModal).not.toHaveBeenCalled();
 
     cleanup();
@@ -142,9 +149,9 @@ describe('AlignPanel', () => {
     renderPanel();
 
     expect(screen.getByRole('button', { name: 'Apply' })).toBeEnabled();
-    expect(
-      screen.getByText('Transform will be applied to reconstruction data when you click "Apply".')
-    ).toBeInTheDocument();
+    // Same constant TransformPanel.test.tsx asserts — the two panels must not
+    // drift into describing the same pending state differently.
+    expect(screen.getByText(TRANSFORM_PENDING_HINT)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
 

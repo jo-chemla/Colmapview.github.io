@@ -87,7 +87,7 @@ describe('settings panel view-model helpers', () => {
       ['autoHide', true],
     ]);
 
-    // Cameras without points (Export's Convert row exists, Transform's Floor
+    // Cameras without points (Export's Convert row exists, Align's Floor
     // Detection stays disabled) and points without cameras are separate gates.
     expect(getSettingsToolRows({
       hasReconstruction: true,

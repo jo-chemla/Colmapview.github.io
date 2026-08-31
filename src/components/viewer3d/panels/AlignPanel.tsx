@@ -14,6 +14,7 @@ import {
   getAlignPickingButtonState,
   type AlignAutomaticAction,
 } from './alignPanelViewModel';
+import { TRANSFORM_PENDING_HINT } from './transformPanelViewModel';
 import { useAlignPanelStoreFacade } from './useAlignPanelStoreFacade';
 
 const styles = controlPanelStyles;
@@ -45,13 +46,13 @@ export const AlignPanel = memo(function AlignPanel({
     data: { reconstruction, wasmReconstruction },
     pointPicking: { pickingMode, setPickingMode },
     pointCloud: { getPointCloudSnapshot, setShowPointCloud, setColorMode },
-    transform: { transform, resetTransform },
+    transform: { hasPendingTransform, resetTransform },
     actions: { applyTransformPreset, applyTransformToData },
   } = useAlignPanelStoreFacade();
 
   const panelState = getAlignPanelState({
     pickingMode,
-    transform,
+    hasPendingTransform,
     hasPoints: wasmReconstruction?.hasPoints() ?? false,
   });
 
@@ -114,7 +115,7 @@ export const AlignPanel = memo(function AlignPanel({
                   <button
                     onClick={runAutomatic[automatic.action]}
                     disabled={!automaticIsEnabled}
-                    className={automaticIsEnabled ? styles.presetButton : styles.actionButtonDisabled}
+                    className={automaticIsEnabled ? styles.presetButton : styles.presetButtonDisabled}
                     data-tooltip={automatic.tooltip}
                     data-tooltip-pos="bottom"
                   >
@@ -160,9 +161,7 @@ export const AlignPanel = memo(function AlignPanel({
         </div>
 
         {panelState.hasChanges && (
-          <div className={styles.hint}>
-            Transform will be applied to reconstruction data when you click "Apply".
-          </div>
+          <div className={styles.hint}>{TRANSFORM_PENDING_HINT}</div>
         )}
       </div>
     </ControlButton>

@@ -428,11 +428,15 @@ export const controlPanelStyles = {
   presetGroupList: 'flex flex-col gap-4 mt-3',
   presetGroup: 'flex flex-col gap-1.5',
   // Caption above a preset group. Same idiom as the Settings panel's section
-  // headings. Carries no margin of its own: the owning group's flex `gap` binds
-  // it to its buttons, and a margin here would lose to `.space-y-* > * + *`,
-  // which is declared later in index.css at equal specificity.
+  // headings. Carries no margin of its own: flex `gap` and margin ADD up, so a
+  // margin here would push the caption away from the buttons it labels and flatten
+  // the list-gap-vs-group-gap difference that does the grouping.
   presetGroupLabel: 'text-ds-muted text-xs uppercase tracking-wide',
   presetButton: `${buttonStyles.base} ${buttonStyles.sizes.toggle} ${buttonStyles.variants.toggle} w-full justify-start`,
+  // Disabled preset. Keeps the preset SHAPE (full width, left-aligned, toggle
+  // sizing) and only swaps the variant, so a gated button still lines up under
+  // its goal caption; actionButtonDisabled would render it centered and flex-1.
+  presetButtonDisabled: `${buttonStyles.base} ${buttonStyles.sizes.toggle} ${buttonStyles.disabled} bg-ds-secondary text-ds-muted w-full justify-start`,
   // Action buttons (e.g., Reset, Apply) - references shared action button styles
   actionGroup: actionButtonStyles.group,
   actionButton: actionButtonStyles.button,
