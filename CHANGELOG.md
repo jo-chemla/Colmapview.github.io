@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-08-31
+
 ### Changed
 
 - **Align and Transform are split by what they do, not by how old they are.** Align now holds every operation that works out where the scene should sit — **Center at Origin** and **Floor Detection** moved there from Transform — and groups them by goal, so the automatic way and the pick-points way of doing the same thing finally sit next to each other: *Set the origin* offers Center at Origin or 1-Point Origin, *Set the scale* offers 2-Point Scale, *Level the scene* offers Floor Detection or 3-Point Align. Transform keeps the gizmo and the sliders — the transform you dial in by hand. Both panels now show the same **Reset** and **Apply**, because there is one pending transform underneath and it should be committable from wherever you changed it; **Reload** is unchanged and stays in Transform, since re-reading the dropped files is not an alignment.
@@ -452,7 +454,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TypeScript for type safety
 - Deno native test runner for testing
 
-[Unreleased]: https://github.com/ColmapView/colmapview.github.io/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/ColmapView/colmapview.github.io/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/ColmapView/colmapview.github.io/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/ColmapView/colmapview.github.io/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/ColmapView/colmapview.github.io/compare/v0.9.3...v0.10.0
 [0.9.3]: https://github.com/ColmapView/colmapview.github.io/compare/v0.9.2...v0.9.3
