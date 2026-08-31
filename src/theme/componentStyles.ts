@@ -68,6 +68,12 @@ export const buttonStyles = {
 
   // States
   disabled: 'opacity-50 cursor-not-allowed pointer-events-none',
+  // The colors a disabled button wears — the `variants` entry the disabled
+  // state never had. Split from `disabled` above, which is behavior and opacity
+  // only, because a greyed-out button needs both and every family was pairing
+  // them by hand. The tokens below compose it; a few view-models outside this
+  // file still spell the pair out inline.
+  disabledSurface: 'bg-ds-secondary text-ds-muted',
 
   // Close button (X)
   close: 'text-ds-muted hover-ds-text-primary text-xl leading-none cursor-pointer',
@@ -102,9 +108,9 @@ export const actionButtonStyles = {
 
   // Standard action buttons (equal width distribution, compact padding)
   button: `${buttonStyles.base} px-1 py-1 text-sm ${buttonStyles.variants.toggle} flex-1`,
-  buttonDisabled: `${buttonStyles.base} px-1 py-1 text-sm ${buttonStyles.disabled} bg-ds-secondary text-ds-muted flex-1`,
+  buttonDisabled: `${buttonStyles.base} px-1 py-1 text-sm ${buttonStyles.disabled} ${buttonStyles.disabledSurface} flex-1`,
   buttonPrimary: `${buttonStyles.base} px-1 py-1 text-sm ${buttonStyles.variants.toggleActive} flex-1`,
-  buttonPrimaryDisabled: `${buttonStyles.base} px-1 py-1 text-sm ${buttonStyles.disabled} bg-ds-secondary text-ds-muted flex-1`,
+  buttonPrimaryDisabled: `${buttonStyles.base} px-1 py-1 text-sm ${buttonStyles.disabled} ${buttonStyles.disabledSurface} flex-1`,
 
   // Full-width primary action button (for "Done", "Confirm" dialogs)
   buttonFullWidth: 'w-full px-3 py-1.5 bg-ds-accent text-ds-void rounded text-sm hover-opacity-90 transition-opacity',
@@ -427,11 +433,14 @@ export const controlPanelStyles = {
   // thing telling the reader which caption owns which buttons.
   presetGroupList: 'flex flex-col gap-4 mt-3',
   presetGroup: 'flex flex-col gap-1.5',
-  // Caption above a preset group. Same idiom as the Settings panel's section
-  // headings. Carries no margin of its own: flex `gap` and margin ADD up, so a
-  // margin here would push the caption away from the buttons it labels and flatten
-  // the list-gap-vs-group-gap difference that does the grouping.
-  presetGroupLabel: 'text-ds-muted text-xs uppercase tracking-wide',
+  // Caption above a group of controls. Named for the role rather than for the
+  // preset list that happens to be its only consumer today: this is the same
+  // typography SettingsPanel repeats inline at each of its five section
+  // headings, which each append their own margins.
+  // Carries no margin of its own: flex `gap` and margin ADD up, so a margin
+  // here would push the caption away from the buttons it labels and flatten the
+  // list-gap-vs-group-gap difference that does the grouping.
+  panelSectionLabel: 'text-ds-muted text-xs uppercase tracking-wide',
   // Labels are CENTERED: buttonStyles.base sets justify-center, and index.css
   // declares .justify-center after .justify-start at equal specificity, so a
   // `justify-start` appended here is inert no matter where it sits in the class
@@ -440,14 +449,9 @@ export const controlPanelStyles = {
   // (every button in the app) or reordering index.css — not worth it, and
   // centered reads fine in the panel.
   presetButton: `${buttonStyles.base} ${buttonStyles.sizes.toggle} ${buttonStyles.variants.toggle} w-full`,
-  // Disabled preset. Exists so a gated preset stays in the preset FAMILY —
-  // toggle padding and `w-full` — rather than borrowing actionButtonDisabled,
-  // whose `px-1`/`flex-1` geometry belongs to the action row. Today the two
-  // render identically here (full-width buttons with centered labels leave the
-  // padding and the width rule invisible); this is hygiene, so the two families
-  // can be retuned independently without a disabled preset silently following
-  // the action row.
-  presetButtonDisabled: `${buttonStyles.base} ${buttonStyles.sizes.toggle} ${buttonStyles.disabled} bg-ds-secondary text-ds-muted w-full`,
+  // Disabled preset: preset geometry, shared disabled surface — so this family
+  // and the action row can be retuned independently.
+  presetButtonDisabled: `${buttonStyles.base} ${buttonStyles.sizes.toggle} ${buttonStyles.disabled} ${buttonStyles.disabledSurface} w-full`,
   // Action buttons (e.g., Reset, Apply) - references shared action button styles
   actionGroup: actionButtonStyles.group,
   actionButton: actionButtonStyles.button,

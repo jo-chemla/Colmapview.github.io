@@ -81,7 +81,6 @@ export {
   applyTransformPreset,
   applyTransformToData,
   resetTransformWithCleanup,
-  hasActiveTransform,
   getCurrentTransform,
   // Session actions
   resetSession,

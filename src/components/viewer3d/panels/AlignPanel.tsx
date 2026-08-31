@@ -109,7 +109,7 @@ export const AlignPanel = memo(function AlignPanel({
 
             return (
               <div key={goal.goal} className={styles.presetGroup}>
-                <div className={styles.presetGroupLabel}>{goal.goal}</div>
+                <div className={styles.panelSectionLabel}>{goal.goal}</div>
 
                 {automatic && (
                   <button

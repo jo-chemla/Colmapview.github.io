@@ -36,7 +36,6 @@ export {
   applyTransformPreset,
   applyTransformToData,
   resetTransformWithCleanup,
-  hasActiveTransform,
   getCurrentTransform,
 } from './transformActions.js';
 

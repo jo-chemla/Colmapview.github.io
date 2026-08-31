@@ -181,26 +181,27 @@ export function getAlignPanelState({
   hasPoints,
 }: AlignPanelStateInput): AlignPanelState {
   const activeToolLabel = getAlignToolLabel(pickingMode);
-  const commit = getTransformCommitState(hasPendingTransform);
+  const shared = {
+    ...getTransformCommitState(hasPendingTransform),
+    canRunFloorDetection: hasPoints,
+  };
 
   if (!activeToolLabel) {
     return {
-      ...commit,
+      ...shared,
       tooltip: ALIGN_PANEL_IDLE_TOOLTIP,
       hint: ALIGN_PANEL_IDLE_HINT,
       isPicking: false,
       activeToolLabel: null,
-      canRunFloorDetection: hasPoints,
     };
   }
 
   return {
-    ...commit,
+    ...shared,
     tooltip: `Align: ${activeToolLabel} (click to cancel)`,
     hint: `${activeToolLabel} is armed — click points in the viewport, or press Esc to cancel.`,
     isPicking: true,
     activeToolLabel,
-    canRunFloorDetection: hasPoints,
   };
 }
 

@@ -42,7 +42,6 @@ describe('TransformPanel', () => {
   });
 
   it('no longer hosts the operations that compute a transform from the scene', () => {
-    useReconstructionStore.setState({ reconstruction: buildReconstruction() });
     renderPanel();
 
     // Both moved to Align, where they sit beside the pick tools that reach the

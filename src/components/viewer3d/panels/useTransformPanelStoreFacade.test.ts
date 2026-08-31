@@ -36,22 +36,17 @@ describe('useTransformPanelStoreFacade', () => {
 
     const { result } = renderHook(() => useTransformPanelStoreFacade());
 
+    // Exhaustive on purpose: Center at Origin and Floor Detection now live in
+    // the Align panel, and they took `wasmReconstruction` with them.
     expect(result.current.data).toEqual({
       reconstruction,
       droppedFiles,
     });
     expect(result.current.transform.transform).toBe(transform);
     expect(result.current.ui.showGizmo).toBe(true);
+    // Only the commit is left here; `applyTransformPreset` moved with them.
+    expect(Object.keys(result.current.actions)).toEqual(['applyTransformToData']);
     expect(typeof result.current.actions.applyTransformToData).toBe('function');
-  });
-
-  it('drops the surface the moved preset buttons needed', () => {
-    const { result } = renderHook(() => useTransformPanelStoreFacade());
-
-    // Center at Origin and Floor Detection now live in the Align panel, and
-    // they took `applyTransformPreset` and the `hasPoints()` gate with them.
-    expect(result.current.actions).not.toHaveProperty('applyTransformPreset');
-    expect(result.current.data).not.toHaveProperty('wasmReconstruction');
   });
 
   it('leaves point picking to the align panel and subscribes to neither picking store', () => {

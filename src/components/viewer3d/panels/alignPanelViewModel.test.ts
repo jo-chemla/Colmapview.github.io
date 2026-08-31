@@ -1,14 +1,16 @@
 import { describe, expect, it } from 'vitest';
+import type { ContextMenuAction, PointPickingMode } from '../../../store';
+import { CONTEXT_MENU_ACTIONS } from '../contextMenu/contextMenuActions';
 import {
   ALIGN_GOALS,
   ALIGN_PANEL_IDLE_HINT,
   ALIGN_PANEL_IDLE_TOOLTIP,
-  ALIGN_TOOLS,
   applyAlignPickingActivation,
   getAlignPanelState,
   getAlignPickingActivation,
   getAlignPickingButtonState,
   getAlignToolLabel,
+  type AlignAutomaticAction,
 } from './alignPanelViewModel';
 
 const idleInput = {
@@ -17,44 +19,85 @@ const idleInput = {
   hasPoints: false,
 } as const;
 
+/**
+ * Which context-menu entry each align operation is the second entry point for.
+ * A `Record` over both id unions, so adding a goal half without deciding which
+ * menu entry it mirrors is a type error rather than an untested label.
+ */
+const MENU_ACTION_BY_ALIGN_ID: Record<
+  AlignAutomaticAction | Exclude<PointPickingMode, 'off'>,
+  ContextMenuAction
+> = {
+  centerAtOrigin: 'centerAtOrigin',
+  floorDetection: 'openFloorDetection',
+  'origin-1pt': 'onePointOrigin',
+  'distance-2pt': 'twoPointScale',
+  'normal-3pt': 'threePointAlign',
+};
+
 describe('align panel view-model helpers', () => {
-  it('exposes exactly the three context-menu point-picking tools, in menu order', () => {
-    expect(ALIGN_TOOLS.map((tool) => [tool.mode, tool.label])).toEqual([
-      ['origin-1pt', '1-Point Origin'],
-      ['distance-2pt', '2-Point Scale'],
-      ['normal-3pt', '3-Point Align'],
-    ]);
-  });
-
-  it('pairs each goal with its automatic half and its pick-points half', () => {
-    expect(ALIGN_GOALS.map((goal) => [
-      goal.goal,
-      goal.automatic?.label ?? null,
-      goal.pick.label,
-    ])).toEqual([
-      ['Set the origin', 'Center at Origin', '1-Point Origin'],
-      ['Set the scale', null, '2-Point Scale'],
-      ['Level the scene', 'Floor Detection', '3-Point Align'],
-    ]);
-  });
-
-  it('keeps the tool list a projection of the goals, so the two cannot drift', () => {
-    expect(ALIGN_TOOLS).toEqual(ALIGN_GOALS.map((goal) => goal.pick));
-  });
-
-  it('keeps the automatic labels and tooltips they had in the Transform panel', () => {
-    expect(ALIGN_GOALS.map((goal) => goal.automatic).filter((a) => a !== null)).toEqual([
+  it('groups the goals in panel order, each with its automatic half and its pick tool', () => {
+    expect(ALIGN_GOALS).toEqual([
       {
-        action: 'centerAtOrigin',
-        label: 'Center at Origin',
-        tooltip: 'Move scene center to (0,0,0)',
+        goal: 'Set the origin',
+        automatic: {
+          action: 'centerAtOrigin',
+          label: 'Center at Origin',
+          tooltip: 'Move scene center to (0,0,0)',
+        },
+        pick: {
+          mode: 'origin-1pt',
+          label: '1-Point Origin',
+          tooltip: '{LMB} Click 1 point to set as origin (0,0,0)',
+        },
       },
       {
-        action: 'floorDetection',
-        label: 'Floor Detection',
-        tooltip: 'RANSAC floor plane detection',
+        goal: 'Set the scale',
+        // No automatic half on purpose: normalizing to a unit bounding box is
+        // not a scale anyone asked for.
+        automatic: null,
+        pick: {
+          mode: 'distance-2pt',
+          label: '2-Point Scale',
+          tooltip: '{LMB} Click 2 points, set target distance',
+        },
+      },
+      {
+        goal: 'Level the scene',
+        automatic: {
+          action: 'floorDetection',
+          label: 'Floor Detection',
+          tooltip: 'RANSAC floor plane detection',
+        },
+        pick: {
+          mode: 'normal-3pt',
+          label: '3-Point Align',
+          tooltip: '{LMB} Click 3 points clockwise to align plane with Y-up',
+        },
       },
     ]);
+  });
+
+  // ALIGN_GOALS claims in prose that its labels match the context menu's. Assert
+  // that against CONTEXT_MENU_ACTIONS itself: re-typed literals would let a
+  // rename on either side ship with the two surfaces naming one operation two
+  // ways and every test still green. Same contract idiom as classContract and
+  // sparkImportBoundary.
+  it('labels every operation exactly as the context menu labels it', () => {
+    const alignLabels = Object.fromEntries(
+      ALIGN_GOALS.flatMap((goal) => [
+        ...(goal.automatic ? [[goal.automatic.action, goal.automatic.label] as const] : []),
+        [goal.pick.mode, goal.pick.label] as const,
+      ])
+    );
+    const menuLabels = Object.fromEntries(
+      Object.entries(MENU_ACTION_BY_ALIGN_ID).map(([alignId, menuId]) => [
+        alignId,
+        CONTEXT_MENU_ACTIONS.find((action) => action.id === menuId)?.label,
+      ])
+    );
+
+    expect(alignLabels).toEqual(menuLabels);
   });
 
   it('names the armed tool, and nothing when picking is off', () => {

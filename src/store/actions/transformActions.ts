@@ -133,14 +133,6 @@ export function resetTransformWithCleanup(): void {
 }
 
 /**
- * Check if the current transform is non-identity (has changes).
- */
-export function hasActiveTransform(): boolean {
-  const transform = useTransformStore.getState().transform;
-  return !isIdentityEuler(transform);
-}
-
-/**
  * Get the current transform for external use.
  */
 export function getCurrentTransform(): ReturnType<typeof useTransformStore.getState>['transform'] {
