@@ -44,8 +44,10 @@ const WEBGPU_HTTPS_SUGGESTION =
 
 export function getWebGpuSplatBackendNotice(options: SplatBackendNoticeOptions): SplatBackendNotice | null {
   // Order is presentational only: every chain below rejects on requestedBackend
-  // first, and the three preferences are disjoint, so no chain can shadow
-  // another. The two forced-backend chains are kept adjacent for that reason.
+  // first, and the three preferences are disjoint — and where two chains share
+  // a preference ('auto', the last two), they are split by resolution status,
+  // unavailable vs resolved. So no chain can shadow another, whatever the
+  // order. The two forced-backend chains are kept adjacent for readability.
   return getForcedWebGpuSplatFailureNotice(options)
     ?? getForcedSparkSplatFailureNotice(options)
     ?? getAutoWebGpuUnavailableNotice(options)
