@@ -15,6 +15,11 @@ import {
 import { moveCamera } from './trackballCameraMutations';
 import type { TrackballAnimationTarget } from './useTrackballFlyTo';
 
+// ?pointerlock=0 disables pointer-lock acquisition entirely (useful for embeds/automation)
+const POINTER_LOCK_DISABLED_BY_URL =
+  typeof window !== 'undefined' &&
+  new URLSearchParams(window.location.search).get('pointerlock') === '0';
+
 export interface XYValue {
   x: number;
   y: number;
@@ -223,7 +228,10 @@ export function handleTrackballPointerMove({
       navActions.clearNavigationHistory();
     }
 
-    if (shouldRequestPointerLock(pointerLock, pickingMode, pointerLockRequestedRef.current, isLocked)) {
+    if (
+      !POINTER_LOCK_DISABLED_BY_URL &&
+      shouldRequestPointerLock(pointerLock, pickingMode, pointerLockRequestedRef.current, isLocked)
+    ) {
       pointerLockRequestedRef.current = true;
       canvas.requestPointerLock();
     }

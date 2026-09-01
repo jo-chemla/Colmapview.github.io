@@ -679,18 +679,21 @@ export function getSplatDeviceTier(
 
 export function getManifestColmapFileEntries(manifest: ColmapManifest): ManifestColmapFileEntries {
   const { files } = manifest;
+  // Preserve the source extension: text-format models (cameras.txt, ...) must keep
+  // a .txt key so the parser routes them to the text parser instead of the binary one.
+  const ext = (path: string) => (/\.txt$/i.test(path) ? 'txt' : 'bin');
   const requiredFiles = [
-    { key: 'sparse/0/cameras.bin', path: files.cameras },
-    { key: 'sparse/0/images.bin', path: files.images },
-    { key: 'sparse/0/points3D.bin', path: files.points3D },
+    { key: `sparse/0/cameras.${ext(files.cameras)}`, path: files.cameras },
+    { key: `sparse/0/images.${ext(files.images)}`, path: files.images },
+    { key: `sparse/0/points3D.${ext(files.points3D)}`, path: files.points3D },
   ];
 
   const optionalFiles: UrlLoaderFileEntry[] = [];
   if (files.rigs) {
-    optionalFiles.push({ key: 'sparse/0/rigs.bin', path: files.rigs });
+    optionalFiles.push({ key: `sparse/0/rigs.${ext(files.rigs)}`, path: files.rigs });
   }
   if (files.frames) {
-    optionalFiles.push({ key: 'sparse/0/frames.bin', path: files.frames });
+    optionalFiles.push({ key: `sparse/0/frames.${ext(files.frames)}`, path: files.frames });
   }
   for (const path of manifest.splats ?? []) {
     optionalFiles.push({ key: path, path });
