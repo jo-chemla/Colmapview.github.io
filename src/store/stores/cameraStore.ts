@@ -123,7 +123,7 @@ export const useCameraStore = create<CameraState>()(
       cameraMode: 'orbit',
       cameraProjection: 'perspective',
       cameraFov: 60,
-      horizonLock: 'off',
+      horizonLock: 'on',
       autoRotateMode: 'off',
       autoRotateSpeed: 0.5,
       flySpeed: 2.5,

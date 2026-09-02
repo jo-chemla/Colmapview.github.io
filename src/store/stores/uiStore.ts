@@ -269,7 +269,7 @@ export const useUIStore = create<UIState>()(
       // sessions get the dark canvas. Keep in sync with the registry default in
       // config/registry/definitions/ui.ts.
       backgroundColor: '#161616',
-      showGizmo: false,
+      showGizmo: true,
       idleHideTimeout: 3,
       autoHideElements: { axes: true, grid: true, gizmo: true, points: false, cameras: false, matches: false, rigs: false, buttons: true },
       isIdle: false,

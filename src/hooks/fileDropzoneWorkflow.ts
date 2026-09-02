@@ -483,6 +483,17 @@ export async function processFileDropzoneFiles(
       `Loaded: ${parseResult.cameras.size} cameras, ${parseResult.images.size} images, ${pointCount.toLocaleString()} points`
     );
 
+    // A camera-only result almost always means the JS text parser silently failed on an
+    // oversized images.txt/points3D.txt (the memory-optimized WASM parser is binary-only).
+    if (parseResult.cameras.size > 0 && parseResult.images.size === 0 && pointCount === 0) {
+      const msg =
+        'Parsed cameras but 0 images/points — if your model is text format (.txt), large files ' +
+        '(>100MB) can silently exceed the JS text parser. Convert to binary, e.g. ' +
+        '`colmap model_converter --output_type BIN` (or pycolmap / kapture), and reload.';
+      logger.warn(`[Parser] ${msg}`);
+      deps.addNotification('warning', msg);
+    }
+
     const pointFilterWarning = getPointFilterWarning({
       minTrackLength: deps.getMinTrackLength(),
       pointCount,

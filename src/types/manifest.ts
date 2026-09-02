@@ -27,6 +27,12 @@ export interface ColmapManifest {
    */
   imagesPath?: string;
   /**
+   * Optional path prefix for full-resolution ("HD") images relative to baseUrl.
+   * When set, imagesPath can point at reduced thumbnails for fast gallery loading
+   * while detail views fetch the original from hdImagesPath.
+   */
+  hdImagesPath?: string;
+  /**
    * Path prefix for mask files relative to baseUrl.
    * Mask naming: imagesPath filename + ".png" suffix
    * Example: "masks/" means image "cam1/photo.jpg" gets mask "masks/cam1/photo.jpg.png"
@@ -67,6 +73,7 @@ export const ColmapManifestSchema = z.object({
     frames: z.string().optional(),
   }),
   imagesPath: z.string().optional(),
+  hdImagesPath: z.string().optional(),
   masksPath: z.string().optional(),
   skipImages: z.boolean().optional(),
   imageNameToPath: z.record(z.string(), z.string()).optional(),

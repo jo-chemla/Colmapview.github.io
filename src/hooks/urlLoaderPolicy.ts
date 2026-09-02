@@ -57,6 +57,8 @@ export interface ManifestColmapFileEntries {
 
 export interface ManifestLazySourceBases {
   imageUrlBase: string;
+  /** Full-resolution base for detail views when imageUrlBase serves thumbnails (manifest hdImagesPath). */
+  hdImageUrlBase?: string;
   maskUrlBase: string;
   /**
    * Absolute, already-encoded per-image URLs (COLMAP image name -> URL) for
@@ -708,6 +710,9 @@ export function getManifestLazySourceBases(manifest: ColmapManifest): ManifestLa
 
   const bases: ManifestLazySourceBases = {
     imageUrlBase: joinManifestUrlPath(manifest.baseUrl, imagesPath),
+    ...(manifest.hdImagesPath
+      ? { hdImageUrlBase: joinManifestUrlPath(manifest.baseUrl, manifest.hdImagesPath) }
+      : {}),
     maskUrlBase: joinManifestUrlPath(manifest.baseUrl, masksPath),
   };
 
