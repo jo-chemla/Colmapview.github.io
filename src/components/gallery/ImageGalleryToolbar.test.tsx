@@ -26,6 +26,8 @@ function renderToolbar(overrides = {}) {
     onSortFieldChange: vi.fn(),
     onThumbnailDisplayModeChange: vi.fn(),
     onViewModeChange: vi.fn(),
+    galleryColumns: 2,
+    onGalleryColumnsChange: vi.fn(),
     ...overrides,
   };
 

@@ -40,12 +40,14 @@ interface ImageGalleryToolbarProps {
   thumbnailDisplayMode: GalleryThumbnailDisplayMode;
   touchMode: boolean;
   viewMode: ViewMode;
+  galleryColumns: number;
   onCameraFilterChange: (cameraFilter: CameraFilter) => void;
   onBorderColorModeChange: (borderColorMode: GalleryBorderColorMode) => void;
   onSortDirectionToggle: () => void;
   onSortFieldChange: (sortField: SortField) => void;
   onThumbnailDisplayModeChange: (thumbnailDisplayMode: GalleryThumbnailDisplayMode) => void;
   onViewModeChange: (viewMode: ViewMode) => void;
+  onGalleryColumnsChange: (columns: number) => void;
 }
 
 function getViewModeButtonClass(isActive: boolean): string {
@@ -73,6 +75,8 @@ export function ImageGalleryToolbar({
   onSortFieldChange,
   onThumbnailDisplayModeChange,
   onViewModeChange,
+  galleryColumns,
+  onGalleryColumnsChange,
 }: ImageGalleryToolbarProps) {
   const sortFieldOptions = getGallerySortFieldOptions(showSplatMetricSort);
   const borderColorModeOptions = getGalleryBorderColorOptions(showSplatMetricBorder);
@@ -83,6 +87,17 @@ export function ImageGalleryToolbar({
       className={`image-gallery-toolbar ${touchMode ? 'image-gallery-toolbar--touch' : ''} h-auto py-1 pl-0.5 pr-1 bg-ds-tertiary`}
       data-testid="image-gallery-toolbar"
     >
+      <select
+        aria-label="Grid columns"
+        title="Grid columns (also: Shift+scroll on the grid)"
+        value={String(galleryColumns)}
+        onChange={(e) => onGalleryColumnsChange(Number(e.target.value))}
+        className={toolbarSelectClass}
+      >
+        {[1, 2, 3, 4, 5, 6, 8].map((n) => (
+          <option key={n} value={n}>{n} col</option>
+        ))}
+      </select>
       <select
         aria-label="Camera filter"
         value={cameraFilter}

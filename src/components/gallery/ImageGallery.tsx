@@ -164,6 +164,8 @@ export function ImageGallery({ isResizing = false }: ImageGalleryProps) {
       >
         {showToolbar && (
           <ImageGalleryToolbar
+            galleryColumns={galleryColumns}
+            onGalleryColumnsChange={setGalleryColumns}
             borderColorMode={borderColorMode}
             cameraFilter={cameraFilter}
             cameras={cameras}
