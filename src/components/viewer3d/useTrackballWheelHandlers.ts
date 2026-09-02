@@ -10,9 +10,11 @@ import {
   getPerspectiveWheelDistance,
   getWheelAdjustedValue,
   getWheelIntent,
+  getZoomToPointScale,
 } from './trackballControlsViewModel';
-import { moveCamera, setOrthographicZoom } from './trackballCameraMutations';
+import { applyWheelZoomAboutPoint, moveCamera, setOrthographicZoom } from './trackballCameraMutations';
 import type { TrackballAnimationTarget } from './useTrackballFlyTo';
+import { useCachedScenePointPick, type ScenePointPick } from './useTrackballScenePointPick';
 
 interface TrackballWheelHandlersOptions {
   canvas: HTMLCanvasElement;
@@ -21,7 +23,11 @@ interface TrackballWheelHandlersOptions {
   flySpeed: number;
   radius: number;
   zoomSpeed: number;
+  /** Point-cloud pick used to zoom toward the point under the cursor (perspective orbit). */
+  pickScenePoint: ScenePointPick;
+  targetVecRef: MutableRefObject<THREE.Vector3>;
   cameraQuatRef: MutableRefObject<THREE.Quaternion>;
+  distanceRef: MutableRefObject<number>;
   targetDistanceRef: MutableRefObject<number>;
   orthoZoomRef: MutableRefObject<number>;
   wheelHandledRef: MutableRefObject<boolean>;
@@ -49,7 +55,10 @@ export function handleTrackballWheel({
   flySpeed,
   radius,
   zoomSpeed,
+  pickScenePoint,
+  targetVecRef,
   cameraQuatRef,
+  distanceRef,
   targetDistanceRef,
   orthoZoomRef,
   wheelHandledRef,
@@ -92,6 +101,25 @@ export function handleTrackballWheel({
     orthoZoomRef.current = getOrthoWheelZoom(orthoZoomRef.current, event.deltaY, zoomSpeed);
     setOrthographicZoom(camera, orthoZoomRef.current);
   } else {
+    // Perspective orbit: zoom toward the point-cloud point under the cursor,
+    // dragging the pivot along so repeated zoom-in converges onto the surface.
+    // Empty space (no pick) falls back to the classic zoom-to-pivot easing.
+    const scale = getZoomToPointScale(event.deltaY);
+    const focus = scale !== 1 ? pickScenePoint(event.clientX, event.clientY) : null;
+
+    if (focus) {
+      applyWheelZoomAboutPoint({
+        camera,
+        focus,
+        scale,
+        targetVecRef,
+        cameraQuatRef,
+        distanceRef,
+        targetDistanceRef,
+      });
+      return;
+    }
+
     targetDistanceRef.current = getPerspectiveWheelDistance(
       targetDistanceRef.current,
       event.deltaY,
@@ -109,7 +137,10 @@ export function useTrackballWheelHandlers({
   flySpeed,
   radius,
   zoomSpeed,
+  pickScenePoint,
+  targetVecRef,
   cameraQuatRef,
+  distanceRef,
   targetDistanceRef,
   orthoZoomRef,
   wheelHandledRef,
@@ -119,6 +150,10 @@ export function useTrackballWheelHandlers({
   camerasActions,
   pointsActions,
 }: TrackballWheelHandlersOptions): void {
+  // Wheel events fire rapidly: throttle the (expensive) point-cloud pick by
+  // reusing the last result while the cursor stays near it and it is fresh.
+  const cachedPickScenePoint = useCachedScenePointPick(pickScenePoint);
+
   const handlerOptionsRef = useLatestRef<TrackballWheelHandlersOptions>({
     canvas,
     camera,
@@ -126,7 +161,10 @@ export function useTrackballWheelHandlers({
     flySpeed,
     radius,
     zoomSpeed,
+    pickScenePoint: cachedPickScenePoint,
+    targetVecRef,
     cameraQuatRef,
+    distanceRef,
     targetDistanceRef,
     orthoZoomRef,
     wheelHandledRef,

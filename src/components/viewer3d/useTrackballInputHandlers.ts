@@ -6,10 +6,12 @@ import {
   type TouchPointer,
 } from './trackballControlsViewModel';
 import type { TrackballAnimationTarget } from './useTrackballFlyTo';
+import { useTrackballDoubleClickHandlers } from './useTrackballDoubleClickHandlers';
 import { useTrackballKeyboardHandlers } from './useTrackballKeyboardHandlers';
 import { useTrackballPointerHandlers } from './useTrackballPointerHandlers';
 import { useTrackballTouchHandlers } from './useTrackballTouchHandlers';
 import { useTrackballWheelHandlers } from './useTrackballWheelHandlers';
+import type { ScenePointPick } from './useTrackballScenePointPick';
 
 interface XYValue {
   x: number;
@@ -29,6 +31,8 @@ interface TrackballInputHandlersOptions {
   rotateSpeed: number;
   panSpeed: number;
   zoomSpeed: number;
+  /** Point-cloud pick under the cursor (double-click re-pivot, wheel zoom-to-cursor). */
+  pickScenePoint: ScenePointPick;
   applyRotation: (deltaX: number, deltaY: number) => void;
   updateCamera: () => void;
   isDraggingRef: MutableRefObject<boolean>;
@@ -82,6 +86,7 @@ export function useTrackballInputHandlers({
   rotateSpeed,
   panSpeed,
   zoomSpeed,
+  pickScenePoint,
   applyRotation,
   updateCamera,
   isDraggingRef: isDragging,
@@ -165,7 +170,10 @@ export function useTrackballInputHandlers({
     flySpeed,
     radius,
     zoomSpeed,
+    pickScenePoint,
+    targetVecRef: targetVec,
     cameraQuatRef: cameraQuat,
+    distanceRef: distance,
     targetDistanceRef: targetDistance,
     orthoZoomRef: orthoZoom,
     wheelHandledRef: wheelHandled,
@@ -174,6 +182,21 @@ export function useTrackballInputHandlers({
     navActions,
     camerasActions,
     pointsActions,
+  });
+
+  useTrackballDoubleClickHandlers({
+    canvas,
+    camera,
+    cameraMode,
+    pickingMode,
+    pickScenePoint,
+    targetVecRef: targetVec,
+    cameraQuatRef: cameraQuat,
+    distanceRef: distance,
+    angularVelocityRef: angularVelocity,
+    animationTargetRef: animationTarget,
+    enabledRef: enabled,
+    navActions,
   });
 
   useTrackballPointerHandlers({

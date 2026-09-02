@@ -22,8 +22,10 @@ import {
   getTouchCenter,
   getTouchDistance,
   getWheelAdjustedValue,
+  getZoomToPointScale,
   hasPointerDelta,
   isDoubleTap,
+  ZOOM_TO_POINT_SCALE_PER_TICK,
   getViewDirectionVectors,
   getWheelIntent,
   isMovementKey,
@@ -156,6 +158,10 @@ describe('trackball controls view-model helpers', () => {
     expect(getPerspectiveWheelDistance(2.1, -10, 0.01, 2, 10)).toBe(2);
     // ...and zoom-in from below the floor holds position instead of jumping up.
     expect(getPerspectiveWheelDistance(0.005, -10, 0.01, 0.1, 0.1)).toBe(0.005);
+    // Zoom-to-point steps: fixed multiplicative fraction in, its inverse out.
+    expect(getZoomToPointScale(-10)).toBe(ZOOM_TO_POINT_SCALE_PER_TICK);
+    expect(getZoomToPointScale(10)).toBeCloseTo(1 / ZOOM_TO_POINT_SCALE_PER_TICK, 10);
+    expect(getZoomToPointScale(0)).toBe(1);
     expect(getPinchScale(100, 50)).toBe(2);
     expect(getPinchScale(100, 0)).toBe(1);
     expect(shouldApplyPinchScale(1.2, 0.1)).toBe(true);

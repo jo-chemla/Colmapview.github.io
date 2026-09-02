@@ -24,6 +24,7 @@ import { useTrackballFlyTo, type TrackballAnimationTarget } from './useTrackball
 import { useTrackballFrameLoop } from './useTrackballFrameLoop';
 import { useTrackballInputHandlers } from './useTrackballInputHandlers';
 import { useTrackballControlsStoreFacade } from './useTrackballControlsStoreFacade';
+import { useTrackballScenePointPick } from './useTrackballScenePointPick';
 
 export interface TrackballControlsProps {
   target: [number, number, number];
@@ -275,6 +276,10 @@ export function TrackballControls({ target, radius, resetTrigger, viewDirection,
     targetDistanceRef: targetDistance,
   });
 
+  // Point-cloud pick under the cursor, shared by double-click re-pivot and wheel
+  // zoom-to-cursor (reuses the measurement tools' nearest-point resolution).
+  const pickScenePoint = useTrackballScenePointPick();
+
   useTrackballInputHandlers({
     canvas: gl.domElement,
     camera,
@@ -288,6 +293,7 @@ export function TrackballControls({ target, radius, resetTrigger, viewDirection,
     rotateSpeed,
     panSpeed,
     zoomSpeed,
+    pickScenePoint,
     applyRotation,
     updateCamera,
     isDraggingRef: isDragging,

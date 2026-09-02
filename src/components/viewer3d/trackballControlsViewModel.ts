@@ -234,6 +234,18 @@ export function getPerspectiveWheelDistance(
   return Math.max(effectiveMinDistance, currentDistance * zoomFactor);
 }
 
+// Wheel zoom-to-cursor: multiplicative step applied to BOTH the orbit pivot and the
+// camera distance about the picked focus point, so the point under the cursor stays
+// put and repeated zoom-in converges the pivot onto the surface (Zeno-style — the
+// step is a fixed fraction of the remaining distance, so it never collapses to 0).
+export const ZOOM_TO_POINT_SCALE_PER_TICK = 0.82;
+
+export function getZoomToPointScale(deltaY: number, scalePerTick = ZOOM_TO_POINT_SCALE_PER_TICK): number {
+  if (deltaY < 0) return scalePerTick;
+  if (deltaY > 0) return 1 / scalePerTick;
+  return 1;
+}
+
 export function getPinchScale(initialDistance: number, currentDistance: number): number {
   if (initialDistance <= 0 || currentDistance <= 0) return 1;
   return initialDistance / currentDistance;

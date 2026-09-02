@@ -39,7 +39,10 @@ function createOptions(overrides: Partial<TrackballWheelHandlersOptions> = {}): 
     flySpeed: 2,
     radius: 5,
     zoomSpeed: 0.01,
+    pickScenePoint: () => null,
+    targetVecRef: ref(new THREE.Vector3()),
     cameraQuatRef: ref(new THREE.Quaternion()),
+    distanceRef: ref(10),
     targetDistanceRef: ref(10),
     orthoZoomRef: ref(2),
     wheelHandledRef: ref(false),
@@ -140,6 +143,36 @@ describe('trackball wheel handlers', () => {
     expect(options.navActions.clearNavigationHistory).toHaveBeenCalledOnce();
     expect(options.animationTargetRef.current).toBeNull();
     expect(options.targetDistanceRef.current).toBe(11);
+  });
+
+  it('zooms toward the picked focus point, dragging the pivot along', () => {
+    const options = createOptions({
+      pickScenePoint: () => new THREE.Vector3(10, 0, 0),
+      targetVecRef: ref(new THREE.Vector3(0, 0, 0)),
+      distanceRef: ref(10),
+      targetDistanceRef: ref(10),
+    });
+    const event = createWheelEvent({ deltaY: -10 });
+
+    handleTrackballWheel({ event, ...options });
+
+    // Pivot moves toward the focus by (1 - 0.82); distance scales by 0.82.
+    expect(options.targetVecRef.current.x).toBeCloseTo(1.8, 10);
+    expect(options.distanceRef.current).toBeCloseTo(8.2, 10);
+    expect(options.targetDistanceRef.current).toBeCloseTo(8.2, 10);
+    // Camera position is re-derived from pivot + quat·(0,0,distance).
+    expect(options.camera.position.x).toBeCloseTo(1.8, 10);
+    expect(options.camera.position.z).toBeCloseTo(8.2, 10);
+  });
+
+  it('falls back to zoom-to-pivot when no focus point resolves', () => {
+    const options = createOptions();
+    const event = createWheelEvent({ deltaY: 10 });
+
+    handleTrackballWheel({ event, ...options });
+
+    expect(options.targetDistanceRef.current).toBe(11);
+    expect(options.targetVecRef.current.toArray()).toEqual([0, 0, 0]);
   });
 
   it('updates orthographic zoom and projection matrix for navigation wheel input', () => {
