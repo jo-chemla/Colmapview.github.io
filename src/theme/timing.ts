@@ -43,7 +43,7 @@ export const CAMERA = {
 export const CONTROLS = {
   // Rotation/pan/zoom speeds
   rotateSpeed: 0.003,
-  panSpeed: 0.002,
+  panSpeed: 0.004, // world-units per px × distance-to-pivot; 0.002 tracked the surface at ~0.5× drag speed
   zoomSpeed: 0.0005,
 
   // Inertia and damping
