@@ -18,6 +18,14 @@ import { useReconstructionStore } from '../store/reconstructionStore';
 import { DatasetManager } from './DatasetManager';
 import { DatasetDiagnostics } from './DatasetDiagnostics';
 import type { DatasetState } from './types';
+import type { ColmapManifest } from '../types/manifest';
+
+/** Resolve the full-resolution image base from the manifest's hdImagesPath, if any. */
+function deriveHdImageUrlBase(manifest: ColmapManifest | null): string | null {
+  if (!manifest?.hdImagesPath) return null;
+  const base = manifest.baseUrl.endsWith('/') ? manifest.baseUrl : `${manifest.baseUrl}/`;
+  return `${base}${manifest.hdImagesPath}`;
+}
 
 // Re-export types and class
 export { DatasetManager } from './DatasetManager';
@@ -56,6 +64,7 @@ export function getDatasetManager(): DatasetManager {
       return {
         sourceType: state.sourceType,
         imageUrlBase: state.imageUrlBase,
+        hdImageUrlBase: deriveHdImageUrlBase(state.sourceManifest),
         maskUrlBase: state.maskUrlBase,
         imageNameToUrl: state.imageNameToUrl,
         loadedFiles: state.loadedFiles,
@@ -98,6 +107,7 @@ export function getDatasetDiagnostics(): DatasetDiagnostics {
 export function useDataset(): DatasetManager {
   const sourceType = useReconstructionStore((s) => s.sourceType);
   const imageUrlBase = useReconstructionStore((s) => s.imageUrlBase);
+  const sourceManifest = useReconstructionStore((s) => s.sourceManifest);
   const maskUrlBase = useReconstructionStore((s) => s.maskUrlBase);
   const imageNameToUrl = useReconstructionStore((s) => s.imageNameToUrl);
   const loadedFiles = useReconstructionStore((s) => s.loadedFiles);
@@ -106,11 +116,12 @@ export function useDataset(): DatasetManager {
     () => new DatasetManager(() => ({
       sourceType,
       imageUrlBase,
+      hdImageUrlBase: deriveHdImageUrlBase(sourceManifest),
       maskUrlBase,
       imageNameToUrl,
       loadedFiles,
     })),
-    [sourceType, imageUrlBase, maskUrlBase, imageNameToUrl, loadedFiles]
+    [sourceType, imageUrlBase, sourceManifest, maskUrlBase, imageNameToUrl, loadedFiles]
   );
 }
 

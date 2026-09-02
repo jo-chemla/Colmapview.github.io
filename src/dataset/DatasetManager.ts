@@ -52,6 +52,11 @@ export class DatasetManager {
    * @param imageName - Image name from COLMAP (e.g., "camera_123/00.png")
    * @returns The image File or null if not found/failed
    */
+  /** True when a distinct full-resolution image base (manifest hdImagesPath) is configured. */
+  hasHdImages(): boolean {
+    return this.getState().hdImageUrlBase != null;
+  }
+
   async getImage(imageName: string): Promise<File | null> {
     const state = this.getState();
     return await (this.getSourceAdapter(state)?.getImage(state, imageName) ?? Promise.resolve(null));

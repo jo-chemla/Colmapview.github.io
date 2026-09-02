@@ -13,6 +13,11 @@ export interface DatasetState {
   sourceType: DatasetSource | null;
   /** Base URL for fetching images (for 'url' and 'manifest' sources) */
   imageUrlBase: string | null;
+  /**
+   * Full-resolution base (manifest hdImagesPath) when imageUrlBase serves
+   * thumbnails; used by getMetricImage() and detail views.
+   */
+  hdImageUrlBase?: string | null;
   /** Base URL for fetching masks (for 'url' and 'manifest' sources) */
   maskUrlBase: string | null;
   /**

@@ -32,6 +32,19 @@ export function useImageDetailFiles({
 }: UseImageDetailFilesOptions) {
   const [imageCacheVersion, setImageCacheVersion] = useState(0);
   const [asyncMaskFile, setAsyncMaskFile] = useState<AsyncMaskFile | null>(null);
+  const [asyncHdFile, setAsyncHdFile] = useState<AsyncMaskFile | null>(null);
+
+  // Progressive HD: when the dataset declares a full-resolution base (manifest
+  // hdImagesPath), show the cached thumbnail immediately and swap to the HD
+  // image once fetched via getMetricImage (bypasses the resized display cache).
+  useEffect(() => {
+    if (!image || !dataset.hasHdImages()) return;
+    let cancelled = false;
+    dataset.getMetricImage(image.name).then((file) => {
+      if (!cancelled && file) setAsyncHdFile({ imageName: image.name, file, dataset });
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [dataset, image]);
 
   useEffect(() => {
     const namesToFetch = getImageNamesToFetch({
@@ -79,8 +92,11 @@ export function useImageDetailFiles({
   const imageFile = useMemo(() => {
     void imageCacheVersion;
     if (!image) return null;
+    if (asyncHdFile?.dataset === dataset && asyncHdFile.imageName === image.name && asyncHdFile.file) {
+      return asyncHdFile.file; // full-resolution replacement once fetched
+    }
     return dataset.getImageSync(image.name) ?? null;
-  }, [image, dataset, imageCacheVersion]);
+  }, [image, dataset, imageCacheVersion, asyncHdFile]);
 
   const maskFile = useMemo(() => {
     if (!image || !dataset.hasMasks()) return null;

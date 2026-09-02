@@ -66,8 +66,10 @@ const remoteSourceAdapter: DatasetSourceAdapter = {
   },
   async getMetricImage(state, imageName) {
     const explicitUrl = state.imageNameToUrl?.[imageName];
-    if (!state.imageUrlBase && !explicitUrl) return null;
-    return await fetchUrlImageRaw(state.imageUrlBase, imageName, explicitUrl);
+    // prefer the full-resolution base (manifest hdImagesPath) when imageUrlBase serves thumbnails
+    const base = state.hdImageUrlBase ?? state.imageUrlBase;
+    if (!base && !explicitUrl) return null;
+    return await fetchUrlImageRaw(base, imageName, explicitUrl);
   },
   getImageSync(_state, imageName) {
     return getUrlImageCached(imageName);
