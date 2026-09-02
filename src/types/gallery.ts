@@ -36,4 +36,4 @@ export type GallerySortDirection = (typeof GALLERY_SORT_DIRECTIONS)[number];
 
 export type GalleryCameraFilter = number | 'all';
 
-export const DEFAULT_GALLERY_COLUMNS = 2;
+export const DEFAULT_GALLERY_COLUMNS = 5;
