@@ -186,6 +186,18 @@ describe('ImageDetailModal view-model helpers', () => {
       lazyPoints2D: new Map([[matched.imageId, matchedPoints]]),
     })).toEqual([]);
 
+    // A stale matches toggle without a chosen matched image displays nothing,
+    // so opening the modal must not load anything eagerly.
+    expect(getLazyImagePointLoadIds({
+      reconstruction,
+      imageDetailId: current.imageId,
+      matchedImageId: null,
+      showPoints2D: false,
+      showPoints3D: false,
+      showMatchesInModal: true,
+      lazyPoints2D: new Map(),
+    })).toEqual([]);
+
     const cache = applyLazyPointCacheUpdate({
       currentPoints: new Map([[9, [buildPoint2D({ xy: [9, 9], point3DId: 9n })]]]),
       currentLoadOrder: [9],

@@ -31,7 +31,14 @@ export function getLazyImagePointLoadIds({
   showMatchesInModal,
   lazyPoints2D,
 }: LazyImagePointLoadOptions): ImageId[] {
-  if (!reconstruction || imageDetailId === null || (!showPoints2D && !showPoints3D && !showMatchesInModal)) {
+  // Load only what a visible overlay actually consumes: keypoint overlays need the
+  // current image's points, match lines need BOTH images' points — and only once a
+  // matched image is chosen (opening the modal resets matchedImageId, so a stale
+  // matches toggle must not trigger an eager load). Enabling a toggle later re-runs
+  // this planner and loads on demand.
+  const wantsCurrentImagePoints =
+    showPoints2D || showPoints3D || (showMatchesInModal && matchedImageId !== null);
+  if (!reconstruction || imageDetailId === null || !wantsCurrentImagePoints) {
     return [];
   }
 
