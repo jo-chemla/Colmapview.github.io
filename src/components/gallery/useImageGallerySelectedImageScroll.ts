@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { ScrollToOptions } from '@tanstack/react-virtual';
 
 type ImageGallerySelectedImageScrollViewMode = 'gallery' | 'list';
@@ -76,7 +76,14 @@ export function useImageGallerySelectedImageScroll({
   rowVirtualizer,
   listVirtualizer,
 }: UseImageGallerySelectedImageScrollOptions): void {
+  // Only react to actual selection CHANGES. The effect re-runs on every render
+  // (virtualizer/prop identities), so without this guard a user scrolling away
+  // from the selected image gets snapped back as soon as the row leaves the
+  // visible range.
+  const lastHandledIdRef = useRef<number | null>(null);
   useEffect(() => {
+    if (selectedImageId === lastHandledIdRef.current) return;
+    lastHandledIdRef.current = selectedImageId;
     const target = getSelectedImageScrollTarget({
       selectedImageId,
       images,
