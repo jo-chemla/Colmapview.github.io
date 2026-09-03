@@ -19,6 +19,7 @@ import { resolveImageSource } from '../utils/imageSourceResolution';
 import { IMAGE_SOURCE_STRATEGIES } from '../utils/imageSourceStrategies';
 import { classifyPlyHeaderText, getPlyHeaderVertexCount } from '../parsers';
 import {
+  createEmptyPoints3DStub,
   getDirectoryListingLinks,
   getDirectoryListingRootUrl,
   getHuggingFaceColmapPaths,
@@ -65,11 +66,28 @@ export interface FetchManifestFileOptions {
   onProgress?: DownloadProgressCallback;
 }
 
+/**
+ * Progressive loading handle: the real points3D download (already in flight,
+ * started alongside cameras+images) plus the files-map key it belongs under,
+ * so stage 2 can swap the file in without a refetch.
+ */
+export interface DeferredPoints3D {
+  key: string;
+  promise: Promise<File>;
+}
+
 export interface FetchManifestColmapFilesDeps {
   fetchImpl?: FetchUrl;
   fetchFile?: FetchManifestFile;
   log?: (message: string) => void;
   setUrlProgress: SetUrlProgress;
+  /**
+   * Progressive loading (opt-in): when set, points3D leaves the awaited batch —
+   * the returned map resolves once cameras+images are down (with an
+   * empty-but-valid stub under the points3D key) while the real points3D
+   * download continues and is handed back here for stage 2.
+   */
+  onDeferredPoints3D?: (deferred: DeferredPoints3D) => void;
   /**
    * Receives the full discovered remote splat catalog (all tiles, with sizes)
    * so the caller can list every tile as a lazy, on-demand source. At most the
@@ -722,7 +740,28 @@ export async function fetchManifestColmapFiles(
     isTouchDevice: deps.isTouchDevice,
   });
   const { baseUrl } = manifestWithDiscoveredSplats;
-  const { requiredFiles, optionalFiles } = getManifestColmapFileEntries(manifestWithDiscoveredSplats);
+  const entries = getManifestColmapFileEntries(manifestWithDiscoveredSplats);
+  const { optionalFiles } = entries;
+
+  // Progressive loading: carve points3D out of the awaited batch. Its download
+  // starts NOW (in parallel with cameras+images) and is handed back as a
+  // promise for stage 2; the returned map gets an empty stub under the same key
+  // so the parser sees a complete, valid model immediately.
+  const deferredPoints3DEntry = deps.onDeferredPoints3D
+    ? entries.requiredFiles.find(({ key }) => key.startsWith('sparse/0/points3D.')) ?? null
+    : null;
+  const requiredFiles = deferredPoints3DEntry
+    ? entries.requiredFiles.filter((entry) => entry !== deferredPoints3DEntry)
+    : entries.requiredFiles;
+  if (deferredPoints3DEntry) {
+    const { key, path } = deferredPoints3DEntry;
+    deps.onDeferredPoints3D?.({
+      key,
+      promise: fetchFile(baseUrl, path).catch((err) => {
+        throw isUrlLoadError(err) ? err : classifyFetchError(err, `${baseUrl}/${path}`);
+      }),
+    });
+  }
 
   const totalFiles = requiredFiles.length;
   let downloadedCount = 0;
@@ -798,6 +837,10 @@ export async function fetchManifestColmapFiles(
 
   for (const { key, file } of requiredResults) {
     files.set(key, file);
+  }
+
+  if (deferredPoints3DEntry) {
+    files.set(deferredPoints3DEntry.key, createEmptyPoints3DStub(deferredPoints3DEntry.path));
   }
 
   if (optionalFiles.length > 0) {

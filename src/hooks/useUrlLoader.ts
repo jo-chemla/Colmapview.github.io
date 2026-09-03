@@ -15,6 +15,7 @@ import {
   getInlineManifestLoadLogMessage,
   getManifestLoadedLogMessage,
   getUrlNormalizationLogMessage,
+  isProgressiveLoadEnabled,
   normalizeLoadUrl,
 } from './urlLoaderPolicy';
 import { URL_LOAD_GUARD_MESSAGE } from './urlLoaderLoadGuard';
@@ -157,6 +158,7 @@ export function useUrlLoader({ logger = appLogger }: UseUrlLoaderDeps = {}) {
       const loaded = await loadManifestSource(manifest, { type: 'url', sourceUrl: normalizedUrl }, {
         log: logInfo,
         processFiles,
+        progressive: isProgressiveLoadEnabled(window.location.search),
         setSourceInfo,
         setUrlProgress,
         onRemoteSplatCatalog: (catalog) => {
@@ -233,6 +235,7 @@ export function useUrlLoader({ logger = appLogger }: UseUrlLoaderDeps = {}) {
       return await loadManifestSource(manifest, { type: 'manifest' }, {
         log: logInfo,
         processFiles,
+        progressive: isProgressiveLoadEnabled(window.location.search),
         setSourceInfo,
         setUrlProgress,
       });

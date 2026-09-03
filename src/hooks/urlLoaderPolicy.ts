@@ -679,6 +679,28 @@ export function getSplatDeviceTier(
   return (source.size ?? 0) > SPLAT_AUTO_LOAD_MAX_BYTES_TOUCH ? 'hint' : 'ok';
 }
 
+/**
+ * Opt-in progressive loading (?progressive=1): stage 1 parses cameras+images
+ * with an empty points3D stub so poses and gallery appear immediately; stage 2
+ * swaps in the full reconstruction once points3D finishes downloading.
+ * Default OFF — absent the flag, loading behaves exactly as before.
+ */
+export function isProgressiveLoadEnabled(search: string): boolean {
+  const value = new URLSearchParams(search).get('progressive');
+  return value === '1' || value === 'true';
+}
+
+/**
+ * Empty-but-valid points3D stand-in for progressive stage 1. Binary models get
+ * a lone uint64 zero point count (8 zero bytes); text models get an empty file
+ * (zero data lines). Both parse to a reconstruction with 0 points.
+ */
+export function createEmptyPoints3DStub(points3DPath: string): File {
+  return /\.txt$/i.test(points3DPath)
+    ? new File([''], 'points3D.txt')
+    : new File([new Uint8Array(8)], 'points3D.bin');
+}
+
 export function getManifestColmapFileEntries(manifest: ColmapManifest): ManifestColmapFileEntries {
   const { files } = manifest;
   // Preserve the source extension: text-format models (cameras.txt, ...) must keep

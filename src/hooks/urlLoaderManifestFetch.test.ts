@@ -150,6 +150,35 @@ describe('URL loader manifest fetch helpers', () => {
     expect(log).toHaveBeenCalledWith('[URL Loader] Optional file not found: custom/frames.bin');
   });
 
+  it('defers points3D behind an empty stub and hands back the in-flight download', async () => {
+    const setUrlProgress = vi.fn();
+    const fetchImpl = vi.fn(async () => missingResponse());
+    const fetchFile = vi.fn(async (_baseUrl: string, path: string) =>
+      buildFile(path.split('/').pop() ?? path, 'real-content')
+    );
+    const onDeferredPoints3D = vi.fn();
+
+    const files = await fetchManifestColmapFiles(manifest, {
+      fetchImpl,
+      fetchFile,
+      setUrlProgress,
+      onDeferredPoints3D,
+    });
+
+    // The awaited batch excludes points3D; the map carries a valid empty stub.
+    const stub = files.get('sparse/0/points3D.bin');
+    expect(stub?.size).toBe(8);
+    expect(stub?.name).toBe('points3D.bin');
+    expect(setUrlProgress).toHaveBeenCalledWith(expect.objectContaining({ totalFiles: 2 }));
+
+    // The real download started alongside cameras+images — exactly once.
+    expect(onDeferredPoints3D).toHaveBeenCalledTimes(1);
+    const deferred = onDeferredPoints3D.mock.calls[0][0];
+    expect(deferred.key).toBe('sparse/0/points3D.bin');
+    await expect(deferred.promise).resolves.toMatchObject({ name: 'points3D.bin' });
+    expect(fetchFile.mock.calls.filter(([, path]) => path === 'custom/points3D.bin')).toHaveLength(1);
+  });
+
   it('downloads optional manifest splat entries into the returned file map', async () => {
     const setUrlProgress = vi.fn();
     const log = vi.fn();

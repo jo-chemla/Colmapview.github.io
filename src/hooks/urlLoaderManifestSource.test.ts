@@ -100,6 +100,62 @@ describe('URL loader manifest source helpers', () => {
     expect(deps.setUrlProgress).not.toHaveBeenCalledWith({ percent: 100, message: 'Complete' });
   });
 
+  it('progressively parses a stubbed model first, then swaps in the downloaded points3D', async () => {
+    const stub = buildFile('points3D.bin');
+    const realPoints3D = buildFile('points3D.bin', 'full point cloud');
+    const files = new Map([
+      ['sparse/0/cameras.bin', buildFile('cameras.bin')],
+      ['sparse/0/images.bin', buildFile('images.bin')],
+      ['sparse/0/points3D.bin', stub],
+    ]);
+    const fetchColmapFiles = vi.fn(async (
+      _manifest: ColmapManifest,
+      options?: { onDeferredPoints3D?: (deferred: { key: string; promise: Promise<File> }) => void }
+    ) => {
+      options?.onDeferredPoints3D?.({
+        key: 'sparse/0/points3D.bin',
+        promise: Promise.resolve(realPoints3D),
+      });
+      return files;
+    });
+    const pointsAtCall: File[] = [];
+    const processFiles = vi.fn(async (processed: Map<string, File>) => {
+      pointsAtCall.push(processed.get('sparse/0/points3D.bin')!);
+    });
+    const deps = {
+      fetchColmapFiles,
+      log: vi.fn(),
+      processFiles,
+      progressive: true,
+      setSourceInfo: vi.fn(),
+      setUrlProgress: vi.fn(),
+    };
+
+    await expect(loadManifestSource(manifest, { type: 'manifest' }, deps)).resolves.toBe(true);
+
+    // Stage 1 parses the stub (poses visible immediately); stage 2 swaps in the
+    // real file as a background refresh without re-raising the loading overlay.
+    expect(processFiles).toHaveBeenCalledTimes(2);
+    expect(pointsAtCall).toEqual([stub, realPoints3D]);
+    expect(processFiles).toHaveBeenNthCalledWith(1, files, { start: 80, end: 100 }, { throwOnError: true });
+    expect(processFiles).toHaveBeenNthCalledWith(
+      2,
+      files,
+      { start: 80, end: 100 },
+      { throwOnError: true, backgroundRefresh: true }
+    );
+    expect(deps.setUrlProgress).toHaveBeenLastCalledWith({ percent: 100, message: 'Complete' });
+  });
+
+  it('does not request points3D deferral when progressive loading is off', async () => {
+    const deps = makeDeps();
+
+    await expect(loadManifestSource(manifest, { type: 'manifest' }, deps)).resolves.toBe(true);
+
+    expect(deps.fetchColmapFiles).toHaveBeenCalledWith(manifest);
+    expect(deps.processFiles).toHaveBeenCalledTimes(1);
+  });
+
   it('propagates COLMAP fetch failures before mutating source state', async () => {
     const error = new Error('missing cameras');
     const deps = makeDeps();

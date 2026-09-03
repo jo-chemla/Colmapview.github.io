@@ -8,6 +8,7 @@ import {
 import {
   canUseByteLessSplatLoader,
   createDefaultManifest,
+  createEmptyPoints3DStub,
   getArchiveUrlDetectedLogMessage,
   getDefaultUrlManifestLogMessage,
   getDirectoryListingLinks,
@@ -27,6 +28,7 @@ import {
   getSplatAutoLoadDecision,
   getSplatDeviceTier,
   getUrlNormalizationLogMessage,
+  isProgressiveLoadEnabled,
   joinManifestUrlPath,
   normalizeLoadUrl,
   SPLAT_AUTO_LOAD_MAX_BYTES,
@@ -210,6 +212,25 @@ describe('url loader policy helpers', () => {
     });
 
     expect(entries.optionalFiles).toEqual([]);
+  });
+
+  it('enables progressive loading only for an explicit opt-in flag', () => {
+    expect(isProgressiveLoadEnabled('?progressive=1')).toBe(true);
+    expect(isProgressiveLoadEnabled('?url=x&progressive=true')).toBe(true);
+    expect(isProgressiveLoadEnabled('?progressive=0')).toBe(false);
+    expect(isProgressiveLoadEnabled('?url=x')).toBe(false);
+    expect(isProgressiveLoadEnabled('')).toBe(false);
+  });
+
+  it('creates empty-but-valid points3D stubs matching the source format', () => {
+    const binaryStub = createEmptyPoints3DStub('custom/points3D.bin');
+    expect(binaryStub.name).toBe('points3D.bin');
+    // A valid empty binary points3D file is a lone uint64 zero point count.
+    expect(binaryStub.size).toBe(8);
+
+    const textStub = createEmptyPoints3DStub('custom/points3D.txt');
+    expect(textStub.name).toBe('points3D.txt');
+    expect(textStub.size).toBe(0);
   });
 
   it('builds lazy image and mask URL bases from defaults or explicit manifest paths', () => {

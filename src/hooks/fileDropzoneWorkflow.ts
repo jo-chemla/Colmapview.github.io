@@ -98,6 +98,12 @@ export interface FileDropzoneWorkflowOptions {
   replaceSplatScene?: boolean;
   throwOnError?: boolean;
   onSceneReplaced?: () => void;
+  /**
+   * Progressive stage 2: the scene is already live (stub parse), so rebuild it
+   * in place — no blocking loading overlay, no camera reset, and no cache purge
+   * (the images are the same dataset's, already warming the gallery).
+   */
+  backgroundRefresh?: boolean;
 }
 
 function updateLoadedSplatFile(
@@ -264,6 +270,7 @@ export async function processFileDropzoneFiles(
     replaceSplatScene = false,
     throwOnError = false,
     onSceneReplaced,
+    backgroundRefresh = false,
   } = normalizeWorkflowOptions(options);
 
   const pStart = progressRange?.start ?? 0;
@@ -316,7 +323,7 @@ export async function processFileDropzoneFiles(
     });
   }
 
-  if (!deps.getUrlLoading()) {
+  if (!backgroundRefresh && !deps.getUrlLoading()) {
     deps.setUrlLoading(true);
     deps.setUrlProgress({ percent: mapProgress(0), message: 'Starting...' });
   }
@@ -465,19 +472,23 @@ export async function processFileDropzoneFiles(
       },
     });
 
-    clearCaches({ preserveZip: true });
-    await delay(200);
+    if (!backgroundRefresh) {
+      clearCaches({ preserveZip: true });
+      await delay(200);
 
-    deps.setUrlProgress(splatFile
-      ? getSplatLoadingProgress(splatFile, { startPercent: splatRendererStartPercent })
-      : { percent: mapProgress(95), message: 'Finalizing...' });
+      deps.setUrlProgress(splatFile
+        ? getSplatLoadingProgress(splatFile, { startPercent: splatRendererStartPercent })
+        : { percent: mapProgress(95), message: 'Finalizing...' });
+    }
 
     if (parseResult.wasmWrapper) {
       deps.setWasmReconstruction(parseResult.wasmWrapper);
     }
 
     deps.setReconstruction(reconstruction);
-    deps.resetView();
+    if (!backgroundRefresh) {
+      deps.resetView();
+    }
 
     logger.info(
       `Loaded: ${parseResult.cameras.size} cameras, ${parseResult.images.size} images, ${pointCount.toLocaleString()} points`
@@ -511,7 +522,7 @@ export async function processFileDropzoneFiles(
       logger.warn,
       { skipMissingImageDiagnostic: shouldSkipMissingImageDiagnosticForSource({ sourceType, imageUrlBase }) }
     );
-    if (splatFile) {
+    if (splatFile && !backgroundRefresh) {
       handOffLoadingToSplatRenderer();
     }
     return true;
@@ -524,7 +535,9 @@ export async function processFileDropzoneFiles(
     }
     return false;
   } finally {
-    if (!keepLoadingForInitialSplat) {
+    // backgroundRefresh never raised urlLoading, so it must not lower it either
+    // (a splat renderer from stage 1 may still legitimately own the flag).
+    if (!keepLoadingForInitialSplat && !backgroundRefresh) {
       deps.setUrlLoading(false);
     }
   }

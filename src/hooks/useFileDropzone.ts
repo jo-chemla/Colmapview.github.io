@@ -38,7 +38,7 @@ export function useFileDropzone() {
   const processFiles = useCallback(async (
     files: Map<string, File>,
     progressRange?: { start: number; end: number },
-    options: Pick<FileDropzoneWorkflowOptions, 'onSceneReplaced' | 'replaceSplatScene' | 'throwOnError'> = {}
+    options: Pick<FileDropzoneWorkflowOptions, 'backgroundRefresh' | 'onSceneReplaced' | 'replaceSplatScene' | 'throwOnError'> = {}
   ) => {
     await processFileDropzoneFiles(files, {
       addNotification: useNotificationStore.getState().addNotification,
@@ -69,6 +69,7 @@ export function useFileDropzone() {
       onSplatRuntimePreloadFailed: () => useSplatBackendStore.getState().setSparkPreloadFailed(),
     }, {
       progressRange,
+      backgroundRefresh: options.backgroundRefresh ?? false,
       onSceneReplaced: options.onSceneReplaced,
       replaceSplatScene: options.replaceSplatScene ?? false,
       throwOnError: options.throwOnError ?? false,
