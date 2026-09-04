@@ -10,6 +10,7 @@ import {
 } from '../../icons';
 import { publicAsset } from '../../utils/paths';
 import { ProfileDropdown } from './ProfileDropdown';
+import { DatasetIndexPicker } from './DatasetIndexPicker';
 import { LoadJsonHoverCard, LoadUrlHoverCard, ToyHoverCard } from './DropZoneHoverCards';
 import {
   DROP_ZONE_ACTION_LABELS,
@@ -212,6 +213,8 @@ export function DesktopDropZonePanel({
               {DROP_ZONE_EXAMPLE_LINK_LABELS.downloadExampleManifest}
             </button>
           </div>
+
+          <DatasetIndexPicker />
         </div>
       </div>
     </div>
@@ -271,6 +274,8 @@ export function TouchDropZonePanel({
             {DROP_ZONE_ACTION_LABELS.tryToy}
           </button>
         </div>
+
+        <DatasetIndexPicker />
 
         <p className="text-ds-muted text-xs text-center mt-3">
           {DROP_ZONE_TOUCH_FOOTER}

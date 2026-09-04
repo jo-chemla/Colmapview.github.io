@@ -15,7 +15,10 @@ type ProcessFiles = (
 ) => Promise<void | boolean>;
 type FetchColmapFiles = (
   manifest: ColmapManifest,
-  options?: { onDeferredPoints3D?: (deferred: DeferredPoints3D) => void }
+  options?: {
+    onDeferredPoints3D?: (deferred: DeferredPoints3D) => void;
+    onDeferredPoints3DProgress?: (loadedBytes: number, totalBytes: number) => void;
+  }
 ) => Promise<Map<string, File>>;
 type SetSourceInfo = (
   type: ManifestLoadSource['type'],
@@ -56,9 +59,33 @@ export async function loadManifestSource(
       setUrlProgress: deps.setUrlProgress,
       onRemoteSplatCatalog: deps.onRemoteSplatCatalog,
       onDeferredPoints3D: options?.onDeferredPoints3D,
+      onDeferredPoints3DProgress: options?.onDeferredPoints3DProgress,
     }));
 
   const deferredPoints3D: { value: DeferredPoints3D | null } = { value: null };
+  // Byte progress for the deferred points3D download. It starts alongside the
+  // cameras+images fetch, but is only surfaced (as a compact, non-blocking
+  // indicator) once stage 1 has the poses on screen — before that, the blocking
+  // overlay owns urlProgress. Updates are throttled so per-chunk stream events
+  // don't cause a re-render storm while the user orbits the scene.
+  const pointsDownload = { loaded: 0, total: 0, surface: false, lastReport: 0 };
+  const reportPointsDownloadProgress = (force = false) => {
+    if (!pointsDownload.surface) {
+      return;
+    }
+    const now = Date.now();
+    if (!force && now - pointsDownload.lastReport < 200) {
+      return;
+    }
+    pointsDownload.lastReport = now;
+    const { loaded, total } = pointsDownload;
+    deps.setUrlProgress({
+      background: true,
+      percent: total > 0 ? Math.min(100, Math.round((Math.min(loaded, total) / total) * 100)) : 0,
+      message: 'Poses loaded — downloading points',
+      ...(total > 0 ? { bytesLoaded: Math.min(loaded, total), bytesTotal: total } : { bytesLoaded: loaded }),
+    });
+  };
   const files = deps.progressive
     ? await fetchColmapFiles(manifest, {
       onDeferredPoints3D: (deferred) => {
@@ -67,6 +94,13 @@ export async function loadManifestSource(
         // this download; observe it on a fork so that abort path cannot surface
         // an unhandled rejection (stage 2 still awaits the original promise).
         deferred.promise.catch(() => {});
+      },
+      onDeferredPoints3DProgress: (loadedBytes, totalBytes) => {
+        pointsDownload.loaded = loadedBytes;
+        if (totalBytes > 0) {
+          pointsDownload.total = totalBytes;
+        }
+        reportPointsDownloadProgress();
       },
     })
     : await fetchColmapFiles(manifest);
@@ -102,9 +136,22 @@ export async function loadManifestSource(
     // rebuild the reconstruction in place. backgroundRefresh keeps the blocking
     // overlay down and the user's camera where they left it.
     log('[URL Loader] Progressive: camera poses shown; points3D downloading in background...');
+    // From here the poses are on screen: surface the (already running) points
+    // download as a compact non-blocking indicator.
+    pointsDownload.surface = true;
+    reportPointsDownloadProgress(true);
     files.set(deferredPoints3D.value.key, await deferredPoints3D.value.promise);
     log('[URL Loader] Progressive: points3D downloaded, rebuilding full reconstruction...');
+    deps.setUrlProgress({
+      background: true,
+      percent: 100,
+      message: 'Points downloaded — rebuilding scene',
+    });
     await deps.processFiles(files, { start: 80, end: 100 }, { throwOnError: true, backgroundRefresh: true });
+    // Replace the background indicator even when a splat skips the generic
+    // 'Complete' write below (splat progress is non-background and would
+    // otherwise leave the compact card up forever).
+    deps.setUrlProgress({ percent: 100, message: 'Points loaded' });
   }
 
   if (findSplatFileSources(files).length === 0) {

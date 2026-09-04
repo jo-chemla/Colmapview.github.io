@@ -29,8 +29,8 @@ function createStatsResult(imageId = 1) {
 
 function createStatsComputers(stats = createStatsResult()) {
   return {
-    computeImageStats: vi.fn(() => stats),
-    computeImageStatsFromWasm: vi.fn(() => stats),
+    computeImageStats: vi.fn(async () => stats),
+    computeImageStatsFromWasm: vi.fn(async () => stats),
   };
 }
 

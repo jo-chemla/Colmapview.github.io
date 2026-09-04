@@ -232,7 +232,30 @@ export function DropZone({ children }: DropZoneProps) {
         />
       )}
 
-      {urlLoading && urlProgress && (
+      {/* Compact non-blocking progress card for progressive stage 2: the scene is
+          already interactive (poses + gallery live), so never dim or block it —
+          just report the background points download/rebuild in a corner. */}
+      {!urlLoading && urlProgress?.background && (
+        <div className="absolute bottom-4 right-4 z-40 pointer-events-none bg-ds-secondary border border-ds rounded-lg px-4 py-3 w-72 shadow-ds-lg">
+          <div className="text-ds-primary text-xs mb-2 truncate" title={urlProgress.message}>
+            {urlProgress.message}
+            {urlProgress.bytesLoaded !== undefined && (
+              <span className="text-ds-muted">
+                {' '}({formatByteProgress(urlProgress.bytesLoaded)}
+                {urlProgress.bytesTotal !== undefined && ` / ${formatByteProgress(urlProgress.bytesTotal)}`})
+              </span>
+            )}
+          </div>
+          <div className={`${loadingStyles.progressBar} w-full`}>
+            <div
+              className={loadingStyles.progressFill}
+              style={getDropZoneProgressFillStyle(urlProgress.percent)}
+            />
+          </div>
+        </div>
+      )}
+
+      {urlLoading && urlProgress && !urlProgress.background && (
         <div className={loadingStyles.overlay}>
           <div className={loadingStyles.container}>
             <div className="flex justify-center mb-4">

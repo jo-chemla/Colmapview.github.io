@@ -43,9 +43,9 @@ function makeImages(...ids: number[]): Map<number, Image> {
 // ---------------------------------------------------------------------------
 
 describe('computeImageStats', () => {
-  it('returns empty stats when no images and no points', () => {
+  it('returns empty stats when no images and no points', async () => {
     const { imageStats, globalStats, connectedImagesIndex, imageToPoint3DIds } =
-      computeImageStats(new Map(), new Map());
+      await computeImageStats(new Map(), new Map());
 
     expect(imageStats.size).toBe(0);
     expect(connectedImagesIndex.size).toBe(0);
@@ -55,9 +55,9 @@ describe('computeImageStats', () => {
     expect(globalStats.avgError).toBe(0);
   });
 
-  it('returns zero-stat entries for images with no observed points', () => {
+  it('returns zero-stat entries for images with no observed points', async () => {
     const images = makeImages(1, 2);
-    const { imageStats, globalStats } = computeImageStats(images, new Map());
+    const { imageStats, globalStats } = await computeImageStats(images, new Map());
 
     expect(imageStats.size).toBe(2);
     expect(imageStats.get(1)).toEqual({ numPoints3D: 0, avgError: 0, covisibleCount: 0 });
@@ -65,13 +65,13 @@ describe('computeImageStats', () => {
     expect(globalStats.totalPoints).toBe(0);
   });
 
-  it('computes per-image point count and error for a single point', () => {
+  it('computes per-image point count and error for a single point', async () => {
     const images = makeImages(1);
     const points3D = new Map<bigint, Point3D>([
       [1n, makePoint3D(1n, 0.5, [{ imageId: 1, point2DIdx: 0 }])],
     ]);
 
-    const { imageStats, globalStats } = computeImageStats(images, points3D);
+    const { imageStats, globalStats } = await computeImageStats(images, points3D);
 
     expect(imageStats.get(1)!.numPoints3D).toBe(1);
     expect(imageStats.get(1)!.avgError).toBeCloseTo(0.5);
@@ -84,7 +84,7 @@ describe('computeImageStats', () => {
     expect(globalStats.totalObservations).toBe(1);
   });
 
-  it('computes covisibility from shared tracks', () => {
+  it('computes covisibility from shared tracks', async () => {
     const images = makeImages(1, 2, 3);
     // Point observed by images 1 and 2, but not 3
     const points3D = new Map<bigint, Point3D>([
@@ -94,14 +94,14 @@ describe('computeImageStats', () => {
       ])],
     ]);
 
-    const { imageStats } = computeImageStats(images, points3D);
+    const { imageStats } = await computeImageStats(images, points3D);
 
     expect(imageStats.get(1)!.covisibleCount).toBe(1); // sees image 2
     expect(imageStats.get(2)!.covisibleCount).toBe(1); // sees image 1
     expect(imageStats.get(3)!.covisibleCount).toBe(0); // sees nobody
   });
 
-  it('builds connected images index with correct match counts', () => {
+  it('builds connected images index with correct match counts', async () => {
     const images = makeImages(1, 2);
     const points3D = new Map<bigint, Point3D>([
       [1n, makePoint3D(1n, 0.1, [
@@ -114,14 +114,14 @@ describe('computeImageStats', () => {
       ])],
     ]);
 
-    const { connectedImagesIndex } = computeImageStats(images, points3D);
+    const { connectedImagesIndex } = await computeImageStats(images, points3D);
 
     // Both directions should have count 2
     expect(connectedImagesIndex.get(1)!.get(2)).toBe(2);
     expect(connectedImagesIndex.get(2)!.get(1)).toBe(2);
   });
 
-  it('builds imageToPoint3DIds reverse mapping', () => {
+  it('builds imageToPoint3DIds reverse mapping', async () => {
     const images = makeImages(1, 2);
     const points3D = new Map<bigint, Point3D>([
       [10n, makePoint3D(10n, 0.1, [
@@ -133,7 +133,7 @@ describe('computeImageStats', () => {
       ])],
     ]);
 
-    const { imageToPoint3DIds } = computeImageStats(images, points3D);
+    const { imageToPoint3DIds } = await computeImageStats(images, points3D);
 
     expect(imageToPoint3DIds.get(1)!.has(10n)).toBe(true);
     expect(imageToPoint3DIds.get(1)!.has(20n)).toBe(true);
@@ -141,27 +141,27 @@ describe('computeImageStats', () => {
     expect(imageToPoint3DIds.get(2)!.has(20n)).toBe(false);
   });
 
-  it('averages error correctly when multiple points are observed', () => {
+  it('averages error correctly when multiple points are observed', async () => {
     const images = makeImages(1);
     const points3D = new Map<bigint, Point3D>([
       [1n, makePoint3D(1n, 1.0, [{ imageId: 1, point2DIdx: 0 }])],
       [2n, makePoint3D(2n, 3.0, [{ imageId: 1, point2DIdx: 1 }])],
     ]);
 
-    const { imageStats, globalStats } = computeImageStats(images, points3D);
+    const { imageStats, globalStats } = await computeImageStats(images, points3D);
 
     expect(imageStats.get(1)!.avgError).toBeCloseTo(2.0);
     expect(globalStats.avgError).toBeCloseTo(2.0);
   });
 
-  it('skips negative errors in averaging', () => {
+  it('skips negative errors in averaging', async () => {
     const images = makeImages(1);
     const points3D = new Map<bigint, Point3D>([
       [1n, makePoint3D(1n, -1, [{ imageId: 1, point2DIdx: 0 }])],
       [2n, makePoint3D(2n, 4.0, [{ imageId: 1, point2DIdx: 1 }])],
     ]);
 
-    const { imageStats, globalStats } = computeImageStats(images, points3D);
+    const { imageStats, globalStats } = await computeImageStats(images, points3D);
 
     // Only the valid error (4.0) should be counted
     expect(imageStats.get(1)!.numPoints3D).toBe(2);
@@ -171,7 +171,7 @@ describe('computeImageStats', () => {
     expect(globalStats.maxError).toBeCloseTo(4.0);
   });
 
-  it('computes global track length stats', () => {
+  it('computes global track length stats', async () => {
     const images = makeImages(1, 2, 3);
     const points3D = new Map<bigint, Point3D>([
       // Track length 1
@@ -184,7 +184,7 @@ describe('computeImageStats', () => {
       ])],
     ]);
 
-    const { globalStats } = computeImageStats(images, points3D);
+    const { globalStats } = await computeImageStats(images, points3D);
 
     expect(globalStats.minTrackLength).toBe(1);
     expect(globalStats.maxTrackLength).toBe(3);
@@ -229,17 +229,17 @@ describe('computeImageStatsFromWasm', () => {
     });
   }
 
-  it('returns empty stats with zero points', () => {
+  it('returns empty stats with zero points', async () => {
     const images = makeImages(1);
     const wasm = makeMockWasm([]);
 
-    const { imageStats, globalStats } = computeImageStatsFromWasm(images, wasm);
+    const { imageStats, globalStats } = await computeImageStatsFromWasm(images, wasm);
 
     expect(imageStats.get(1)).toEqual({ numPoints3D: 0, avgError: 0, covisibleCount: 0 });
     expect(globalStats.totalPoints).toBe(0);
   });
 
-  it('produces same results as computeImageStats for identical data', () => {
+  it('produces same results as computeImageStats for identical data', async () => {
     const images = makeImages(1, 2);
 
     // JS path data
@@ -259,8 +259,8 @@ describe('computeImageStatsFromWasm', () => {
       { error: 1.5, trackImageIds: [1], point3DId: 2n },
     ]);
 
-    const jsResult = computeImageStats(images, points3D);
-    const wasmResult = computeImageStatsFromWasm(images, wasm);
+    const jsResult = await computeImageStats(images, points3D);
+    const wasmResult = await computeImageStatsFromWasm(images, wasm);
 
     // Per-image stats should match
     for (const id of [1, 2]) {
@@ -288,28 +288,28 @@ describe('computeImageStatsFromWasm', () => {
     );
   });
 
-  it('handles negative errors by skipping them in averages', () => {
+  it('handles negative errors by skipping them in averages', async () => {
     const images = makeImages(1);
     const wasm = makeMockWasm([
       { error: -1, trackImageIds: [1] },
       { error: 2.0, trackImageIds: [1] },
     ]);
 
-    const { imageStats, globalStats } = computeImageStatsFromWasm(images, wasm);
+    const { imageStats, globalStats } = await computeImageStatsFromWasm(images, wasm);
 
     expect(imageStats.get(1)!.numPoints3D).toBe(2);
     expect(imageStats.get(1)!.avgError).toBeCloseTo(2.0);
     expect(globalStats.avgError).toBeCloseTo(2.0);
   });
 
-  it('builds imageToPoint3DIds from WASM data', () => {
+  it('builds imageToPoint3DIds from WASM data', async () => {
     const images = makeImages(1, 2);
     const wasm = makeMockWasm([
       { error: 0.1, trackImageIds: [1, 2], point3DId: 10n },
       { error: 0.2, trackImageIds: [1], point3DId: 20n },
     ]);
 
-    const { imageToPoint3DIds } = computeImageStatsFromWasm(images, wasm);
+    const { imageToPoint3DIds } = await computeImageStatsFromWasm(images, wasm);
 
     expect(imageToPoint3DIds.get(1)!.has(10n)).toBe(true);
     expect(imageToPoint3DIds.get(1)!.has(20n)).toBe(true);

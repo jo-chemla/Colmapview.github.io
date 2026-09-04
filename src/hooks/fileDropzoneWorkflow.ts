@@ -273,6 +273,18 @@ export async function processFileDropzoneFiles(
     backgroundRefresh = false,
   } = normalizeWorkflowOptions(options);
 
+  if (backgroundRefresh) {
+    // The scene is already interactive (progressive stage 2): every progress
+    // write from this pass belongs to the compact background indicator, never
+    // the blocking overlay.
+    const baseSetUrlProgress = deps.setUrlProgress;
+    deps = {
+      ...deps,
+      setUrlProgress: (progress) =>
+        baseSetUrlProgress(progress ? { ...progress, background: true } : progress),
+    };
+  }
+
   const pStart = progressRange?.start ?? 0;
   const pEnd = progressRange?.end ?? 100;
   const mapProgress = (localPercent: number) => Math.round(pStart + (localPercent / 100) * (pEnd - pStart));

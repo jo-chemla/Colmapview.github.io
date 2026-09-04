@@ -11,6 +11,7 @@ import type { RigData, Rig, Frame, RigSensor, FrameDataMapping, SensorId } from 
 import { parseCameraModelId } from '../utils/cameraModelPolicy';
 import { appLogger } from '../utils/logger';
 import { parseSensorType } from '../utils/sensorTypePolicy';
+import { createCooperativeYielder, yieldToMain } from '../utils/mainThreadYield';
 import { createWasmReconstruction, WasmReconstructionWrapper } from '../wasm';
 
 /**
@@ -61,12 +62,20 @@ export async function parseWithWasm(
       points3DFile.arrayBuffer(),
     ]);
 
+    // Each parse call is a single synchronous WASM block (the C++ API is not
+    // chunkable), but they are seconds-bounded even for GB-scale bins. Yield
+    // between them so input/paint can run between the blocks — the wrapper must
+    // stay on the main thread (zero-copy views feed the renderer), so a worker
+    // cannot own this parse.
     const camerasOk = wasm.parseCameras(camerasBuffer);
+    await yieldToMain();
     // Use lazy parsing - 2D points are NOT cached in WASM memory
     // Instead, only file offsets are stored (~50KB), and 2D points are loaded on-demand
     // This enables loading 1.9GB+ images.bin files without running out of memory
     const imagesOk = wasm.parseImagesLazy(imagesBuffer);
+    await yieldToMain();
     const points3DOk = wasm.parsePoints3D(points3DBuffer);
+    await yieldToMain();
 
     if (!camerasOk || !imagesOk || !points3DOk) {
       appLogger.warn('[WASM] Failed to parse some files, falling back to JS parser');
@@ -97,7 +106,11 @@ export async function parseWithWasm(
 
     const images = new Map<number, ColmapImage>();
     const allImages = wasm.getAllImageInfos();
+    const yieldCheckpoint = createCooperativeYielder();
     for (let imgIdx = 0; imgIdx < allImages.length; imgIdx++) {
+      if ((imgIdx & 511) === 0) {
+        await yieldCheckpoint();
+      }
       const img = allImages[imgIdx];
       const q = img.quaternion || [1, 0, 0, 0];
       const t = img.translation || [0, 0, 0];

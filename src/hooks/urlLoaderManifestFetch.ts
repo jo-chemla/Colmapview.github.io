@@ -89,6 +89,12 @@ export interface FetchManifestColmapFilesDeps {
    */
   onDeferredPoints3D?: (deferred: DeferredPoints3D) => void;
   /**
+   * Byte progress for the deferred points3D download (loaded, total; total 0
+   * when Content-Length is unknown). Fires from download start — the consumer
+   * decides when to surface it (i.e. only once poses are on screen).
+   */
+  onDeferredPoints3DProgress?: DownloadProgressCallback;
+  /**
    * Receives the full discovered remote splat catalog (all tiles, with sizes)
    * so the caller can list every tile as a lazy, on-demand source. At most the
    * lone discovered splat is eager-downloaded, and only within the auto-load
@@ -757,7 +763,7 @@ export async function fetchManifestColmapFiles(
     const { key, path } = deferredPoints3DEntry;
     deps.onDeferredPoints3D?.({
       key,
-      promise: fetchFile(baseUrl, path).catch((err) => {
+      promise: fetchFile(baseUrl, path, deps.onDeferredPoints3DProgress).catch((err) => {
         throw isUrlLoadError(err) ? err : classifyFetchError(err, `${baseUrl}/${path}`);
       }),
     });

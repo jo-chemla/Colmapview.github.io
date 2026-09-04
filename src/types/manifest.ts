@@ -102,6 +102,12 @@ export interface UrlLoadProgress {
   bytesTotal?: number;
   /** Renderer that currently owns splat loading, if a renderer has taken over. */
   splatRenderer?: 'spark' | 'webgpu';
+  /**
+   * Progressive stage-2 marker: the scene is already interactive (poses shown)
+   * and this progress describes the background points3D download/rebuild. It is
+   * rendered as a compact non-blocking indicator, never the full overlay.
+   */
+  background?: boolean;
 }
 
 /**

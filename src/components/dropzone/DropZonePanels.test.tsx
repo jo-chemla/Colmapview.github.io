@@ -13,6 +13,12 @@ vi.mock('./ProfileDropdown', () => ({
   ProfileDropdown: () => <div data-testid="profile-dropdown" />,
 }));
 
+// The dataset picker fetches a remote index on mount; stub it so panel tests
+// stay network-free and act()-quiet.
+vi.mock('./DatasetIndexPicker', () => ({
+  DatasetIndexPicker: () => <div data-testid="dataset-index-picker" />,
+}));
+
 function createDesktopProps() {
   return {
     urlLoading: false,

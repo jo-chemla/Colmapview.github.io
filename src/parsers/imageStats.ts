@@ -1,5 +1,6 @@
 import type { Image, Point3D, ImageStats, ConnectedImagesIndex, GlobalStats, Point3DId, ImageId } from '../types/colmap';
 import type { WasmReconstructionWrapper } from '../wasm/reconstruction';
+import { createCooperativeYielder } from '../utils/mainThreadYield';
 
 interface InternalImageStats {
   numPoints3D: number;
@@ -30,14 +31,26 @@ interface ImageStatsResult {
 }
 
 /**
+ * How many track entries to process between cooperative-yield checkpoints.
+ * The checkpoint itself is time-budgeted (createCooperativeYielder), so this
+ * only bounds how often the clock is read, not how often we actually yield.
+ */
+const STATS_YIELD_CHECK_INTERVAL = 2048;
+
+/**
  * Shared core that computes all stats from an iterable of track entries.
  * Both computeImageStats and computeImageStatsFromWasm delegate to this.
+ *
+ * Async and cooperative: for multi-million-point models this single pass is
+ * O(points x trackLength^2) of Map/Set work — by far the longest main-thread
+ * block at load time — so it yields to the event loop between bounded blocks
+ * to keep the UI (orbit, gallery) interactive while it runs.
  */
-function computeStatsFromTracks(
+async function computeStatsFromTracks(
   images: Map<number, Image>,
   tracks: Iterable<TrackEntry>,
   totalPoints: number,
-): ImageStatsResult {
+): Promise<ImageStatsResult> {
   // Initialize stats for all images
   const internalStats = new Map<number, InternalImageStats>();
   for (const imageId of images.keys()) {
@@ -70,8 +83,14 @@ function computeStatsFromTracks(
   let globalMinTrack = Infinity;
   let globalMaxTrack = -Infinity;
 
-  // Single pass through all tracks
+  // Single pass through all tracks, yielding between bounded blocks.
+  const yieldCheckpoint = createCooperativeYielder();
+  let entriesSinceCheck = 0;
   for (const { error, trackImageIds, point3DId } of tracks) {
+    if (++entriesSinceCheck >= STATS_YIELD_CHECK_INTERVAL) {
+      entriesSinceCheck = 0;
+      await yieldCheckpoint();
+    }
     const trackLength = trackImageIds.length;
     const hasValidError = error >= 0;
 
@@ -161,10 +180,10 @@ function computeStatsFromTracks(
  * This is O(P * T) where P = number of 3D points and T = average track length,
  * but only runs once at load time instead of O(n * m * k) on every render.
  */
-export function computeImageStats(
+export async function computeImageStats(
   images: Map<number, Image>,
   points3D: Map<bigint, Point3D>
-): ImageStatsResult {
+): Promise<ImageStatsResult> {
   function* iterateTracks(): Generator<TrackEntry> {
     for (const point3D of points3D.values()) {
       yield {
@@ -184,21 +203,36 @@ export function computeImageStats(
  *
  * Uses the same algorithm as computeImageStats but reads from WASM typed arrays.
  */
-export function computeImageStatsFromWasm(
+export async function computeImageStatsFromWasm(
   images: Map<number, Image>,
   wasm: WasmReconstructionWrapper
-): ImageStatsResult {
+): Promise<ImageStatsResult> {
   // Get WASM arrays
   const pointCount = wasm.pointCount;
-  const errors = wasm.getErrors();
-  const trackOffsets = wasm.getTrackOffsets();
-  const trackImageIdsArr = wasm.getTrackImageIds();
-  const point3DIds = wasm.getPoint3DIds();
+  let errors = wasm.getErrors();
+  let trackOffsets = wasm.getTrackOffsets();
+  let trackImageIdsArr = wasm.getTrackImageIds();
+  let point3DIds = wasm.getPoint3DIds();
+
+  /**
+   * The cooperative pass yields to the event loop, so unrelated work (e.g. an
+   * on-demand 2D-point load) may grow WASM memory mid-iteration and detach the
+   * captured views. Refresh them periodically; a detached view reads as
+   * byteLength 0, so a stale block between refreshes cannot read garbage.
+   */
+  const refreshViews = () => {
+    if (errors && errors.buffer.byteLength === 0) errors = wasm.getErrors();
+    if (trackOffsets && trackOffsets.buffer.byteLength === 0) trackOffsets = wasm.getTrackOffsets();
+    if (trackImageIdsArr && trackImageIdsArr.buffer.byteLength === 0) trackImageIdsArr = wasm.getTrackImageIds();
+    if (point3DIds && point3DIds.buffer.byteLength === 0) point3DIds = wasm.getPoint3DIds();
+  };
 
   function* iterateTracks(): Generator<TrackEntry> {
     if (!trackOffsets || !trackImageIdsArr || !errors) return;
 
     for (let pointIdx = 0; pointIdx < pointCount; pointIdx++) {
+      if ((pointIdx & 1023) === 0) refreshViews();
+      if (!trackOffsets || !trackImageIdsArr || !errors) return;
       const trackStart = trackOffsets[pointIdx];
       const trackEnd = trackOffsets[pointIdx + 1];
 

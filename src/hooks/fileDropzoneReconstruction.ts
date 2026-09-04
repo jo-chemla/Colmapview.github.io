@@ -38,9 +38,11 @@ export async function buildColmapReconstruction({
   loadRigData = loadOptionalRigData,
   afterStatsComputed,
 }: BuildColmapReconstructionOptions): Promise<BuildColmapReconstructionResult> {
+  // Awaited cooperative pass: yields to the event loop while it runs so the UI
+  // stays interactive during multi-million-point stats computation.
   const stats = parseResult.usedWasmPath && parseResult.wasmWrapper
-    ? statsComputers.computeImageStatsFromWasm(parseResult.images, parseResult.wasmWrapper)
-    : statsComputers.computeImageStats(parseResult.images, requirePoints3D(parseResult.points3D));
+    ? await statsComputers.computeImageStatsFromWasm(parseResult.images, parseResult.wasmWrapper)
+    : await statsComputers.computeImageStats(parseResult.images, requirePoints3D(parseResult.points3D));
 
   afterStatsComputed?.();
 
