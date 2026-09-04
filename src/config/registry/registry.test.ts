@@ -47,8 +47,8 @@ describe('Property Registry', () => {
     it('should generate correct camera defaults', () => {
       const defaults = generateDefaultConfiguration();
       expect(defaults.camera.displayMode).toBe('frustum');
-      expect(defaults.camera.scale).toBe(0.25);
-      expect(defaults.camera.frustumLineWidth).toBe(1);
+      expect(defaults.camera.scale).toBe(0.6);
+      expect(defaults.camera.frustumLineWidth).toBe(1.5);
       expect(defaults.camera.mode).toBe('orbit');
       expect(defaults.camera.fov).toBe(60);
     });

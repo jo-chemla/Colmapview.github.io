@@ -31,7 +31,7 @@ describe('useAsyncImageCacheItem', () => {
     expect(options.queueLoad).not.toHaveBeenCalled();
   });
 
-  it('clears the current result when disabled', async () => {
+  it('keeps a cached result visible while disabled without queueing loads', async () => {
     const enabledOptions = createOptions({
       cache: new Map([['image.jpg', 'cached-value']]),
     });
@@ -44,8 +44,19 @@ describe('useAsyncImageCacheItem', () => {
 
     rerender({ ...enabledOptions, enabled: false });
 
-    await waitFor(() => expect(result.current).toBeNull());
+    expect(result.current).toBe('cached-value');
+    await waitFor(() => expect(result.current).toBe('cached-value'));
     expect(enabledOptions.queueLoad).not.toHaveBeenCalled();
+  });
+
+  it('returns null and does not queue loads for uncached images while disabled', async () => {
+    const options = createOptions({ enabled: false });
+
+    const { result } = renderHook(() => useAsyncImageCacheItem(options));
+
+    expect(result.current).toBeNull();
+    await waitFor(() => expect(result.current).toBeNull());
+    expect(options.queueLoad).not.toHaveBeenCalled();
   });
 
   it('queues missing images and publishes the async result', async () => {

@@ -148,13 +148,17 @@ export function useAsyncImageCacheItem<T>({
     resource,
   ]);
 
-  if (!enabled || !imageName) return null;
+  if (!imageName) return null;
 
+  // Cached results stay visible even while loading is disabled (scroll/settle/
+  // resize): `enabled` gates kicking off new loads, never display of items that
+  // are already decoded. This keeps painted thumbnails from regressing to the
+  // placeholder when selection or scrolling toggles the load gate.
   if (cache.has(imageName)) {
     return cache.get(imageName) ?? null;
   }
 
-  if (!imageFile) return null;
+  if (!enabled || !imageFile) return null;
 
   return snapshot.cacheGeneration === cacheGeneration && snapshot.cacheKey === imageName
     ? snapshot.result

@@ -136,10 +136,52 @@ describe('persistedStoreMigrations', () => {
         cameraMode: 'orbit',
         cameraProjection: 'perspective',
         cameraScaleFactor: '1',
-        frustumColorMode: 'byCamera',
+        frustumColorMode: 'single',
         horizonLock: 'off',
         autoRotateMode: 'off',
         undistortionMode: 'fullFrame',
+      });
+    });
+
+    it('re-targets old frusta defaults to the new v4 defaults', () => {
+      expect(migrateCameraPersistedState({
+        cameraScale: 0.25,
+        frustumLineWidth: 1,
+        frustumColorMode: 'byCamera',
+        frustumSingleColor: '#ff0000',
+      }, 3)).toMatchObject({
+        cameraScale: 0.6,
+        frustumLineWidth: 1.5,
+        frustumColorMode: 'single',
+        frustumSingleColor: '#ffffff',
+      });
+    });
+
+    it('preserves customized frusta settings during the v4 default change', () => {
+      expect(migrateCameraPersistedState({
+        cameraScale: 0.4,
+        frustumLineWidth: 3,
+        frustumColorMode: 'byRigFrame',
+        frustumSingleColor: '#00ff00',
+      }, 3)).toMatchObject({
+        cameraScale: 0.4,
+        frustumLineWidth: 3,
+        frustumColorMode: 'byRigFrame',
+        frustumSingleColor: '#00ff00',
+      });
+    });
+
+    it('leaves frusta settings untouched for already-v4 states', () => {
+      expect(migrateCameraPersistedState({
+        cameraScale: 0.25,
+        frustumLineWidth: 1,
+        frustumColorMode: 'byCamera',
+        frustumSingleColor: '#ff0000',
+      }, 4)).toMatchObject({
+        cameraScale: 0.25,
+        frustumLineWidth: 1,
+        frustumColorMode: 'byCamera',
+        frustumSingleColor: '#ff0000',
       });
     });
   });

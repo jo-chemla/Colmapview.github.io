@@ -329,11 +329,29 @@ export function migrateCameraPersistedState(
     state.selectionColorMode = getSelectionColorMode(state.selectionColorMode) ?? 'rainbow';
   }
 
+  if (version < 4) {
+    // v4 changed the frusta defaults (scale 0.25→0.6, color byCamera/red→single
+    // white, line width 1→1.5). Re-target persisted values that still equal the
+    // old defaults — users who customized any of these keep their setting.
+    if (getNumber(state.cameraScale) === 0.25) {
+      state.cameraScale = 0.6;
+    }
+    if (getNumber(state.frustumLineWidth) === 1) {
+      state.frustumLineWidth = 1.5;
+    }
+    if (state.frustumColorMode === 'byCamera') {
+      state.frustumColorMode = 'single';
+    }
+    if (state.frustumSingleColor === '#ff0000') {
+      state.frustumSingleColor = '#ffffff';
+    }
+  }
+
   if (state.cameraScaleFactor !== undefined) {
     state.cameraScaleFactor = getCameraScaleFactor(state.cameraScaleFactor) ?? '1';
   }
   if (state.frustumColorMode !== undefined) {
-    state.frustumColorMode = getFrustumColorMode(state.frustumColorMode) ?? 'byCamera';
+    state.frustumColorMode = getFrustumColorMode(state.frustumColorMode) ?? 'single';
   }
   if (state.cameraMode !== undefined) {
     state.cameraMode = getCameraMode(state.cameraMode) ?? 'orbit';

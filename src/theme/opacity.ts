@@ -34,7 +34,7 @@ export const OPACITY = {
 export const LINE_WIDTH = {
   default: 1,
   hovered: 2.5,
-  frustum: 1,
+  frustum: 1.5,
   match: 1,
   rig: 1,
 } as const;

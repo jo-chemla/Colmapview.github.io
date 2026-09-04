@@ -133,7 +133,7 @@ describe('configuration store adapter', () => {
     expect(usePointCloudStore.getState().colorMode).toBe('rgb');
     expect(usePointCloudStore.getState().maxReprojectionError).toBe(Infinity);
     expect(useCameraStore.getState().cameraDisplayMode).toBe('frustum');
-    expect(useCameraStore.getState().cameraScale).toBe(0.25);
+    expect(useCameraStore.getState().cameraScale).toBe(0.6);
     expect(useUIStore.getState().showMaskOverlay).toBe(false);
     expect(useUIStore.getState().galleryViewMode).toBe('auto');
     expect(useUIStore.getState().galleryColumns).toBe(2);

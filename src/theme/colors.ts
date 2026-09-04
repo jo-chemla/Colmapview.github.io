@@ -8,7 +8,7 @@ import { requireCssHexColorInt } from '../utils/hexColor';
 // 3D Visualization colors (bright colors preserved for visibility on dark background)
 export const VIZ_COLORS = {
   frustum: {
-    default: '#ff0000',
+    default: '#ffffff',
     selected: '#ff00ff',
     hover: '#6699aa',
     deleted: '#ff4444',  // Red for pending deletion
