@@ -689,6 +689,13 @@ export async function fetchUrlManifest(
   }
 
   const data = await response.json();
+  // Hosted manifests may omit baseUrl on purpose (they resolve relative to
+  // wherever they are served from — our blob manifests do this so the same file
+  // works via any origin/CDN). Default it to the manifest's own directory
+  // before schema validation, which requires a concrete URL.
+  if (data && typeof data === 'object' && !('baseUrl' in data)) {
+    (data as Record<string, unknown>).baseUrl = new URL('.', manifestUrl).href;
+  }
   const result = validateColmapManifest(data);
   if (!result.success) {
     const error: UrlLoadError = {
