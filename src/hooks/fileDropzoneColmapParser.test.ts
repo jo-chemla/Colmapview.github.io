@@ -84,9 +84,11 @@ describe('file dropzone COLMAP parser helper', () => {
       wasmRigData: rigData,
       wasmWrapper,
       usedWasmPath: true,
+      georefOffset: null,
     });
 
-    expect(addNotification).toHaveBeenCalledWith('info', 'Loaded 1,234 points', 5000);
+    // toLocaleString: thousands separator differs per machine locale (e.g. "1,234" vs "1 234")
+    expect(addNotification).toHaveBeenCalledWith('info', `Loaded ${(1234).toLocaleString()} points`, 5000);
     expect(parsers.parseCamerasBinary).not.toHaveBeenCalled();
     expect(log).toHaveBeenCalledWith('[Parser] Attempting WASM parser (memory-optimized)...');
   });
@@ -106,6 +108,7 @@ describe('file dropzone COLMAP parser helper', () => {
       points3D,
       wasmWrapper: null,
       usedWasmPath: false,
+      georefOffset: null,
     });
 
     expect(parsers.parseCamerasText).toHaveBeenCalledWith(

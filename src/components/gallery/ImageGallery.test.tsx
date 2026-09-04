@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
@@ -142,43 +142,37 @@ afterEach(() => {
 });
 
 describe('ImageGallery', () => {
-  it('shows the desktop toolbar only while the pointer is on the top gallery strip', () => {
+  it('keeps the desktop toolbar persistently visible (no hover gating)', () => {
     render(<ImageGallery />);
 
     expect(screen.getByTestId('image-gallery')).toHaveAttribute('data-idle-ignore', 'true');
     const toolbarSlot = screen.getByTestId('image-gallery-toolbar-slot');
-    expect(toolbarSlot).toHaveAttribute('aria-hidden', 'true');
-    expect(toolbarSlot).toHaveClass('absolute', 'top-0', 'h-auto', 'overflow-visible');
+    expect(toolbarSlot).toHaveClass('h-auto', 'overflow-visible');
     expect(toolbarSlot).toHaveStyle({ minHeight: '40px' });
-    expect(screen.queryByTestId('image-gallery-toolbar')).toBeNull();
-
-    fireEvent.mouseEnter(toolbarSlot);
-
-    expect(toolbarSlot).toHaveAttribute('aria-hidden', 'false');
     expect(screen.getByTestId('image-gallery-toolbar')).toBeVisible();
     expect(screen.getByTestId('image-gallery-content')).toHaveAttribute('data-hide-image-overlay', 'false');
-
-    fireEvent.mouseLeave(toolbarSlot);
-
-    expect(toolbarSlot).toHaveAttribute('aria-hidden', 'true');
-    expect(screen.queryByTestId('image-gallery-toolbar')).toBeNull();
   });
 
-  it('keeps the desktop toolbar hover-gated when image overlays are hidden', () => {
+  it('keeps the toolbar visible when image overlays are hidden', () => {
     useImageGalleryViewModelMock.mockReturnValue(createImageGalleryViewModel({
       hideImageOverlay: true,
     }));
 
     render(<ImageGallery />);
 
-    const toolbarSlot = screen.getByTestId('image-gallery-toolbar-slot');
-    expect(toolbarSlot).toHaveAttribute('aria-hidden', 'true');
-    expect(screen.queryByTestId('image-gallery-toolbar')).toBeNull();
-    expect(screen.getByTestId('image-gallery-content')).toHaveAttribute('data-hide-image-overlay', 'true');
-
-    fireEvent.mouseEnter(toolbarSlot);
-
     expect(screen.getByTestId('image-gallery-toolbar')).toBeVisible();
+    expect(screen.getByTestId('image-gallery-content')).toHaveAttribute('data-hide-image-overlay', 'true');
+  });
+
+  it('removes the toolbar slot entirely when hideToolbar is set', () => {
+    useImageGalleryViewModelMock.mockReturnValue(createImageGalleryViewModel({
+      hideToolbar: true,
+    }));
+
+    render(<ImageGallery />);
+
+    expect(screen.queryByTestId('image-gallery-toolbar-slot')).toBeNull();
+    expect(screen.queryByTestId('image-gallery-toolbar')).toBeNull();
   });
 
   it('keeps gallery toolbar controls visible in touch mode', () => {
@@ -188,7 +182,6 @@ describe('ImageGallery', () => {
 
     render(<ImageGallery />);
 
-    expect(screen.getByTestId('image-gallery-toolbar-slot')).toHaveAttribute('aria-hidden', 'false');
     expect(screen.getByTestId('image-gallery-toolbar-slot')).toHaveClass('h-auto', 'overflow-visible');
     expect(screen.getByTestId('image-gallery-toolbar-slot')).toHaveStyle({ minHeight: '40px' });
     expect(screen.getByTestId('image-gallery-toolbar')).toBeVisible();

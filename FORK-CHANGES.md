@@ -13,6 +13,7 @@ User-facing changes since divergence, newest last within each group.
 - Manifests without a `baseUrl` default to the manifest's own directory — fixes hosted blob manifests that omit it by design (`4fb39b3`).
 - Deferred statistics: the per-image/global stats pass (the longest post-parse main-thread cost) is skipped at load; it runs lazily — with the background progress card — the first time something needs it (image detail, matches, selection highlight, gallery list view, data panel). Default load is poses + points only.
 - In-viewer dataset switcher: a compact select in the gallery toolbar lists the hosted datasets (same cached `index.json` fetch as the start screen) plus the currently loaded manifest; picking one reloads via `?url=<manifest>&progressive=1`, preserving a `?pointerlock=0` opt-out.
+- Georeferenced-model recentering: models with UTM-magnitude float64 coordinates (RealityScan exports; camera centroid > 1e4) are recentered at load, BEFORE any parser converts positions to float32 — fixes the 0.03–1 m quantization banding in the point cloud. The offset comes from the camera-center centroid (double-precision pass over the raw images.bin bytes), points get `xyz - c` and poses get `tvec + R·c` (camera centers shift by exactly the same `-c`), rewritten in place for the binary/WASM path and applied to parsed maps on the JS/text path. Deriving the offset from cameras makes progressive stage 1 (zero-point stub) and stage 2 recenter identically, so the live scene never jumps. The applied offset is stored as `reconstruction.georefOffset` (original = local + offset) for future georef display/exports. Skipped for rig datasets (frames.bin world poses are not rewritten).
 
 ## Viewer & navigation
 
@@ -28,6 +29,7 @@ User-facing changes since divergence, newest last within each group.
 - Scroll stability: keep position when selecting an already-visible image (`e40d600`); only re-center on actual selection changes, never while the user scrolls (`555d66f`).
 - Cached thumbnails survive load-gating — no more thumbnails blanking to placeholders on click/scroll/settle (`4f5417b`).
 - Decode-time thumbnail downscaling: gallery thumbs decode via `createImageBitmap` resize options (512px, medium quality) so full-resolution originals (8k JPEGs on blob datasets without a separate thumbs path) are never materialized in memory; detail views still load full-res.
+- Gallery top toolbar (dataset switcher + sort/filter controls) is persistently visible — it was hover-gated on desktop, which hid the dataset switcher; the slot now flows above the grid instead of overlaying the first row.
 
 ## Misc
 

@@ -48,6 +48,7 @@ export async function buildColmapReconstruction({
       imageToPoint3DIds: stats.imageToPoint3DIds,
       statsPending: getColmapPointCount(parseResult) > 0,
       rigData,
+      ...(parseResult.georefOffset && { georefOffset: parseResult.georefOffset }),
     },
     pointCount: getColmapPointCount(parseResult),
   };

@@ -109,6 +109,13 @@ export interface Reconstruction {
    */
   statsPending?: boolean;
   rigData?: RigData;
+  /**
+   * World offset subtracted from all positions (points AND camera poses) when
+   * a georeferenced model was recentered at load time to preserve Float32
+   * precision. Original georeferenced coordinate = local coordinate + offset.
+   * Absent when no recentering was applied.
+   */
+  georefOffset?: [number, number, number];
 }
 
 export interface SplatFileSource {

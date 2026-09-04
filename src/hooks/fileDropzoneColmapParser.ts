@@ -9,6 +9,14 @@ import {
   parseWithWasm,
 } from '../parsers';
 import type { SkippedCameraRecord } from '../parsers';
+import {
+  computeImageMapCameraCentroid,
+  getGeorefRecenterOffset,
+  maybeRecenterColmapBinaryFiles,
+  recenterImageMap,
+  recenterPoints3DMap,
+  type GeorefOffset,
+} from '../parsers/georefRecenter';
 import type { Camera, Image as ColmapImage, Point3D } from '../types/colmap';
 import { appLogger } from '../utils/logger';
 import type { RigData } from '../types/rig';
@@ -29,6 +37,12 @@ export interface ColmapParseResult {
   wasmRigData?: RigData;
   wasmWrapper: WasmReconstructionWrapper | null;
   usedWasmPath: boolean;
+  /**
+   * World offset subtracted from all positions when a georeferenced model
+   * (UTM-magnitude coordinates) was recentered to preserve Float32 precision.
+   * original world coordinate = parsed coordinate + georefOffset.
+   */
+  georefOffset: GeorefOffset | null;
 }
 
 export interface ColmapParserDeps {
@@ -69,6 +83,33 @@ export async function parseColmapFiles({
   addNotification,
   log = appLogger.info,
 }: ParseColmapFilesOptions): Promise<ColmapParseResult> {
+  // Georeferenced models (UTM-magnitude float64 coordinates) must be
+  // recentered BEFORE parsing: every parse path downstream converts positions
+  // to float32 (the WASM parser stores float32 internally), where ~5e5-scale
+  // coordinates quantize to 0.03-0.5 m banding. Rewriting the float64 bytes in
+  // place shifts points and camera poses by the same world offset, so poses
+  // and points stay exactly consistent. Skipped when rig/frame files are
+  // present: frames.bin carries additional world-frame poses this pass does
+  // not rewrite, and a partial shift would tear rigs away from the model.
+  let georefOffset: GeorefOffset | null = null;
+  const canRecenterBinary =
+    imagesFile.name.endsWith('.bin')
+    && points3DFile.name.endsWith('.bin')
+    && !rigsFile
+    && !framesFile;
+  if (canRecenterBinary) {
+    try {
+      const recentered = await maybeRecenterColmapBinaryFiles({ imagesFile, points3DFile });
+      if (recentered) {
+        ({ imagesFile, points3DFile } = recentered);
+        georefOffset = recentered.offset;
+        log(`[Georef] Large coordinates detected — recentered by [${georefOffset.join(', ')}] to preserve Float32 precision`);
+      }
+    } catch (err) {
+      appLogger.warn('[Georef] Recentering pre-pass failed, parsing original coordinates:', err);
+    }
+  }
+
   log('[Parser] Attempting WASM parser (memory-optimized)...');
   const wasmResult = await parsers.parseWithWasm(
     camerasFile,
@@ -91,6 +132,7 @@ export async function parseColmapFiles({
       wasmRigData: wasmResult.rigData,
       wasmWrapper: wasmResult.wasmWrapper,
       usedWasmPath: true,
+      georefOffset,
     };
   }
 
@@ -117,6 +159,21 @@ export async function parseColmapFiles({
       : points3DFile.text().then(parsers.parsePoints3DText),
   ]);
 
+  // Text-format (and PLY-backed) models never went through the binary
+  // recentering pre-pass; apply the same world shift to the parsed maps in
+  // float64 (exact) so georeferenced text models get identical treatment.
+  // After a binary pre-pass georefOffset is already set (or the centroid is
+  // near zero), so this cannot double-shift.
+  if (!georefOffset && !rigsFile && !framesFile) {
+    const mapOffset = getGeorefRecenterOffset(computeImageMapCameraCentroid(images));
+    if (mapOffset) {
+      recenterImageMap(images, mapOffset);
+      recenterPoints3DMap(points3D, mapOffset);
+      georefOffset = mapOffset;
+      log(`[Georef] Large coordinates detected — recentered by [${mapOffset.join(', ')}] to preserve Float32 precision`);
+    }
+  }
+
   if (skippedCameras.length > 0) {
     const uniqueModels = [...new Set(skippedCameras.map(s => s.modelName))];
     addNotification(
@@ -139,5 +196,6 @@ export async function parseColmapFiles({
     points3D,
     wasmWrapper: null,
     usedWasmPath: false,
+    georefOffset,
   };
 }

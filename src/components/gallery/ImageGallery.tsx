@@ -68,19 +68,13 @@ export function ImageGallery({ isResizing = false }: ImageGalleryProps) {
 
   const [galleryElement, setGalleryElement] = useState<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [galleryHeaderHovered, setGalleryHeaderHovered] = useState(false);
-  const showToolbar = !hideToolbar && (touchMode || galleryHeaderHovered);
+  // The toolbar (dataset switcher + sort/filter controls) is persistently
+  // visible; it was hover-gated on desktop before, which made the dataset
+  // switcher hard to discover.
+  const showToolbar = !hideToolbar;
 
   const handleGalleryRef = useCallback((element: HTMLDivElement | null) => {
     setGalleryElement(element);
-  }, []);
-
-  const handleGalleryHeaderMouseEnter = useCallback(() => {
-    setGalleryHeaderHovered(true);
-  }, []);
-
-  const handleGalleryHeaderMouseLeave = useCallback(() => {
-    setGalleryHeaderHovered(false);
   }, []);
 
   useImageGalleryColumnResize({
@@ -158,19 +152,12 @@ export function ImageGallery({ isResizing = false }: ImageGalleryProps) {
       data-idle-ignore="true"
       data-testid="image-gallery"
     >
-      <div
-        className={
-          touchMode
-            ? 'image-gallery-toolbar-slot h-auto overflow-visible bg-ds-secondary'
-            : 'image-gallery-toolbar-slot absolute left-0 right-0 top-0 z-30 h-auto overflow-visible bg-transparent'
-        }
-        style={{ minHeight: 40 }}
-        data-testid="image-gallery-toolbar-slot"
-        aria-hidden={!showToolbar}
-        onMouseEnter={handleGalleryHeaderMouseEnter}
-        onMouseLeave={handleGalleryHeaderMouseLeave}
-      >
-        {showToolbar && (
+      {showToolbar && (
+        <div
+          className="image-gallery-toolbar-slot h-auto overflow-visible bg-ds-secondary"
+          style={{ minHeight: 40 }}
+          data-testid="image-gallery-toolbar-slot"
+        >
           <ImageGalleryToolbar
             galleryColumns={galleryColumns}
             onGalleryColumnsChange={setGalleryColumns}
@@ -192,8 +179,8 @@ export function ImageGallery({ isResizing = false }: ImageGalleryProps) {
             onThumbnailDisplayModeChange={setThumbnailDisplayMode}
             onViewModeChange={setViewMode}
           />
-        )}
-      </div>
+        </div>
+      )}
 
       <ImageGalleryVirtualizedContent
         containerRef={containerRef}

@@ -19,10 +19,8 @@ test.describe('ImageGallery', () => {
     await galleryImage.hover();
     await expect(page.getByText('1 3D points')).toBeVisible({ timeout: 5000 });
 
-    // The gallery toolbar only mounts while its slot is hovered (ImageGallery.tsx
-    // showToolbar = !hideToolbar && (touchMode || galleryHeaderHovered)), so hover
-    // the slot first and keep the pointer there for the click.
-    await page.getByTestId('image-gallery-toolbar-slot').hover();
+    // The gallery toolbar is persistently visible (ImageGallery.tsx
+    // showToolbar = !hideToolbar), no hover needed before the click.
     await page.locator('button[data-tooltip="List view with stats"]').click();
 
     const listItems = page.locator('.list-stats-container');

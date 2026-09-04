@@ -18,6 +18,18 @@ export { computeImageStats, computeImageStatsFromWasm, createEmptyImageStatsResu
 export type { ImageStatsResult, ImageToPoint3DIdsMap } from './imageStats';
 export { parseWithWasm } from './wasmParser';
 export {
+  GEOREF_RECENTER_THRESHOLD,
+  computeImageMapCameraCentroid,
+  computeImagesBinaryCameraCentroid,
+  getGeorefRecenterOffset,
+  maybeRecenterColmapBinaryFiles,
+  recenterImageMap,
+  recenterImagesBinary,
+  recenterPoints3DBinary,
+  recenterPoints3DMap,
+  type GeorefOffset,
+} from './georefRecenter';
+export {
   // Text writers
   writeCamerasText,
   writeImagesText,
