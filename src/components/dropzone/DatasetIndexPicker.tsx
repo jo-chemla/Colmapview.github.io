@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  fetchRemoteDatasetIndex,
   getDatasetEntryMetaLabel,
   getDatasetViewerHref,
   getManifestsParamEntries,
-  parseDatasetIndex,
-  REMOTE_DATASET_INDEX_URL,
   type DatasetPickerEntry,
 } from './datasetIndexPolicy';
 
@@ -32,11 +31,7 @@ export function DatasetIndexPicker() {
     let cancelled = false;
     (async () => {
       try {
-        const response = await fetch(REMOTE_DATASET_INDEX_URL);
-        if (!response.ok) {
-          throw new Error(`index fetch failed (${response.status})`);
-        }
-        const entries = parseDatasetIndex(await response.json(), REMOTE_DATASET_INDEX_URL);
+        const entries = await fetchRemoteDatasetIndex();
         if (!cancelled) {
           setIndex({ status: entries.length > 0 ? 'ready' : 'unavailable', entries });
         }

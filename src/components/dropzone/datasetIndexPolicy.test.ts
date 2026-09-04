@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   formatDatasetCount,
   getDatasetEntryMetaLabel,
+  getDatasetSwitcherEntries,
   getDatasetViewerHref,
   getManifestDisplayName,
   getManifestsParamEntries,
@@ -69,6 +70,13 @@ describe('picker labels and links', () => {
       .toBe('?url=https%3A%2F%2Fx.example.com%2Fm.json&progressive=1');
   });
 
+  it('preserves the pointerlock URL opt-out across dataset switches', () => {
+    expect(getDatasetViewerHref('https://x.example.com/m.json', '?url=old&pointerlock=0'))
+      .toBe('?url=https%3A%2F%2Fx.example.com%2Fm.json&progressive=1&pointerlock=0');
+    expect(getDatasetViewerHref('https://x.example.com/m.json', '?url=old'))
+      .toBe('?url=https%3A%2F%2Fx.example.com%2Fm.json&progressive=1');
+  });
+
   it('formats counts without locale separators', () => {
     expect(formatDatasetCount(3136)).toBe('3136');
     expect(formatDatasetCount(20362)).toBe('20k');
@@ -84,5 +92,42 @@ describe('picker labels and links', () => {
   it('falls back through manifest.json to the parent directory name', () => {
     expect(getManifestDisplayName('https://x.example.com/models/abside/manifest.json')).toBe('abside');
     expect(getManifestDisplayName('https://x.example.com/models/nave.json')).toBe('nave');
+  });
+});
+
+describe('getDatasetSwitcherEntries', () => {
+  const indexEntries = [
+    { name: 'S4', manifestUrl: 'https://x.example.com/S4/manifest.json' },
+    { name: 'Nave', manifestUrl: 'https://x.example.com/nave/manifest.json' },
+  ];
+
+  it('keeps the index order when the current manifest is already listed', () => {
+    const entries = getDatasetSwitcherEntries({
+      indexEntries,
+      extraEntries: [],
+      currentManifestUrl: 'https://x.example.com/nave/manifest.json',
+    });
+    expect(entries.map((entry) => entry.name)).toEqual(['S4', 'Nave']);
+  });
+
+  it('prepends an unlisted current manifest with a derived name', () => {
+    const entries = getDatasetSwitcherEntries({
+      indexEntries,
+      extraEntries: [],
+      currentManifestUrl: 'https://y.example.com/abside/manifest.json',
+    });
+    expect(entries.map((entry) => entry.name)).toEqual(['abside', 'S4', 'Nave']);
+  });
+
+  it('appends manifests-param extras and deduplicates by URL', () => {
+    const entries = getDatasetSwitcherEntries({
+      indexEntries,
+      extraEntries: [
+        { name: 'dupe', manifestUrl: 'https://x.example.com/S4/manifest.json' },
+        { name: 'extra', manifestUrl: 'https://z.example.com/extra.json' },
+      ],
+      currentManifestUrl: null,
+    });
+    expect(entries.map((entry) => entry.name)).toEqual(['S4', 'Nave', 'extra']);
   });
 });

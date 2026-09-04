@@ -49,5 +49,5 @@ export function shouldShowSelectionSpeedControl(selectionColorMode: SelectionCol
 export function getSelectionHighlightHint(
   selectionColorMode: SelectionColorMode | string
 ): SelectionHighlightHint {
-  return SELECTION_HIGHLIGHT_HINTS[getSupportedSelectionColorMode(selectionColorMode) ?? 'rainbow'];
+  return SELECTION_HIGHLIGHT_HINTS[getSupportedSelectionColorMode(selectionColorMode) ?? 'static'];
 }

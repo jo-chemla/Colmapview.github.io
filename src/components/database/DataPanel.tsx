@@ -12,6 +12,7 @@ import {
   useDataPanelStoreFacade,
   type DataPanelReconstruction,
 } from './useDataPanelStoreFacade';
+import { useEnsureReconstructionStats } from '../../hooks/useEnsureReconstructionStats';
 
 const compactTableClass = `${tableStyles.table} table-fixed text-xs`;
 const compactHeaderCellClass = `${tableStyles.headerCell} px-2 py-1 font-medium whitespace-nowrap`;
@@ -20,6 +21,10 @@ const compactCellClass = `${tableStyles.cell} px-2 py-1 align-middle`;
 export function DataPanel() {
   const { reconstruction } = useDataPanelStoreFacade();
   const [activeTab, setActiveTab] = useState<DataPanelTabId>('cameras');
+
+  // The panel surfaces per-image and global statistics, deferred at load;
+  // compute them the first time the panel is opened.
+  useEnsureReconstructionStats(true);
 
   if (!reconstruction) {
     return (

@@ -13,6 +13,7 @@ import {
   syncMaterialOpacity,
 } from './threeMaterialMutations';
 import { useCameraMatchesStoreFacade } from './useCameraMatchesStoreFacade';
+import { useEnsureReconstructionStats } from '../../hooks/useEnsureReconstructionStats';
 
 export function CameraMatches() {
   const { reconstruction } = useCameraMatchesStoreFacade();
@@ -32,6 +33,10 @@ export function CameraMatches() {
   } = matches;
 
   const blinkPhaseRef = useRef(0);
+
+  // Match lines come from connectedImagesIndex, which is empty while the
+  // deferred stats pass has not run; kick it when matches are actually shown.
+  useEnsureReconstructionStats(showMatches && selectedImageId !== null);
 
   const linePositions = useMemo(() => buildCameraMatchLinePositions({
     reconstruction,

@@ -136,7 +136,7 @@ describe('configuration store adapter', () => {
     expect(useCameraStore.getState().cameraScale).toBe(0.6);
     expect(useUIStore.getState().showMaskOverlay).toBe(false);
     expect(useUIStore.getState().galleryViewMode).toBe('auto');
-    expect(useUIStore.getState().galleryColumns).toBe(2);
+    expect(useUIStore.getState().galleryColumns).toBe(5);
     expect(useUIStore.getState().galleryCameraFilter).toBe('all');
     expect(useUIStore.getState().gallerySortField).toBe('name');
     expect(useUIStore.getState().gallerySortDirection).toBe('asc');

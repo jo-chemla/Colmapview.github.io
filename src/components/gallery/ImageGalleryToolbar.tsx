@@ -1,4 +1,5 @@
 import { GalleryGridIcon, GalleryListIcon, SortAscIcon, SortDescIcon } from '../../icons';
+import { DatasetSwitcherSelect } from './DatasetSwitcherSelect';
 import {
   buttonStyles,
   getTooltipProps,
@@ -87,6 +88,7 @@ export function ImageGalleryToolbar({
       className={`image-gallery-toolbar ${touchMode ? 'image-gallery-toolbar--touch' : ''} h-auto py-1 pl-0.5 pr-1 bg-ds-tertiary`}
       data-testid="image-gallery-toolbar"
     >
+      <DatasetSwitcherSelect />
       <select
         aria-label="Grid columns"
         title="Grid columns (also: Shift+scroll on the grid)"

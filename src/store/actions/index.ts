@@ -31,6 +31,12 @@ export {
   type SetReconstructionResult,
 } from './reconstructionActions.js';
 
+// Lazy reconstruction statistics
+export {
+  areReconstructionStatsPending,
+  ensureReconstructionStats,
+} from './reconstructionStatsActions.js';
+
 // Transform actions
 export {
   applyTransformPreset,

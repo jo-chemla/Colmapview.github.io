@@ -324,9 +324,9 @@ export function migrateCameraPersistedState(
 
   if (state.selectionColorMode === 'off') {
     state.showSelectionHighlight = false;
-    state.selectionColorMode = 'rainbow';
+    state.selectionColorMode = 'static';
   } else if (state.selectionColorMode !== undefined) {
-    state.selectionColorMode = getSelectionColorMode(state.selectionColorMode) ?? 'rainbow';
+    state.selectionColorMode = getSelectionColorMode(state.selectionColorMode) ?? 'static';
   }
 
   if (version < 4) {
@@ -344,6 +344,15 @@ export function migrateCameraPersistedState(
     }
     if (state.frustumSingleColor === '#ff0000') {
       state.frustumSingleColor = '#ffffff';
+    }
+  }
+
+  if (version < 5) {
+    // v5 changed the default selection highlight from the animated 'rainbow'
+    // cycle to a static single-color highlight. Re-target persisted values
+    // still equal to the old default — 'static'/'blink' choices are kept.
+    if (state.selectionColorMode === 'rainbow') {
+      state.selectionColorMode = 'static';
     }
   }
 

@@ -139,6 +139,9 @@ export function filterReconstructionByImageIds(
     connectedImagesIndex: newConnectedImagesIndex,
     globalStats: reconstruction.globalStats, // Stats are approximations, keep as-is
     imageToPoint3DIds: newImageToPoint3DIds,
+    // Carry the deferred-stats flag: deleting images before the lazy stats
+    // pass ran must not strand the reconstruction with empty stats forever.
+    ...(reconstruction.statsPending !== undefined && { statsPending: reconstruction.statsPending }),
     rigData: newRigData,
   };
 }

@@ -101,6 +101,13 @@ export interface Reconstruction {
   globalStats: GlobalStats;
   /** Reverse mapping from imageId to observed 3D point IDs (for highlighting) */
   imageToPoint3DIds: ImageToPoint3DIdsMap;
+  /**
+   * True while the per-image/global statistics pass has been skipped at load
+   * time. The stats fields above are present but EMPTY (zeroed globalStats,
+   * empty maps); ensureReconstructionStats() computes and swaps them in on
+   * first need (stats panels, matches, selection highlight, list view).
+   */
+  statsPending?: boolean;
   rigData?: RigData;
 }
 

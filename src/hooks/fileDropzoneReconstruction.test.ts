@@ -2,9 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   buildCamera,
   buildFile,
-  buildGlobalStats,
   buildImage,
-  buildImageStats,
   buildPoint3D,
   buildRigData,
   buildWasmReconstructionWrapper,
@@ -15,39 +13,18 @@ import {
   getColmapPointCount,
 } from './fileDropzoneReconstruction';
 
-function createStatsResult(imageId = 1) {
-  const connectedImagesIndex = new Map([[imageId, new Map([[2, 1]])]]);
-  const imageToPoint3DIds = new Map([[imageId, new Set([1n, 2n])]]);
-
-  return {
-    imageStats: new Map([[imageId, buildImageStats({ numPoints3D: 3 })]]),
-    connectedImagesIndex,
-    globalStats: buildGlobalStats({ totalPoints: 7 }),
-    imageToPoint3DIds,
-  };
-}
-
-function createStatsComputers(stats = createStatsResult()) {
-  return {
-    computeImageStats: vi.fn(async () => stats),
-    computeImageStatsFromWasm: vi.fn(async () => stats),
-  };
-}
-
 function createRigData(): RigData {
   return buildRigData({ rigs: [], frames: [] });
 }
 
 describe('file dropzone reconstruction builder', () => {
-  it('builds JS-parser reconstructions with a points3D map and optional rig data', async () => {
+  it('builds JS-parser reconstructions with deferred (empty) stats and optional rig data', async () => {
     const camera = buildCamera();
     const image = buildImage({ imageId: 7, cameraId: camera.cameraId });
     const point = buildPoint3D({ point3DId: 9n });
     const cameras = new Map([[camera.cameraId, camera]]);
     const images = new Map([[image.imageId, image]]);
     const points3D = new Map([[point.point3DId, point]]);
-    const stats = createStatsResult(image.imageId);
-    const statsComputers = createStatsComputers(stats);
     const rigData = createRigData();
     const loadRigData = vi.fn(async () => rigData);
     const afterStatsComputed = vi.fn();
@@ -64,13 +41,10 @@ describe('file dropzone reconstruction builder', () => {
       },
       rigsFile,
       framesFile,
-      statsComputers,
       loadRigData,
       afterStatsComputed,
     });
 
-    expect(statsComputers.computeImageStats).toHaveBeenCalledWith(images, points3D);
-    expect(statsComputers.computeImageStatsFromWasm).not.toHaveBeenCalled();
     expect(afterStatsComputed.mock.invocationCallOrder[0]).toBeLessThan(
       loadRigData.mock.invocationCallOrder[0]
     );
@@ -80,12 +54,13 @@ describe('file dropzone reconstruction builder', () => {
       cameras,
       images,
       points3D,
-      imageStats: stats.imageStats,
-      connectedImagesIndex: stats.connectedImagesIndex,
-      globalStats: stats.globalStats,
-      imageToPoint3DIds: stats.imageToPoint3DIds,
       rigData,
+      statsPending: true,
     });
+    expect(result.reconstruction.imageStats.size).toBe(0);
+    expect(result.reconstruction.connectedImagesIndex.size).toBe(0);
+    expect(result.reconstruction.imageToPoint3DIds.size).toBe(0);
+    expect(result.reconstruction.globalStats.totalPoints).toBe(0);
   });
 
   it('builds WASM-parser reconstructions without materializing a points3D map', async () => {
@@ -94,8 +69,6 @@ describe('file dropzone reconstruction builder', () => {
     const cameras = new Map([[camera.cameraId, camera]]);
     const images = new Map([[image.imageId, image]]);
     const wasmRigData = createRigData();
-    const stats = createStatsResult(image.imageId);
-    const statsComputers = createStatsComputers(stats);
     const wasmWrapper = buildWasmReconstructionWrapper({ pointCount: 42 });
     const loadRigData = vi.fn(async () => wasmRigData);
 
@@ -107,12 +80,9 @@ describe('file dropzone reconstruction builder', () => {
         wasmWrapper,
         usedWasmPath: true,
       },
-      statsComputers,
       loadRigData,
     });
 
-    expect(statsComputers.computeImageStatsFromWasm).toHaveBeenCalledWith(images, wasmWrapper);
-    expect(statsComputers.computeImageStats).not.toHaveBeenCalled();
     expect(loadRigData).toHaveBeenCalledWith({
       wasmRigData,
       rigsFile: undefined,
@@ -121,22 +91,26 @@ describe('file dropzone reconstruction builder', () => {
     expect(result.pointCount).toBe(42);
     expect(result.reconstruction.points3D).toBeUndefined();
     expect(result.reconstruction.rigData).toBe(wasmRigData);
+    expect(result.reconstruction.statsPending).toBe(true);
   });
 
-  it('fails fast if a JS-parser result has no points3D map for stats computation', async () => {
+  it('does not mark point-less reconstructions as stats-pending', async () => {
     const camera = buildCamera();
     const image = buildImage({ cameraId: camera.cameraId });
 
-    await expect(buildColmapReconstruction({
+    const result = await buildColmapReconstruction({
       parseResult: {
         cameras: new Map([[camera.cameraId, camera]]),
         images: new Map([[image.imageId, image]]),
+        points3D: new Map(),
         wasmWrapper: null,
         usedWasmPath: false,
       },
-      statsComputers: createStatsComputers(),
-      loadRigData: vi.fn(),
-    })).rejects.toThrow('COLMAP parser returned no points3D map for JS stats computation');
+      loadRigData: vi.fn(async () => undefined),
+    });
+
+    expect(result.pointCount).toBe(0);
+    expect(result.reconstruction.statsPending).toBe(false);
   });
 
   it('derives point counts from WASM first, then JS points, then zero', () => {

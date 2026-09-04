@@ -11,6 +11,7 @@ import { useImageDetailMatchOpacity } from './useImageDetailMatchOpacity';
 import { useImageDetailNavigationHandlers } from './useImageDetailNavigationHandlers';
 import { useImageDetailStoreFacade } from './useImageDetailStoreFacade';
 import { useLazyImagePoints2D } from './useLazyImagePoints2D';
+import { useEnsureReconstructionStats } from '../../hooks/useEnsureReconstructionStats';
 
 export function ImageDetailModal() {
   const {
@@ -35,6 +36,10 @@ export function ImageDetailModal() {
       showModalControls,
     },
   } = useImageDetailStoreFacade();
+
+  // The detail view shows per-image stats and connected images: kick the
+  // deferred statistics pass the first time the modal opens.
+  useEnsureReconstructionStats(imageDetailId !== null);
 
   const {
     cameraAllMarked,

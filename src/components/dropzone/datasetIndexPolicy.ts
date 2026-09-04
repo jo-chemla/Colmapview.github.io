@@ -72,6 +72,27 @@ export function parseDatasetIndex(data: unknown, indexUrl: string): DatasetPicke
   return entries;
 }
 
+let cachedRemoteIndexPromise: Promise<DatasetPickerEntry[]> | null = null;
+
+/**
+ * Fetch + parse the remote dataset index, memoized for the page lifetime so
+ * the start-screen picker and the in-viewer dataset switcher share one fetch.
+ * A failed fetch clears the cache so a later consumer can retry.
+ */
+export function fetchRemoteDatasetIndex(): Promise<DatasetPickerEntry[]> {
+  cachedRemoteIndexPromise ??= (async () => {
+    const response = await fetch(REMOTE_DATASET_INDEX_URL);
+    if (!response.ok) {
+      throw new Error(`index fetch failed (${response.status})`);
+    }
+    return parseDatasetIndex(await response.json(), REMOTE_DATASET_INDEX_URL);
+  })().catch((error: unknown) => {
+    cachedRemoteIndexPromise = null;
+    throw error;
+  });
+  return cachedRemoteIndexPromise;
+}
+
 /** Derive a short display name for a bare manifest URL (e.g. .../S4/manifest.json -> S4). */
 export function getManifestDisplayName(manifestUrl: string): string {
   try {
@@ -118,9 +139,48 @@ export function getManifestsParamEntries(search: string): DatasetPickerEntry[] {
   return entries;
 }
 
-/** Viewer link for a picker entry: same page, ?url=<manifest>&progressive=1. */
-export function getDatasetViewerHref(manifestUrl: string): string {
-  return `?url=${encodeURIComponent(manifestUrl)}&progressive=1`;
+/**
+ * Viewer link for a picker entry: same page, ?url=<manifest>&progressive=1.
+ * When the current search is provided, the `pointerlock` opt-out survives the
+ * dataset switch (it is read from the URL, not from a persisted store).
+ */
+export function getDatasetViewerHref(manifestUrl: string, currentSearch = ''): string {
+  let href = `?url=${encodeURIComponent(manifestUrl)}&progressive=1`;
+  const pointerlock = new URLSearchParams(currentSearch).get('pointerlock');
+  if (pointerlock !== null) {
+    href += `&pointerlock=${encodeURIComponent(pointerlock)}`;
+  }
+  return href;
+}
+
+/**
+ * Options for the in-viewer dataset switcher: hosted index entries plus any
+ * `?manifests=` extras, deduplicated by manifest URL, with the currently
+ * loaded manifest prepended when it is not already listed.
+ */
+export function getDatasetSwitcherEntries({
+  indexEntries,
+  extraEntries,
+  currentManifestUrl,
+}: {
+  indexEntries: DatasetPickerEntry[];
+  extraEntries: DatasetPickerEntry[];
+  currentManifestUrl: string | null;
+}): DatasetPickerEntry[] {
+  const merged: DatasetPickerEntry[] = [];
+  const seen = new Set<string>();
+  const push = (entry: DatasetPickerEntry) => {
+    if (!seen.has(entry.manifestUrl)) {
+      seen.add(entry.manifestUrl);
+      merged.push(entry);
+    }
+  };
+  for (const entry of indexEntries) push(entry);
+  for (const entry of extraEntries) push(entry);
+  if (currentManifestUrl && !seen.has(currentManifestUrl)) {
+    merged.unshift({ name: getManifestDisplayName(currentManifestUrl), manifestUrl: currentManifestUrl });
+  }
+  return merged;
 }
 
 /** Locale-independent compact count (21.4M / 320k / 3136). */

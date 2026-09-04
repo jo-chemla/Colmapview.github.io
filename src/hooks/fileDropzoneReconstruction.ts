@@ -1,21 +1,12 @@
-import {
-  computeImageStats,
-  computeImageStatsFromWasm,
-} from '../parsers';
-import type { Point3D, Reconstruction } from '../types/colmap';
+import { createEmptyImageStatsResult } from '../parsers';
+import type { Reconstruction } from '../types/colmap';
 import type { ColmapParseResult } from './fileDropzoneColmapParser';
 import { loadOptionalRigData } from './fileDropzoneRigData';
-
-export interface ColmapReconstructionStatsComputers {
-  computeImageStats: typeof computeImageStats;
-  computeImageStatsFromWasm: typeof computeImageStatsFromWasm;
-}
 
 export interface BuildColmapReconstructionOptions {
   parseResult: ColmapParseResult;
   rigsFile?: File;
   framesFile?: File;
-  statsComputers?: ColmapReconstructionStatsComputers;
   loadRigData?: typeof loadOptionalRigData;
   afterStatsComputed?: () => void;
 }
@@ -25,24 +16,18 @@ export interface BuildColmapReconstructionResult {
   pointCount: number;
 }
 
-const defaultStatsComputers: ColmapReconstructionStatsComputers = {
-  computeImageStats,
-  computeImageStatsFromWasm,
-};
-
 export async function buildColmapReconstruction({
   parseResult,
   rigsFile,
   framesFile,
-  statsComputers = defaultStatsComputers,
   loadRigData = loadOptionalRigData,
   afterStatsComputed,
 }: BuildColmapReconstructionOptions): Promise<BuildColmapReconstructionResult> {
-  // Awaited cooperative pass: yields to the event loop while it runs so the UI
-  // stays interactive during multi-million-point stats computation.
-  const stats = parseResult.usedWasmPath && parseResult.wasmWrapper
-    ? await statsComputers.computeImageStatsFromWasm(parseResult.images, parseResult.wasmWrapper)
-    : await statsComputers.computeImageStats(parseResult.images, requirePoints3D(parseResult.points3D));
+  // Stats pass is DEFERRED: the default load is poses + points only. The
+  // O(points x trackLength^2) statistics computation runs lazily via
+  // ensureReconstructionStats() the first time a consumer needs it (stats
+  // panels, matches view, selection highlight, gallery list view).
+  const stats = createEmptyImageStatsResult();
 
   afterStatsComputed?.();
 
@@ -61,6 +46,7 @@ export async function buildColmapReconstruction({
       connectedImagesIndex: stats.connectedImagesIndex,
       globalStats: stats.globalStats,
       imageToPoint3DIds: stats.imageToPoint3DIds,
+      statsPending: getColmapPointCount(parseResult) > 0,
       rigData,
     },
     pointCount: getColmapPointCount(parseResult),
@@ -72,11 +58,4 @@ export function getColmapPointCount({
   points3D,
 }: Pick<ColmapParseResult, 'wasmWrapper' | 'points3D'>): number {
   return wasmWrapper?.pointCount ?? points3D?.size ?? 0;
-}
-
-function requirePoints3D(points3D: Map<bigint, Point3D> | undefined): Map<bigint, Point3D> {
-  if (!points3D) {
-    throw new Error('COLMAP parser returned no points3D map for JS stats computation');
-  }
-  return points3D;
 }

@@ -7,7 +7,8 @@
 import { createImageCache } from './useAsyncImageCache';
 import { isOffscreenCanvas } from '../utils/canvasTypeGuards';
 
-const THUMBNAIL_SIZE = 256;
+// ~2x a gallery cell width: crisp on hidpi screens while staying tiny in memory.
+const THUMBNAIL_SIZE = 512;
 
 /**
  * Process canvas to blob URL for thumbnails.
@@ -35,6 +36,11 @@ async function canvasToBlobUrl(canvas: HTMLCanvasElement | OffscreenCanvas): Pro
 // Create the thumbnail cache instance
 const thumbnailCache = createImageCache<string>({
   maxSize: THUMBNAIL_SIZE,
+  // Manifests without a separate thumbs path serve full-resolution originals
+  // (blob datasets: imagesPath == hdImagesPath == 8k JPEGs). Downscale during
+  // decode so the full-res bitmap never exists; detail views load their own
+  // full-resolution copy elsewhere.
+  decodeResizeWidth: THUMBNAIL_SIZE,
   processCanvas: canvasToBlobUrl,
   dispose: (url) => URL.revokeObjectURL(url),
   idleTimeout: 500,

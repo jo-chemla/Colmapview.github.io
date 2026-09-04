@@ -13,6 +13,10 @@ import {
   buildListRows,
   useImageGalleryViewModel,
 } from './useImageGalleryViewModel';
+import { useEnsureReconstructionStats } from '../../hooks/useEnsureReconstructionStats';
+
+/** Gallery sort fields backed by the deferred per-image statistics pass. */
+const STATS_SORT_FIELDS = new Set(['avgError', 'covisibleCount', 'numPoints3D']);
 
 interface ImageGalleryProps {
   isResizing?: boolean;
@@ -58,6 +62,10 @@ export function ImageGallery({ isResizing = false }: ImageGalleryProps) {
     touchMode,
     viewMode,
   } = useImageGalleryViewModel();
+  // The list view and stat-based sorts read per-image stats, which are empty
+  // while the deferred statistics pass has not run; kick it on first need.
+  useEnsureReconstructionStats(viewMode === 'list' || STATS_SORT_FIELDS.has(sortField));
+
   const [galleryElement, setGalleryElement] = useState<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [galleryHeaderHovered, setGalleryHeaderHovered] = useState(false);

@@ -14,8 +14,8 @@ export {
 } from './plyPointCloud';
 export { parseRigsBinary, parseRigsText } from './rigs';
 export { parseFramesBinary, parseFramesText } from './frames';
-export { computeImageStats, computeImageStatsFromWasm } from './imageStats';
-export type { ImageToPoint3DIdsMap } from './imageStats';
+export { computeImageStats, computeImageStatsFromWasm, createEmptyImageStatsResult } from './imageStats';
+export type { ImageStatsResult, ImageToPoint3DIdsMap } from './imageStats';
 export { parseWithWasm } from './wasmParser';
 export {
   // Text writers

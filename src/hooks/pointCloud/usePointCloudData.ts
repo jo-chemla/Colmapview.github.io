@@ -22,6 +22,7 @@ import {
 import { computeSelectedPointOverlay } from './pointCloudSelectionOverlay';
 import { computeSlowPathMap } from './pointCloudMapData';
 import { computeSlowPathWasm } from './pointCloudWasmData';
+import { ensureReconstructionStats } from '../../store/actions';
 
 export interface UsePointCloudDataParams {
   enabled: boolean;
@@ -92,6 +93,15 @@ export function usePointCloudData(params: UsePointCloudDataParams): UsePointClou
 
   const indexToPoint3DIdRef = useRef<Point3DIdLookup>(EMPTY_POINT_ID_LOOKUP);
   const fastPathPositionCache = useMemo<FastPathPositionCacheStore>(() => ({ value: null }), []);
+
+  // The selection overlay reads imageToPoint3DIds, which is empty while the
+  // deferred stats pass has not run. Kick it on first highlighted selection;
+  // the store swap re-renders this hook with the filled mapping.
+  useEffect(() => {
+    if (enabled && showSelectionHighlight && selectedImageId !== null && reconstruction?.statsPending) {
+      void ensureReconstructionStats();
+    }
+  }, [enabled, showSelectionHighlight, selectedImageId, reconstruction]);
 
   // Compute highlight color directly in useMemo to avoid stale ref issue
   // (useEffect runs after render, so ref would have old value during useMemo execution)

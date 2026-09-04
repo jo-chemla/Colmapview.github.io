@@ -59,6 +59,14 @@ export function clearSharedDecodeCache(): void {
 export interface ImageCacheConfig<T> {
   /** Maximum dimension for resizing (preserving aspect ratio) */
   maxSize: number;
+  /**
+   * Downscale during decode to this width (createImageBitmap resizeWidth,
+   * medium quality). Avoids materializing full-resolution bitmaps when the
+   * source images are far larger than the cached output (e.g. 8k originals
+   * feeding 512px gallery thumbnails). Full-resolution consumers (detail
+   * views) use their own load paths and are unaffected.
+   */
+  decodeResizeWidth?: number;
   /** Convert a canvas to the output type */
   processCanvas: (canvas: HTMLCanvasElement | OffscreenCanvas) => T | Promise<T | null>;
   /** Cleanup function when cache is cleared */
@@ -74,7 +82,10 @@ export interface ImageCacheConfig<T> {
  * Each cache instance maintains its own state and can be cleared independently.
  */
 export function createImageCache<T>(config: ImageCacheConfig<T>) {
-  const { maxSize, processCanvas, dispose, idleTimeout = TIMING.textureUploadTimeout, idleFallback = TIMING.textureUploadFallback } = config;
+  const { maxSize, decodeResizeWidth, processCanvas, dispose, idleTimeout = TIMING.textureUploadTimeout, idleFallback = TIMING.textureUploadFallback } = config;
+  const decodeTimeoutOptions = decodeResizeWidth !== undefined
+    ? { decodeOptions: { resizeWidth: decodeResizeWidth, resizeQuality: 'medium' as ResizeQuality } }
+    : {};
 
   // Instance state
   const state = createAsyncImageCacheState<T>();
@@ -139,7 +150,7 @@ export function createImageCache<T>(config: ImageCacheConfig<T>) {
 
       let bitmap: ImageBitmap;
       try {
-        const decodedBitmap = await createImageBitmapWithTimeout(imageFile, DECODE_TIMEOUT);
+        const decodedBitmap = await createImageBitmapWithTimeout(imageFile, DECODE_TIMEOUT, decodeTimeoutOptions);
         bitmap = await resizeImageBitmapToMaxSizeWithTimeout(decodedBitmap, maxSize, DECODE_TIMEOUT);
       } catch (bitmapErr) {
         // Mark as failed so we don't retry (causes OOM with many failures)

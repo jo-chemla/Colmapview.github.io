@@ -113,7 +113,7 @@ describe('persistedStoreMigrations', () => {
     it('converts hidden selection color mode into the highlight flag', () => {
       expect(migrateCameraPersistedState({ selectionColorMode: 'off' }, 1)).toMatchObject({
         showSelectionHighlight: false,
-        selectionColorMode: 'rainbow',
+        selectionColorMode: 'static',
       });
     });
 
@@ -132,7 +132,7 @@ describe('persistedStoreMigrations', () => {
       }, 2)).toMatchObject({
         showCameras: false,
         cameraDisplayMode: 'frustum',
-        selectionColorMode: 'rainbow',
+        selectionColorMode: 'static',
         cameraMode: 'orbit',
         cameraProjection: 'perspective',
         cameraScaleFactor: '1',
@@ -182,6 +182,24 @@ describe('persistedStoreMigrations', () => {
         frustumLineWidth: 1,
         frustumColorMode: 'byCamera',
         frustumSingleColor: '#ff0000',
+      });
+    });
+
+    it('re-targets the old rainbow selection default to static in v5', () => {
+      expect(migrateCameraPersistedState({ selectionColorMode: 'rainbow' }, 4)).toMatchObject({
+        selectionColorMode: 'static',
+      });
+    });
+
+    it('preserves customized selection modes during the v5 default change', () => {
+      expect(migrateCameraPersistedState({ selectionColorMode: 'blink' }, 4)).toMatchObject({
+        selectionColorMode: 'blink',
+      });
+    });
+
+    it('leaves an explicit rainbow selection mode untouched for already-v5 states', () => {
+      expect(migrateCameraPersistedState({ selectionColorMode: 'rainbow' }, 5)).toMatchObject({
+        selectionColorMode: 'rainbow',
       });
     });
   });
@@ -237,7 +255,7 @@ describe('persistedStoreMigrations', () => {
         showGizmo: false,
         showMatches: false,
         galleryViewMode: 'auto',
-        galleryColumns: 2,
+        galleryColumns: 5,
         galleryCameraFilter: 'all',
         gallerySortField: 'name',
         gallerySortDirection: 'asc',
@@ -396,7 +414,7 @@ describe('persistedStoreMigrations', () => {
     expect(migrateRigPersistedState('invalid', 0)).toEqual({ showRig: true });
     expect(migrateUIPersistedState(undefined, 10, [])).toEqual({
       galleryViewMode: 'auto',
-      galleryColumns: 2,
+      galleryColumns: 5,
       galleryCameraFilter: 'all',
       gallerySortField: 'name',
       gallerySortDirection: 'asc',

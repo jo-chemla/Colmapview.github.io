@@ -132,7 +132,7 @@ export const useCameraStore = create<CameraState>()(
       pointerLock: true,
       selectedImageId: null,
       showSelectionHighlight: true,
-      selectionColorMode: 'rainbow',
+      selectionColorMode: 'static',
       selectionColor: '#00ff00',
       selectionAnimationSpeed: 2,
       selectionPlaneOpacity: 1.0,
@@ -206,7 +206,7 @@ export const useCameraStore = create<CameraState>()(
     }),
     {
       name: STORAGE_KEYS.camera,
-      version: 4,
+      version: 5,
       migrate: migrateCameraPersistedState,
       partialize: (state) => ({
         showCameras: state.showCameras,

@@ -23,11 +23,35 @@ interface TrackEntry {
 }
 
 /** Return type shared by both public compute functions. */
-interface ImageStatsResult {
+export interface ImageStatsResult {
   imageStats: Map<number, ImageStats>;
   connectedImagesIndex: ConnectedImagesIndex;
   globalStats: GlobalStats;
   imageToPoint3DIds: ImageToPoint3DIdsMap;
+}
+
+/**
+ * Empty placeholder stats for a reconstruction whose statistics pass is
+ * deferred (Reconstruction.statsPending). Keeps every stats field present so
+ * consumers need no shape changes; ensureReconstructionStats() swaps in the
+ * real values on first need.
+ */
+export function createEmptyImageStatsResult(): ImageStatsResult {
+  return {
+    imageStats: new Map(),
+    connectedImagesIndex: new Map(),
+    globalStats: {
+      minError: 0,
+      maxError: 0,
+      avgError: 0,
+      minTrackLength: 0,
+      maxTrackLength: 0,
+      avgTrackLength: 0,
+      totalObservations: 0,
+      totalPoints: 0,
+    },
+    imageToPoint3DIds: new Map(),
+  };
 }
 
 /**

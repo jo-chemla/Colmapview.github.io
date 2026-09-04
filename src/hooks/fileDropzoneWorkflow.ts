@@ -473,7 +473,7 @@ export async function processFileDropzoneFiles(
       log: logger.info,
     });
 
-    deps.setUrlProgress({ percent: mapProgress(35), message: 'Computing statistics...' });
+    deps.setUrlProgress({ percent: mapProgress(35), message: 'Building reconstruction...' });
 
     const { reconstruction, pointCount } = await buildReconstruction({
       parseResult,

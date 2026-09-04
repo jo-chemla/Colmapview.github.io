@@ -40,8 +40,12 @@ export function StatusBar() {
     showAutoHideEditor,
   });
 
-  // Use pre-computed global stats instead of computing on every render
-  const globalStats = reconstruction?.globalStats;
+  // Use pre-computed global stats instead of computing on every render.
+  // While the deferred stats pass has not run the fields are zeroed
+  // placeholders — hide the chips rather than showing 0.00 values. The bar
+  // never triggers the pass itself (that would defeat the deferred load);
+  // the chips appear once another consumer needs stats.
+  const globalStats = reconstruction?.statsPending ? undefined : reconstruction?.globalStats;
   const emptyStatusText = getDesktopEmptyStatusText({
     hasReconstruction: Boolean(reconstruction),
     urlLoading,

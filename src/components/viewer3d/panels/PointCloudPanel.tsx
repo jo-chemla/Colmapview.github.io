@@ -90,7 +90,11 @@ export function PointCloudPanel({
   onCycleColorMode,
 }: PointCloudPanelProps) {
   const buttonState = getPointCloudButtonState(showPointCloud, colorMode);
-  const maxError = getPointCloudMaxErrorLimit(reconstruction?.globalStats.maxError);
+  // While the deferred stats pass has not run, maxError is a zeroed placeholder
+  // — fall back to the default slider limit instead of clamping the filter to 0.
+  const maxError = getPointCloudMaxErrorLimit(
+    reconstruction?.statsPending ? undefined : reconstruction?.globalStats.maxError
+  );
   const colorHint = getPointCloudColorHint(colorMode);
   const showSplatPointOverlayColorControl = shouldShowSplatPointOverlayColorControl(colorMode);
   const showSplatPointOverlaySpeedControl = shouldShowSplatPointOverlaySpeedControl(colorMode);

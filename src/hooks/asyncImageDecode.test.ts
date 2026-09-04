@@ -25,6 +25,7 @@ function createDeferred<T>() {
 describe('async image decode helpers', () => {
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllGlobals();
     clearFailedImages();
   });
 
@@ -41,6 +42,22 @@ describe('async image decode helpers', () => {
 
     expect(clearTimer).toHaveBeenCalledOnce();
     expect(bitmap.close).not.toHaveBeenCalled();
+  });
+
+  it('decodes with resize options and falls back to a plain decode when they are rejected', async () => {
+    const file = new File(['image'], 'image.jpg');
+    const bitmap = buildImageBitmap({ close: vi.fn() });
+    const decodeSpy = vi.fn()
+      .mockRejectedValueOnce(new Error('resize options unsupported'))
+      .mockResolvedValueOnce(bitmap);
+    vi.stubGlobal('createImageBitmap', decodeSpy);
+
+    await expect(createImageBitmapWithTimeout(file, 1000, {
+      decodeOptions: { resizeWidth: 512, resizeQuality: 'medium' },
+    })).resolves.toBe(bitmap);
+
+    expect(decodeSpy).toHaveBeenNthCalledWith(1, file, { resizeWidth: 512, resizeQuality: 'medium' });
+    expect(decodeSpy).toHaveBeenNthCalledWith(2, file);
   });
 
   it('rejects on timeout and closes a late bitmap result', async () => {

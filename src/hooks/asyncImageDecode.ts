@@ -12,6 +12,13 @@ export type ImageBitmapResizeDecoder = (
 
 export interface ImageBitmapTimeoutOptions {
   decode?: ImageBitmapDecoder;
+  /**
+   * Optional decode-time resize (e.g. { resizeWidth: 512, resizeQuality: 'medium' }).
+   * Downscaling during decode avoids ever materializing a full-resolution
+   * bitmap — critical for gallery thumbnails of multi-thousand-pixel originals.
+   * If a browser rejects the options, decoding retries without them.
+   */
+  decodeOptions?: ImageBitmapOptions;
   setTimer?: (handler: () => void, timeout: number) => TimerId;
   clearTimer?: (timerId: TimerId) => void;
 }
@@ -96,7 +103,20 @@ export async function createImageBitmapWithTimeout(
   timeout: number,
   options: ImageBitmapTimeoutOptions = {}
 ): Promise<ImageBitmap> {
-  const decode = options.decode ?? createImageBitmap;
+  const { decodeOptions } = options;
+  const decode = options.decode ?? (
+    decodeOptions === undefined
+      ? createImageBitmap
+      : async (input: File) => {
+        try {
+          return await createImageBitmap(input, decodeOptions);
+        } catch {
+          // Some browsers reject resize options — retry a plain decode so the
+          // image is not permanently marked as failed.
+          return createImageBitmap(input);
+        }
+      }
+  );
   const setTimer = options.setTimer ?? setTimeout;
   const clearTimer = options.clearTimer ?? clearTimeout;
 

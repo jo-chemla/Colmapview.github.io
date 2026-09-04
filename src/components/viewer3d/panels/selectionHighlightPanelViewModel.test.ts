@@ -43,13 +43,13 @@ describe('selection highlight panel view-model helpers', () => {
     });
   });
 
-  it('falls back to rainbow for stale selection color modes', () => {
+  it('falls back to static for stale selection color modes', () => {
     expect(getSupportedSelectionColorMode('off')).toBeNull();
     expect(shouldShowSelectionColorControl('off')).toBe(false);
     expect(shouldShowSelectionSpeedControl('off')).toBe(false);
     expect(getSelectionHighlightHint('off')).toEqual({
-      title: 'Rainbow:',
-      lines: ['Selected camera cycles', 'through all colors.'],
+      title: 'Static:',
+      lines: ['Solid color highlight', 'for selected camera.'],
     });
   });
 });

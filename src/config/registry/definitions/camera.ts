@@ -193,7 +193,7 @@ export const cameraSection = defineSection({
       key: 'selectionColorMode',
       type: 'enum',
       enumValues: SELECTION_COLOR_MODES,
-      default: 'rainbow',
+      default: 'static',
       persist: true,
       description: 'static | blink | rainbow',
     },
