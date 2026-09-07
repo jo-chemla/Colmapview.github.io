@@ -147,6 +147,33 @@ describe('URL loader manifest source helpers', () => {
     expect(deps.setUrlProgress).toHaveBeenLastCalledWith({ percent: 100, message: 'Complete' });
   });
 
+  it('reports the full-points upgrade plan once a preview-backed load completes', async () => {
+    const deps = { ...makeDeps(), onPointsPreviewLoaded: vi.fn() };
+
+    await expect(loadManifestSource(
+      { ...manifest, pointsPreview: 'custom/points3D-preview.bin' },
+      { type: 'manifest' },
+      deps
+    )).resolves.toBe(true);
+
+    expect(deps.onPointsPreviewLoaded).toHaveBeenCalledTimes(1);
+    expect(deps.onPointsPreviewLoaded).toHaveBeenCalledWith({
+      previewPath: 'custom/points3D-preview.bin',
+      fullPath: 'custom/points3D.bin',
+      key: 'sparse/0/points3D.bin',
+    });
+    // The plan is only surfaced after processFiles (the preview is live).
+    expect(deps.processFiles).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not report a preview plan for manifests without one', async () => {
+    const deps = { ...makeDeps(), onPointsPreviewLoaded: vi.fn() };
+
+    await expect(loadManifestSource(manifest, { type: 'manifest' }, deps)).resolves.toBe(true);
+
+    expect(deps.onPointsPreviewLoaded).not.toHaveBeenCalled();
+  });
+
   it('does not request points3D deferral when progressive loading is off', async () => {
     const deps = makeDeps();
 

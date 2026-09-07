@@ -32,6 +32,8 @@ export interface MatchesPanelProps {
   matchesLineWidth: number;
   setMatchesLineWidth: (lineWidth: number) => void;
   onCycleMatchesDisplayMode: () => void;
+  /** Track-less decimated points preview active: no matches can be drawn. */
+  hasPreviewPoints?: boolean;
 }
 
 export function MatchesPanel({
@@ -49,8 +51,9 @@ export function MatchesPanel({
   matchesLineWidth,
   setMatchesLineWidth,
   onCycleMatchesDisplayMode,
+  hasPreviewPoints = false,
 }: MatchesPanelProps) {
-  const hint = getMatchesPanelHint(showMatches, matchesDisplayMode);
+  const hint = getMatchesPanelHint(showMatches, matchesDisplayMode, hasPreviewPoints);
 
   return (
     <ControlButton

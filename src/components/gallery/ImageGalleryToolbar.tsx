@@ -36,6 +36,12 @@ interface ImageGalleryToolbarProps {
   hasMasks: boolean;
   sortDirection: SortDirection;
   sortField: SortField;
+  /**
+   * Hint shown on the sort select while a track-less points preview is active
+   * (track-dependent sorts like Covisible compute to zeros until the full
+   * points3D is loaded).
+   */
+  sortTrackDataHint?: string;
   showSplatMetricBorder: boolean;
   showSplatMetricSort: boolean;
   thumbnailDisplayMode: GalleryThumbnailDisplayMode;
@@ -65,6 +71,7 @@ export function ImageGalleryToolbar({
   hasMasks,
   sortDirection,
   sortField,
+  sortTrackDataHint,
   showSplatMetricBorder,
   showSplatMetricSort,
   thumbnailDisplayMode,
@@ -121,6 +128,7 @@ export function ImageGalleryToolbar({
       <div className="image-gallery-toolbar__sort-group">
         <select
           aria-label="Sort field"
+          title={sortTrackDataHint}
           value={sortField}
           onChange={(e) => {
             const nextSortField = getGallerySortFieldValue(e.target.value, showSplatMetricSort);

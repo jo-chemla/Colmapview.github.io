@@ -107,6 +107,32 @@ function shouldActivateSplatSourceByteLess(source: SplatFileSource): boolean {
 export type ReconstructionSourceType = 'local' | 'url' | 'manifest' | 'zip' | null;
 
 /**
+ * Active decimated points3D preview (manifest pointsPreview): the scene shows
+ * stride-decimated, track-less points, and the full points3D can be fetched on
+ * demand and swapped in via the progressive stage-2 rebuild.
+ */
+export interface PointsPreviewState {
+  /** Manifest baseUrl the relative paths resolve against. */
+  baseUrl: string;
+  /** Files-map key of the points3D slot (the upgrade swaps the File under it). */
+  key: string;
+  /** Manifest-relative path of the full points3D file. */
+  fullPath: string;
+  /** HEAD Content-Length of the full file, when known (drives the ~SIZE label). */
+  fullSizeBytes: number | null;
+  /** A full-points download/rebuild is in flight. */
+  loadingFull: boolean;
+}
+
+/**
+ * Hint shown on track-dependent affordances (covisible sort, matches, track
+ * stats) while a track-less points preview is active: those features compute
+ * to zeros until the full points3D is loaded.
+ */
+export const POINTS_PREVIEW_TRACKS_HINT =
+  'Preview points loaded (no tracks) — load full points for tracks/matches';
+
+/**
  * Check if the current URL contains parameters that will trigger URL loading.
  * Checks for hash format (#d=...) and legacy query format (?url=...).
  * Also detects inline manifest format (flag bit 2 set in #d=... data).
@@ -185,6 +211,8 @@ interface ReconstructionState {
   requestedSplatSourceId: string | null;
   /** Whether to show the "select a splat" popup (set when >1 splat is discovered). */
   showSplatPicker: boolean;
+  /** Active decimated points preview, or null when the full points3D is loaded. */
+  pointsPreview: PointsPreviewState | null;
   /** URL loading state (shared across components) */
   urlLoading: boolean;
   urlLoadActive: boolean;
@@ -200,6 +228,7 @@ interface ReconstructionState {
   setProgress: (progress: number) => void;
   setSourceInfo: (type: ReconstructionSourceType, url?: string | null, imageUrlBase?: string | null, maskUrlBase?: string | null, manifest?: ColmapManifest | null, imageNameToUrl?: Record<string, string> | null) => void;
   setRequestedSplatSourceId: (sourceId: string | null) => void;
+  setPointsPreview: (pointsPreview: PointsPreviewState | null) => void;
   /** Merge a discovered remote splat catalog so all tiles are listed (lazy). */
   mergeRemoteSplatCatalog: (
     catalog: ReadonlyArray<{ path: string; size: number; splatCount?: number | null }>,
@@ -233,6 +262,7 @@ export const useReconstructionStore = create<ReconstructionState>((set, get) => 
   sourceManifest: null,
   requestedSplatSourceId: null,
   showSplatPicker: false,
+  pointsPreview: null,
   // Initialize loading state based on URL params so indicator shows immediately
   urlLoading: initialUrlLoading,
   urlLoadActive: false,
@@ -300,7 +330,13 @@ export const useReconstructionStore = create<ReconstructionState>((set, get) => 
     });
   },
 
-  setDroppedFiles: (droppedFiles) => set({ droppedFiles }),
+  // Every load path (new dataset, stage-2 rebuild, full-points upgrade) passes
+  // through setDroppedFiles, so a stale preview chip can never outlive the files
+  // map it upgrades; the preview-load path re-sets pointsPreview AFTER its
+  // processFiles pass completes.
+  setDroppedFiles: (droppedFiles) => set({ droppedFiles, pointsPreview: null }),
+
+  setPointsPreview: (pointsPreview) => set({ pointsPreview }),
 
   setLoading: (loading) => set({ loading }),
 
@@ -538,6 +574,7 @@ export const useReconstructionStore = create<ReconstructionState>((set, get) => 
       sourceManifest: null,
       requestedSplatSourceId: null,
       showSplatPicker: false,
+      pointsPreview: null,
       urlLoading: false,
       urlLoadActive: false,
       urlProgress: null,

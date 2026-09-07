@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   MATCHES_DISPLAY_MODE_OPTIONS,
+  MATCHES_PREVIEW_POINTS_HINT_LINE,
   getMatchesPanelHint,
   getSupportedMatchesDisplayMode,
 } from './matchesPanelViewModel';
@@ -36,6 +37,12 @@ describe('matches panel view-model helpers', () => {
       title: 'Blink:',
       lines: ['Match lines animate with', 'blinking effect.'],
     });
+  });
+
+  it('appends the track-less preview line while a points preview is active', () => {
+    expect(getMatchesPanelHint(true, 'static', true).lines).toContain(MATCHES_PREVIEW_POINTS_HINT_LINE);
+    expect(getMatchesPanelHint(false, 'static', true).lines).toContain(MATCHES_PREVIEW_POINTS_HINT_LINE);
+    expect(getMatchesPanelHint(true, 'static', false).lines).not.toContain(MATCHES_PREVIEW_POINTS_HINT_LINE);
   });
 
   it('falls back to the static hint for stale persisted display modes', () => {

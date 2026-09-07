@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { emptyStateStyles } from '../../theme';
+import { POINTS_PREVIEW_TRACKS_HINT } from '../../store';
 import { ImageGalleryToolbar } from './ImageGalleryToolbar';
 import { ImageGalleryVirtualizedContent } from './ImageGalleryVirtualizedContent';
 import { useImageGalleryColumnResize } from './useImageGalleryColumnResize';
@@ -33,6 +34,7 @@ export function ImageGallery({ isResizing = false }: ImageGalleryProps) {
     handleDoubleClick,
     handleRightClick,
     hasMasks,
+    hasPreviewPoints,
     hideImageOverlay,
     hideToolbar,
     images,
@@ -167,6 +169,7 @@ export function ImageGallery({ isResizing = false }: ImageGalleryProps) {
             hasMasks={hasMasks}
             sortDirection={sortDirection}
             sortField={sortField}
+            sortTrackDataHint={hasPreviewPoints ? POINTS_PREVIEW_TRACKS_HINT : undefined}
             showSplatMetricBorder={showSplatMetricBorder}
             showSplatMetricSort={showSplatMetrics}
             thumbnailDisplayMode={thumbnailDisplayMode}

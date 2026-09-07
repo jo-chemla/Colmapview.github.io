@@ -69,7 +69,7 @@ export function useViewerControlsController(): ViewerControlsController {
   // object each render, which would defeat the memo it exists to keep.
   const { setShowFloorModal } = modals;
   const openFloorModal = useCallback(() => setShowFloorModal(true), [setShowFloorModal]);
-  const { ui, nodes, actions, metrics, splats, reconstruction } = useViewerControlsStoreFacade();
+  const { ui, nodes, actions, metrics, splats, reconstruction, hasPreviewPoints } = useViewerControlsStoreFacade();
   const {
     touchMode,
     backgroundColor,
@@ -422,6 +422,7 @@ export function useViewerControlsController(): ViewerControlsController {
       matchesLineWidth: matchesNode.lineWidth,
       setMatchesLineWidth: matchesActions.setLineWidth,
       onCycleMatchesDisplayMode: cycleMatchesDisplayMode,
+      hasPreviewPoints,
     },
     selectionHighlightPanel: {
       ...panelState,

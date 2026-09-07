@@ -36,6 +36,8 @@ interface ImageGalleryDataFacade {
   splatMetricVisualizationsAvailable: boolean;
   splatPsnrFrameReady: ReturnType<typeof useImageMetricsStore.getState>['splatPsnrFrameReady'];
   splatPsnrByImage: ReturnType<typeof useImageMetricsStore.getState>['splatPsnrMetrics'];
+  /** Track-less decimated points preview active: covisible sort yields zeros. */
+  hasPreviewPoints: boolean;
   activeSplatFile?: File;
   selectedImageId: CameraState['selectedImageId'];
   currentViewState: CameraState['currentViewState'];
@@ -104,6 +106,7 @@ export function useImageGalleryStoreFacade(): ImageGalleryStoreFacade {
   const splatMetricCapability = useSplatBackendStore((s) => s.metricCapability);
   const splatPsnrFrameReady = useImageMetricsStore((s) => s.splatPsnrFrameReady);
   const splatPsnrByImage = useImageMetricsStore((s) => s.splatPsnrMetrics);
+  const hasPreviewPoints = useReconstructionStore((s) => s.pointsPreview !== null);
   const splatMetricVisualizationsAvailable = shouldExposeSplatMetricVisualizations({
     activeSplatFile,
     hasMetricCapableCamera,
@@ -143,6 +146,7 @@ export function useImageGalleryStoreFacade(): ImageGalleryStoreFacade {
       splatMetricVisualizationsAvailable,
       splatPsnrFrameReady,
       splatPsnrByImage,
+      hasPreviewPoints,
       activeSplatFile,
       selectedImageId,
       currentViewState,

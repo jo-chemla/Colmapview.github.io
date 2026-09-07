@@ -39,10 +39,13 @@ export function getPointFilterWarning({
   };
 }
 
+// Track length 0 marks absent track data (decimated previews strip tracks),
+// which the display filter exempts — mirror that here so the warning counts
+// exactly what actually gets hidden (see shouldIncludePointByFilters).
 function countFilteredTrackLengths(trackLengths: ArrayLike<number>, minTrackLength: number): number {
   let filteredCount = 0;
   for (let i = 0; i < trackLengths.length; i++) {
-    if (trackLengths[i] < minTrackLength) {
+    if (trackLengths[i] > 0 && trackLengths[i] < minTrackLength) {
       filteredCount++;
     }
   }
@@ -56,7 +59,7 @@ function countFilteredPoints(points3D: Iterable<Point3D> | undefined, minTrackLe
 
   let filteredCount = 0;
   for (const point of points3D) {
-    if (point.track.length < minTrackLength) {
+    if (point.track.length > 0 && point.track.length < minTrackLength) {
       filteredCount++;
     }
   }

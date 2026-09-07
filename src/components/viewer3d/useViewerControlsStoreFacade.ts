@@ -105,6 +105,8 @@ export interface ViewerControlsStoreFacade {
   metrics: ViewerControlsMetricsFacade;
   splats: ViewerControlsSplatFacade;
   reconstruction: Reconstruction | null;
+  /** Track-less decimated points preview active: matches cannot be drawn. */
+  hasPreviewPoints: boolean;
 }
 
 const EMPTY_SPLAT_FILES: readonly File[] = [];
@@ -133,6 +135,7 @@ export function useViewerControlsStoreFacade(): ViewerControlsStoreFacade {
     [reconstruction]
   );
   const loadedFiles = useReconstructionStore((s) => s.loadedFiles);
+  const hasPreviewPoints = useReconstructionStore((s) => s.pointsPreview !== null);
   const splatPsnrFrameReady = useImageMetricsStore((s) => s.splatPsnrFrameReady);
   const splatPsnrComputing = useImageMetricsStore((s) => s.splatPsnrComputing);
   const splatPsnrReadyCount = useImageMetricsStore((s) => s.splatPsnrMetrics.size);
@@ -221,5 +224,6 @@ export function useViewerControlsStoreFacade(): ViewerControlsStoreFacade {
       selectSplatSource,
     },
     reconstruction,
+    hasPreviewPoints,
   };
 }

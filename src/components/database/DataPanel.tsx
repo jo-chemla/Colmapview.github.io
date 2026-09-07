@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { inputStyles, tableStyles } from '../../theme';
+import { POINTS_PREVIEW_TRACKS_HINT } from '../../store';
 import {
   DATA_PANEL_TABS,
   getDataPanelCameraRows,
@@ -19,7 +20,7 @@ const compactHeaderCellClass = `${tableStyles.headerCell} px-2 py-1 font-medium 
 const compactCellClass = `${tableStyles.cell} px-2 py-1 align-middle`;
 
 export function DataPanel() {
-  const { reconstruction } = useDataPanelStoreFacade();
+  const { reconstruction, hasPreviewPoints } = useDataPanelStoreFacade();
   const [activeTab, setActiveTab] = useState<DataPanelTabId>('cameras');
 
   // The panel surfaces per-image and global statistics, deferred at load;
@@ -57,7 +58,9 @@ export function DataPanel() {
       <div className="flex-1 overflow-auto">
         {activeTab === 'cameras' && <CamerasTable reconstruction={reconstruction} />}
         {activeTab === 'images' && <ImagesTable reconstruction={reconstruction} />}
-        {activeTab === 'points' && <PointsInfo reconstruction={reconstruction} />}
+        {activeTab === 'points' && (
+          <PointsInfo reconstruction={reconstruction} hasPreviewPoints={hasPreviewPoints} />
+        )}
       </div>
     </div>
   );
@@ -144,7 +147,13 @@ function ImagesTable({ reconstruction }: { reconstruction: DataPanelReconstructi
   );
 }
 
-function PointsInfo({ reconstruction }: { reconstruction: DataPanelReconstruction }) {
+function PointsInfo({
+  reconstruction,
+  hasPreviewPoints,
+}: {
+  reconstruction: DataPanelReconstruction;
+  hasPreviewPoints: boolean;
+}) {
   const statCards = getDataPanelPointStatCards(reconstruction);
 
   if (statCards.length === 0) {
@@ -152,7 +161,11 @@ function PointsInfo({ reconstruction }: { reconstruction: DataPanelReconstructio
   }
 
   return (
-    <table className={compactTableClass}>
+    <>
+      {hasPreviewPoints && (
+        <div className="px-2 py-1 text-xs text-ds-muted">{POINTS_PREVIEW_TRACKS_HINT}</div>
+      )}
+      <table className={compactTableClass}>
       <colgroup>
         <col />
         <col className="w-28" />
@@ -171,6 +184,7 @@ function PointsInfo({ reconstruction }: { reconstruction: DataPanelReconstructio
           </tr>
         ))}
       </tbody>
-    </table>
+      </table>
+    </>
   );
 }

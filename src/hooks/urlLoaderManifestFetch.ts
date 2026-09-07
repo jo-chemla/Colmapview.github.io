@@ -480,7 +480,10 @@ export async function withDiscoveredColmapPaths(
   return manifest;
 }
 
-async function getRemoteFileContentLength(url: string, fetchImpl: FetchUrl): Promise<number | null> {
+export async function getRemoteFileContentLength(
+  url: string,
+  fetchImpl: FetchUrl = defaultFetchUrl
+): Promise<number | null> {
   let response: Response;
   try {
     response = await fetchImpl(url, { method: 'HEAD' });

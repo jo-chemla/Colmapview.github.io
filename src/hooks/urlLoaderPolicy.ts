@@ -701,15 +701,50 @@ export function createEmptyPoints3DStub(points3DPath: string): File {
     : new File([new Uint8Array(8)], 'points3D.bin');
 }
 
+/**
+ * The manifest's decimated points3D preview, resolved to the concrete files-map
+ * slot it occupies. `previewPath` is fetched into the points3D slot at load
+ * time (in progressive mode as the deferred stage-2 download); `fullPath` is
+ * the full points3D the viewer can upgrade to on demand by swapping the file
+ * under `key` and re-running the progressive stage-2 rebuild. Returns null when
+ * the manifest has no preview.
+ */
+export interface PointsPreviewPlan {
+  previewPath: string;
+  fullPath: string;
+  /** Files-map key of the points3D slot (upgrade swaps the File under it). */
+  key: string;
+}
+
+export function getPointsPreviewPlan(manifest: ColmapManifest): PointsPreviewPlan | null {
+  if (!manifest.pointsPreview) {
+    return null;
+  }
+  return {
+    previewPath: manifest.pointsPreview,
+    fullPath: manifest.files.points3D,
+    key: `sparse/0/points3D.${manifestFileExt(manifest.pointsPreview)}`,
+  };
+}
+
+// Preserve the source extension: text-format models (cameras.txt, ...) must keep
+// a .txt key so the parser routes them to the text parser instead of the binary one.
+function manifestFileExt(path: string): 'txt' | 'bin' {
+  return /\.txt$/i.test(path) ? 'txt' : 'bin';
+}
+
 export function getManifestColmapFileEntries(manifest: ColmapManifest): ManifestColmapFileEntries {
   const { files } = manifest;
-  // Preserve the source extension: text-format models (cameras.txt, ...) must keep
-  // a .txt key so the parser routes them to the text parser instead of the binary one.
-  const ext = (path: string) => (/\.txt$/i.test(path) ? 'txt' : 'bin');
+  const ext = manifestFileExt;
+  // A decimated preview (tracks stripped) loads into the points3D slot instead
+  // of the full file — in both normal and progressive modes (in the latter it
+  // becomes the deferred stage-2 download). The full points3D stays available
+  // for the explicit "load full" upgrade (getPointsPreviewPlan).
+  const points3DPath = manifest.pointsPreview ?? files.points3D;
   const requiredFiles = [
     { key: `sparse/0/cameras.${ext(files.cameras)}`, path: files.cameras },
     { key: `sparse/0/images.${ext(files.images)}`, path: files.images },
-    { key: `sparse/0/points3D.${ext(files.points3D)}`, path: files.points3D },
+    { key: `sparse/0/points3D.${ext(points3DPath)}`, path: points3DPath },
   ];
 
   const optionalFiles: UrlLoaderFileEntry[] = [];

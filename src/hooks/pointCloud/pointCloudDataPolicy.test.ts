@@ -43,6 +43,19 @@ describe('point cloud data policy', () => {
     expect(shouldIncludePointByFilters(2, 3, 2.6, filters)).toBe(false);
   });
 
+  it('exempts track-less points (stripped-track previews) from the min-track filter', () => {
+    const filters = {
+      minTrackLength: 3,
+      maxReprojectionError: 2.5,
+      thinning: 0,
+    };
+
+    // Track length 0 = track data absent (decimated preview), not a short track.
+    expect(shouldIncludePointByFilters(0, 0, 2.5, filters)).toBe(true);
+    // Other filters still apply to track-less points.
+    expect(shouldIncludePointByFilters(0, 0, 2.6, filters)).toBe(false);
+  });
+
   it('resolves point IDs from WASM arrays or COLMAP one-based fallback IDs', () => {
     const ids = [10n, 20n, 30n];
 

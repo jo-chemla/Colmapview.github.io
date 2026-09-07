@@ -4,10 +4,13 @@ export type DataPanelReconstruction = ReturnType<typeof useReconstructionStore.g
 
 export interface DataPanelStoreFacade {
   reconstruction: DataPanelReconstruction;
+  /** Track-less decimated points preview active: track stats compute to zeros. */
+  hasPreviewPoints: boolean;
 }
 
 export function useDataPanelStoreFacade(): DataPanelStoreFacade {
   const reconstruction = useReconstructionStore((s) => s.reconstruction);
+  const hasPreviewPoints = useReconstructionStore((s) => s.pointsPreview !== null);
 
-  return { reconstruction };
+  return { reconstruction, hasPreviewPoints };
 }

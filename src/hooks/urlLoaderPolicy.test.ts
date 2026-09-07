@@ -24,6 +24,7 @@ import {
   getManifestLoadedLogMessage,
   getManifestLoadSourceInfo,
   getManifestLazySourceBases,
+  getPointsPreviewPlan,
   getRelativeHuggingFaceTreePath,
   getSplatAutoLoadDecision,
   getSplatDeviceTier,
@@ -197,6 +198,30 @@ describe('url loader policy helpers', () => {
         { key: 'splats/small.ply', path: 'splats/small.ply' },
         { key: 'splats/large.ply', path: 'splats/large.ply' },
       ],
+    });
+  });
+
+  it('routes the points3D slot to the decimated preview when the manifest declares one', () => {
+    const entries = getManifestColmapFileEntries({
+      ...manifest,
+      pointsPreview: 'custom/points3D-preview.bin',
+    });
+
+    // Same slot key, preview path: normal and progressive loads both fetch the
+    // preview (in progressive it becomes the deferred stage-2 download).
+    expect(entries.requiredFiles).toEqual([
+      { key: 'sparse/0/cameras.bin', path: 'custom/cameras.bin' },
+      { key: 'sparse/0/images.bin', path: 'custom/images.bin' },
+      { key: 'sparse/0/points3D.bin', path: 'custom/points3D-preview.bin' },
+    ]);
+  });
+
+  it('exposes a full-points upgrade plan only for manifests with a preview', () => {
+    expect(getPointsPreviewPlan(manifest)).toBeNull();
+    expect(getPointsPreviewPlan({ ...manifest, pointsPreview: 'custom/points3D-preview.bin' })).toEqual({
+      previewPath: 'custom/points3D-preview.bin',
+      fullPath: 'custom/points3D.bin',
+      key: 'sparse/0/points3D.bin',
     });
   });
 

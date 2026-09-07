@@ -27,7 +27,11 @@ export function shouldIncludePointByFilters(
     return false;
   }
 
-  if (trackLength < filters.minTrackLength) {
+  // trackLength 0 means the track data is absent, not short: decimated points
+  // previews (manifest pointsPreview) strip tracks entirely, while real COLMAP
+  // points always observe >= 2 images. The min-track filter is not applicable
+  // to track-less points — filtering them would blank the whole preview.
+  if (trackLength > 0 && trackLength < filters.minTrackLength) {
     return false;
   }
 

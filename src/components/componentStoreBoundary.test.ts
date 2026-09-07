@@ -18,6 +18,7 @@ const STORE_HOOK_CALL_PATTERN = /\buse[A-Z][A-Za-z0-9]*Store\s*\(/g;
 const DOCUMENTED_STORE_BOUNDARY_CALLERS = new Set([
   'src/dataset/index.ts',
   'src/hooks/useAlignmentMode.ts',
+  'src/hooks/useEnsureReconstructionStats.ts',
   'src/hooks/useFileDropzone.ts',
   'src/hooks/useHotkeyScope.ts',
   'src/hooks/useImageSelection.ts',

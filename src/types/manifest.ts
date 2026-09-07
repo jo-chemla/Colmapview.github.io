@@ -20,6 +20,15 @@ export interface ColmapManifest {
     frames?: string;
   };
   /**
+   * Optional decimated points3D preview, relative to baseUrl (e.g.
+   * "sparse/0/points3D-preview.bin"). A valid COLMAP points3D file,
+   * stride-decimated with tracks stripped (track_len = 0), generated offline.
+   * When present, the initial load fetches this into the points3D slot instead
+   * of files.points3D (in progressive mode it becomes the deferred stage-2
+   * download), and the viewer offers an on-demand upgrade to the full file.
+   */
+  pointsPreview?: string;
+  /**
    * Path prefix for source images relative to baseUrl.
    * Image names from images.bin are appended to this prefix.
    * Example: "images/" means image "cam1/photo.jpg" becomes "images/cam1/photo.jpg"
@@ -72,6 +81,7 @@ export const ColmapManifestSchema = z.object({
     rigs: z.string().optional(),
     frames: z.string().optional(),
   }),
+  pointsPreview: z.string().min(1).optional(),
   imagesPath: z.string().optional(),
   hdImagesPath: z.string().optional(),
   masksPath: z.string().optional(),

@@ -36,12 +36,22 @@ export function getSupportedMatchesDisplayMode(value: string): MatchesDisplayMod
   return null;
 }
 
+/**
+ * Appended while a track-less decimated points preview is active: matches are
+ * derived from point tracks, so none can be drawn until the full points3D is
+ * loaded (the preview strips tracks).
+ */
+export const MATCHES_PREVIEW_POINTS_HINT_LINE =
+  'Preview points have no tracks — load full points for matches.';
+
 export function getMatchesPanelHint(
   showMatches: boolean,
-  matchesDisplayMode: MatchesDisplayMode | string
+  matchesDisplayMode: MatchesDisplayMode | string,
+  hasPreviewPoints = false
 ): MatchesPanelHint {
-  if (!showMatches) return MATCHES_OFF_HINT;
-
-  const supportedMode = getSupportedMatchesDisplayMode(matchesDisplayMode);
-  return MATCHES_DISPLAY_MODE_HINTS[supportedMode ?? 'static'];
+  const hint = showMatches
+    ? MATCHES_DISPLAY_MODE_HINTS[getSupportedMatchesDisplayMode(matchesDisplayMode) ?? 'static']
+    : MATCHES_OFF_HINT;
+  if (!hasPreviewPoints) return hint;
+  return { ...hint, lines: [...hint.lines, MATCHES_PREVIEW_POINTS_HINT_LINE] };
 }

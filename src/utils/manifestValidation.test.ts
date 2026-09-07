@@ -43,6 +43,30 @@ describe('manifest validation helpers', () => {
     }
   });
 
+  it('accepts an optional decimated points preview path', () => {
+    const result = validateColmapManifest({
+      ...manifest,
+      pointsPreview: 'sparse/0/points3D-preview.bin',
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.manifest.pointsPreview).toBe('sparse/0/points3D-preview.bin');
+    }
+  });
+
+  it('rejects an empty points preview path', () => {
+    const result = validateColmapManifest({
+      ...manifest,
+      pointsPreview: '',
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.details).toContain('pointsPreview');
+    }
+  });
+
   it('rejects empty manifest splat paths', () => {
     const result = validateColmapManifest({
       ...manifest,

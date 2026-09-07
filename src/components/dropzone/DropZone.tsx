@@ -1,7 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useFileDropzone } from '../../hooks/useFileDropzone';
+import { useFullPointsUpgrade } from '../../hooks/useFullPointsUpgrade';
 import { useUrlLoader } from '../../hooks/useUrlLoader';
 import { clearPersistedSettings } from '../../store/migration';
+import { POINTS_PREVIEW_TRACKS_HINT } from '../../store';
 import { importConfigFile } from '../../config/configuration';
 import { getRandomDataset, getDatasetUrl } from '../../constants/exampleDatasets';
 import { TIMING, buttonStyles, loadingStyles, toastStyles, dragOverlayStyles } from '../../theme';
@@ -32,11 +34,14 @@ export function DropZone({ children }: DropZoneProps) {
       reconstruction,
       touchMode,
       hasUrlLoadRequest,
+      pointsPreview,
+      pointCount,
     },
     actions: {
       setError,
     },
   } = useDropZoneStoreFacade();
+  const loadFullPoints = useFullPointsUpgrade();
   const configInputRef = useRef<HTMLInputElement>(null);
   const manifestInputRef = useRef<HTMLInputElement>(null);
 
@@ -230,6 +235,23 @@ export function DropZone({ children }: DropZoneProps) {
           onLoadToy={handleLucky}
           onDismiss={() => setIsPanelDismissed(true)}
         />
+      )}
+
+      {/* Decimated points preview chip: the scene shows a track-less preview
+          cloud; offer the full points3D as an explicit, non-blocking upgrade
+          (download + rebuild reuse the progressive stage-2 path, reported on
+          the compact background card below). */}
+      {reconstruction && pointsPreview && !pointsPreview.loadingFull && !urlLoading && !urlProgress?.background && (
+        <button
+          type="button"
+          onClick={() => { void loadFullPoints(); }}
+          title={POINTS_PREVIEW_TRACKS_HINT}
+          data-testid="points-preview-chip"
+          className="absolute bottom-4 right-4 z-40 bg-ds-secondary border border-ds rounded-lg px-4 py-2 shadow-ds-lg text-xs text-ds-primary hover:bg-ds-tertiary cursor-pointer"
+        >
+          preview points ({pointCount.toLocaleString()}) — load full
+          {pointsPreview.fullSizeBytes !== null && ` (~${formatByteProgress(pointsPreview.fullSizeBytes)})`}
+        </button>
       )}
 
       {/* Compact non-blocking progress card for progressive stage 2: the scene is

@@ -16,10 +16,16 @@ import {
   getManifestLoadedLogMessage,
   getUrlNormalizationLogMessage,
   isProgressiveLoadEnabled,
+  joinManifestUrlPath,
   normalizeLoadUrl,
+  type PointsPreviewPlan,
 } from './urlLoaderPolicy';
 import { URL_LOAD_GUARD_MESSAGE } from './urlLoaderLoadGuard';
-import { fetchUrlManifest, withDiscoveredColmapPaths } from './urlLoaderManifestFetch';
+import {
+  fetchUrlManifest,
+  getRemoteFileContentLength,
+  withDiscoveredColmapPaths,
+} from './urlLoaderManifestFetch';
 import { handleUrlLoadFailure } from './urlLoaderErrorHandling';
 import { loadZipUrlSource } from './urlLoaderZipSource';
 import { loadManifestSource } from './urlLoaderManifestSource';
@@ -60,6 +66,32 @@ export function useUrlLoader({ logger = appLogger }: UseUrlLoaderDeps = {}) {
   const fetchManifest = useCallback(async (manifestUrl: string): Promise<ColmapManifest> => {
     return fetchUrlManifest(manifestUrl, { setUrlProgress });
   }, [setUrlProgress]);
+
+  /**
+   * Record an active decimated points preview (drives the "load full points"
+   * chip), then fill in the full file's size from a cheap background HEAD so
+   * the chip can show "~SIZE". The HEAD result only applies while the same
+   * preview is still active (a new load may have replaced it meanwhile).
+   */
+  const registerPointsPreview = useCallback((baseUrl: string, plan: PointsPreviewPlan) => {
+    useReconstructionStore.getState().setPointsPreview({
+      baseUrl,
+      key: plan.key,
+      fullPath: plan.fullPath,
+      fullSizeBytes: null,
+      loadingFull: false,
+    });
+    void getRemoteFileContentLength(joinManifestUrlPath(baseUrl, plan.fullPath)).then((size) => {
+      if (size === null) {
+        return;
+      }
+      const state = useReconstructionStore.getState();
+      const current = state.pointsPreview;
+      if (current && !current.loadingFull && current.baseUrl === baseUrl && current.fullPath === plan.fullPath) {
+        state.setPointsPreview({ ...current, fullSizeBytes: size });
+      }
+    });
+  }, []);
 
   /**
    * Load reconstruction from a ZIP URL.
@@ -161,6 +193,7 @@ export function useUrlLoader({ logger = appLogger }: UseUrlLoaderDeps = {}) {
         progressive: isProgressiveLoadEnabled(window.location.search),
         setSourceInfo,
         setUrlProgress,
+        onPointsPreviewLoaded: (plan) => registerPointsPreview(manifest.baseUrl, plan),
         onRemoteSplatCatalog: (catalog) => {
           catalogHolder.value = catalog.map((candidate) => ({
             path: candidate.path,
@@ -201,6 +234,7 @@ export function useUrlLoader({ logger = appLogger }: UseUrlLoaderDeps = {}) {
     logInfo,
     mergeRemoteSplatCatalog,
     processFiles,
+    registerPointsPreview,
     setError,
     shouldKeepUrlLoadingForSplatRenderer,
     setSourceInfo,
@@ -238,6 +272,7 @@ export function useUrlLoader({ logger = appLogger }: UseUrlLoaderDeps = {}) {
         progressive: isProgressiveLoadEnabled(window.location.search),
         setSourceInfo,
         setUrlProgress,
+        onPointsPreviewLoaded: (plan) => registerPointsPreview(manifest.baseUrl, plan),
       });
     } catch (err) {
       handleUrlLoadFailure(err, {
@@ -259,6 +294,7 @@ export function useUrlLoader({ logger = appLogger }: UseUrlLoaderDeps = {}) {
     logError,
     logInfo,
     processFiles,
+    registerPointsPreview,
     setError,
     shouldKeepUrlLoadingForSplatRenderer,
     setSourceInfo,

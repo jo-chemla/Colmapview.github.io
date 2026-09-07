@@ -59,6 +59,20 @@ describe('file dropzone point filter warning', () => {
     });
   });
 
+  it('does not count track-less points (stripped-track previews are never hidden)', () => {
+    expect(getPointFilterWarning({
+      minTrackLength: 3,
+      pointCount: 3,
+      wasmTrackLengths: new Uint32Array([0, 0, 0]),
+    })).toBeNull();
+
+    expect(getPointFilterWarning({
+      minTrackLength: 3,
+      pointCount: 2,
+      points3D: [createPoint(0), createPoint(0)],
+    })).toBeNull();
+  });
+
   it('does not warn when no points are hidden', () => {
     expect(getPointFilterWarning({
       minTrackLength: 2,

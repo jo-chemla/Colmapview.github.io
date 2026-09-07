@@ -3,7 +3,9 @@ import { findSplatFileSources } from '../utils/fileClassification';
 import { appLogger } from '../utils/logger';
 import {
   getManifestLoadSourceInfo,
+  getPointsPreviewPlan,
   type ManifestLoadSource,
+  type PointsPreviewPlan,
   type RemoteSplatCandidate,
 } from './urlLoaderPolicy';
 import { fetchManifestColmapFiles, type DeferredPoints3D } from './urlLoaderManifestFetch';
@@ -39,6 +41,12 @@ export interface LoadManifestSourceDeps {
   setUrlProgress: SetUrlProgress;
   /** Receives the full discovered remote splat catalog for lazy on-demand loading. */
   onRemoteSplatCatalog?: (catalog: RemoteSplatCandidate[]) => void;
+  /**
+   * Fires once a manifest's decimated points preview is live in the scene
+   * (after the stub/stage-2 rebuild in progressive mode), so the caller can
+   * offer the on-demand "load full points" upgrade for plan.fullPath.
+   */
+  onPointsPreviewLoaded?: (plan: PointsPreviewPlan) => void;
   /**
    * Opt-in progressive loading (?progressive=1): parse cameras+images with an
    * empty points3D stub so poses/gallery show immediately, then swap in the
@@ -152,6 +160,15 @@ export async function loadManifestSource(
     // 'Complete' write below (splat progress is non-background and would
     // otherwise leave the compact card up forever).
     deps.setUrlProgress({ percent: 100, message: 'Points loaded' });
+  }
+
+  // The preview (fetched into the points3D slot by getManifestColmapFileEntries,
+  // as the deferred stage-2 download in progressive mode) is now live; hand the
+  // upgrade plan back so the UI can offer "load full points" on demand.
+  const pointsPreviewPlan = getPointsPreviewPlan(manifest);
+  if (pointsPreviewPlan) {
+    log(`[URL Loader] Decimated points preview loaded (${pointsPreviewPlan.previewPath}); full points3D available at ${pointsPreviewPlan.fullPath}`);
+    deps.onPointsPreviewLoaded?.(pointsPreviewPlan);
   }
 
   if (findSplatFileSources(files).length === 0) {
