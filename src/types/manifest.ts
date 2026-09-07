@@ -29,6 +29,15 @@ export interface ColmapManifest {
    */
   pointsPreview?: string;
   /**
+   * Optional decimated images.bin preview, relative to baseUrl (e.g.
+   * "sparse/0/poses-preview.bin"). A valid COLMAP images file with all poses
+   * kept but observations stripped (num_points2D = 0), generated offline
+   * (~70 B/record, so full 10k-pose rigs stay around 1 MB). Used by the
+   * multi-dataset loader (?urls=) to fetch poses cheaply; single-dataset loads
+   * keep using files.images.
+   */
+  posesPreview?: string;
+  /**
    * Path prefix for source images relative to baseUrl.
    * Image names from images.bin are appended to this prefix.
    * Example: "images/" means image "cam1/photo.jpg" becomes "images/cam1/photo.jpg"
@@ -82,6 +91,7 @@ export const ColmapManifestSchema = z.object({
     frames: z.string().optional(),
   }),
   pointsPreview: z.string().min(1).optional(),
+  posesPreview: z.string().min(1).optional(),
   imagesPath: z.string().optional(),
   hdImagesPath: z.string().optional(),
   masksPath: z.string().optional(),

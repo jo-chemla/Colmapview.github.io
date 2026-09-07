@@ -154,6 +154,27 @@ export function getDatasetViewerHref(manifestUrl: string, currentSearch = ''): s
 }
 
 /**
+ * Viewer link loading several datasets into ONE scene:
+ * ?urls=<enc>,<enc>,... (multi-dataset merge mode). A single URL falls back
+ * to the regular ?url= progressive load. The `pointerlock` opt-out carries
+ * over like getDatasetViewerHref.
+ */
+export function getMultiDatasetViewerHref(
+  manifestUrls: readonly string[],
+  currentSearch = ''
+): string {
+  if (manifestUrls.length === 1) {
+    return getDatasetViewerHref(manifestUrls[0], currentSearch);
+  }
+  let href = `?urls=${manifestUrls.map((url) => encodeURIComponent(url)).join(',')}`;
+  const pointerlock = new URLSearchParams(currentSearch).get('pointerlock');
+  if (pointerlock !== null) {
+    href += `&pointerlock=${encodeURIComponent(pointerlock)}`;
+  }
+  return href;
+}
+
+/**
  * Options for the in-viewer dataset switcher: hosted index entries plus any
  * `?manifests=` extras, deduplicated by manifest URL, with the currently
  * loaded manifest prepended when it is not already listed.

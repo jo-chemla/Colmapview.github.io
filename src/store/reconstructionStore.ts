@@ -148,9 +148,10 @@ export function hasUrlToLoad(): boolean {
     if (hashParams.get('d')) return true;
   }
 
-  // Legacy query format: ?url=...
+  // Legacy query format: ?url=... — and multi-dataset ?urls=a,b,...
   const searchParams = new URLSearchParams(window.location.search);
   if (searchParams.get('url')) return true;
+  if (searchParams.get('urls')) return true;
 
   return false;
 }
@@ -168,6 +169,7 @@ export function clearUrlLoadRequestFromLocation(
   try {
     const url = new URL(win.location.href);
     url.searchParams.delete('url');
+    url.searchParams.delete('urls');
     const hashContent = url.hash.startsWith('#') ? url.hash.slice(1) : url.hash;
     const hashParams = new URLSearchParams(hashContent);
     if (hashParams.has('d')) {

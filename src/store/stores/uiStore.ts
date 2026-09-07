@@ -256,7 +256,8 @@ export const useUIStore = create<UIState>()(
       maskOpacity: 0.7,
       // Axes default off, grid on: a fresh load shows only the grid (see the matching
       // registry default in config/registry/definitions/ui.ts and the persisted-store
-      // migration fallback in persistedStoreMigrations.ts).
+      // migration fallback in persistedStoreMigrations.ts). The v14 migration also
+      // re-targets sessions persisted under the old shown-by-default value.
       showAxes: false,
       showGrid: true,
       axesCoordinateSystem: 'colmap',
@@ -388,7 +389,7 @@ export const useUIStore = create<UIState>()(
     }),
     {
       name: STORAGE_KEYS.ui,
-      version: 13,
+      version: 14,
       migrate: (persistedState, version) =>
         migrateUIPersistedState(persistedState, version, DEFAULT_CONTEXT_MENU_ACTIONS),
       partialize: (state) => ({

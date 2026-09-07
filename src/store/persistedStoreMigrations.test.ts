@@ -265,8 +265,10 @@ describe('persistedStoreMigrations', () => {
     });
 
     it('splits legacy axes display mode into independent axes and grid flags', () => {
+      // The 'axes' mode used to yield showAxes: true; the v14 hidden-by-default
+      // re-target now folds that into false as well (one-time reset).
       expect(migrateUIPersistedState({ axesDisplayMode: 'axes' }, 6, defaultActions)).toMatchObject({
-        showAxes: true,
+        showAxes: false,
         showGrid: false,
       });
 
@@ -284,6 +286,23 @@ describe('persistedStoreMigrations', () => {
         showAxes: false,
         showGrid: false,
       });
+    });
+
+    it('re-targets shown axes to the hidden default for pre-v14 states', () => {
+      // Sessions persisted while the axes default was `true` keep hiding the
+      // axes after the default flip; the grid setting is untouched.
+      expect(migrateUIPersistedState({ showAxes: true, showGrid: true }, 13, defaultActions))
+        .toMatchObject({ showAxes: false, showGrid: true });
+    });
+
+    it('keeps axes hidden for pre-v14 states that already hid them', () => {
+      expect(migrateUIPersistedState({ showAxes: false, showGrid: true }, 13, defaultActions))
+        .toMatchObject({ showAxes: false, showGrid: true });
+    });
+
+    it('leaves an explicitly re-enabled axes toggle untouched for already-v14 states', () => {
+      expect(migrateUIPersistedState({ showAxes: true }, 14, defaultActions))
+        .toMatchObject({ showAxes: true });
     });
 
     it('converts legacy gizmo and matches modes into explicit visibility flags', () => {

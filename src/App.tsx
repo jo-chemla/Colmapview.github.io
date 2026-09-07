@@ -18,6 +18,7 @@ import {
   useUIStore,
 } from './store';
 import { useUrlLoader } from './hooks/useUrlLoader';
+import { getMultiManifestUrlsFromSearch } from './hooks/urlLoaderMultiSource';
 import { decodeShareData, applyShareConfig } from './hooks/useUrlState';
 import { detectTouchDevice } from './hooks/useIsTouchDevice';
 import { TOUCH_BREAKPOINTS } from './theme/sizing';
@@ -46,7 +47,7 @@ if (initStoreMigration()) {
 }
 
 function App() {
-  const { loadFromUrl, loadFromManifest } = useUrlLoader();
+  const { loadFromUrl, loadFromUrls, loadFromManifest } = useUrlLoader();
   const hasCheckedUrl = useRef(false);
 
   // Check for URL parameter on mount
@@ -72,10 +73,24 @@ function App() {
 
     // Async function to handle URL loading
     const checkUrlAndLoad = async () => {
+      // Multi-dataset mode (?urls=a,b,...): merge several manifests into one
+      // scene. Takes precedence over the single ?url= path; a lone entry falls
+      // through to the regular single-dataset load below.
+      const multiUrls = getMultiManifestUrlsFromSearch(search);
+      if (multiUrls.length > 1) {
+        appLogger.info(`[App] Loading ${multiUrls.length} datasets from ?urls=`);
+        await runGuardedUrlLoad({
+          manifestUrl: multiUrls.join(','),
+          loadFromUrl: () => loadFromUrls(multiUrls),
+          onDeclined: abandonUrlAutoLoadRequest,
+        });
+        return;
+      }
+
       const shareData = await decodeShareData(window.location.hash);
       const loadPlan = getAppStartupLoadPlan({
         shareData,
-        legacyManifestUrl: new URLSearchParams(search).get('url'),
+        legacyManifestUrl: new URLSearchParams(search).get('url') ?? multiUrls[0] ?? null,
       });
 
       if (loadPlan.config) {
@@ -122,7 +137,7 @@ function App() {
     };
 
     checkUrlAndLoad();
-  }, [loadFromUrl, loadFromManifest]);
+  }, [loadFromUrl, loadFromUrls, loadFromManifest]);
 
   return (
     <ErrorBoundary>

@@ -6,6 +6,7 @@ import {
   getDatasetViewerHref,
   getManifestDisplayName,
   getManifestsParamEntries,
+  getMultiDatasetViewerHref,
   parseDatasetIndex,
 } from './datasetIndexPolicy';
 
@@ -74,6 +75,19 @@ describe('picker labels and links', () => {
     expect(getDatasetViewerHref('https://x.example.com/m.json', '?url=old&pointerlock=0'))
       .toBe('?url=https%3A%2F%2Fx.example.com%2Fm.json&progressive=1&pointerlock=0');
     expect(getDatasetViewerHref('https://x.example.com/m.json', '?url=old'))
+      .toBe('?url=https%3A%2F%2Fx.example.com%2Fm.json&progressive=1');
+  });
+
+  it('builds a multi-dataset merge link for two or more manifests', () => {
+    expect(getMultiDatasetViewerHref([
+      'https://x.example.com/S4/manifest.json',
+      'https://x.example.com/N4/manifest.json',
+    ], '?pointerlock=0'))
+      .toBe('?urls=https%3A%2F%2Fx.example.com%2FS4%2Fmanifest.json,https%3A%2F%2Fx.example.com%2FN4%2Fmanifest.json&pointerlock=0');
+  });
+
+  it('falls back to the single-dataset progressive link for one manifest', () => {
+    expect(getMultiDatasetViewerHref(['https://x.example.com/m.json']))
       .toBe('?url=https%3A%2F%2Fx.example.com%2Fm.json&progressive=1');
   });
 

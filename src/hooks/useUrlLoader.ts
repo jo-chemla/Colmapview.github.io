@@ -29,6 +29,11 @@ import {
 import { handleUrlLoadFailure } from './urlLoaderErrorHandling';
 import { loadZipUrlSource } from './urlLoaderZipSource';
 import { loadManifestSource } from './urlLoaderManifestSource';
+import {
+  loadMultiManifestSource,
+  MAX_MULTI_DATASETS,
+  MULTI_DATASET_CAP_MESSAGE,
+} from './urlLoaderMultiSource';
 import { isSplatUrl, loadSplatUrlSource } from './urlLoaderSplatSource';
 
 export interface UseUrlLoaderDeps {
@@ -245,6 +250,63 @@ export function useUrlLoader({ logger = appLogger }: UseUrlLoaderDeps = {}) {
   ]);
 
   /**
+   * Multi-dataset entry point (?urls=): load several manifests into ONE scene
+   * by merging their (preview) binaries at the file level before parsing.
+   * Capped at MAX_MULTI_DATASETS; the cap refuses the whole load.
+   */
+  const loadFromUrls = useCallback(async (urls: readonly string[]): Promise<boolean> => {
+    if (urls.length > MAX_MULTI_DATASETS) {
+      useNotificationStore.getState().addNotification('warning', MULTI_DATASET_CAP_MESSAGE, 10000);
+      logError(`[Multi Loader] Refused ${urls.length} datasets (cap ${MAX_MULTI_DATASETS})`);
+      return false;
+    }
+    if (!tryStartUrlLoad()) {
+      logInfo(URL_LOAD_GUARD_MESSAGE);
+      return false;
+    }
+
+    setUrlLoading(true);
+    setUrlError(null);
+    setUrlProgress({ percent: 0, message: 'Starting...' });
+
+    try {
+      clearAllCaches();
+      await loadMultiManifestSource(urls, {
+        log: logInfo,
+        processFiles,
+        setSourceInfo,
+        setUrlProgress,
+        addNotification: (type, message, duration) =>
+          useNotificationStore.getState().addNotification(type, message, duration),
+      });
+      return true;
+    } catch (err) {
+      handleUrlLoadFailure(err, {
+        clearCaches: clearAllCaches,
+        contextUrl: urls[0] ?? '',
+        errorLog: logError,
+        setError,
+        setUrlError,
+      });
+      return false;
+    } finally {
+      finishUrlLoad();
+      setUrlLoading(false);
+    }
+  }, [
+    finishUrlLoad,
+    logError,
+    logInfo,
+    processFiles,
+    setError,
+    setSourceInfo,
+    setUrlError,
+    setUrlLoading,
+    setUrlProgress,
+    tryStartUrlLoad,
+  ]);
+
+  /**
    * Load reconstruction from a pre-parsed manifest object.
    * Used when loading from a local manifest.json file or from an inline manifest in the URL.
    * Sets sourceType to 'manifest' to enable Share/Embed buttons with inline manifest embedding.
@@ -313,6 +375,7 @@ export function useUrlLoader({ logger = appLogger }: UseUrlLoaderDeps = {}) {
 
   return {
     loadFromUrl,
+    loadFromUrls,
     loadFromManifest,
     urlLoading,
     urlProgress,

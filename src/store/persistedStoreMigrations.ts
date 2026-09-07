@@ -481,6 +481,17 @@ export function migrateUIPersistedState(
     }
   }
 
+  if (version < 14) {
+    // v14 hides the origin axes by default everywhere: fresh loads already
+    // start with showAxes=false (store + registry defaults), but sessions
+    // persisted while the default was still `true` kept showing the axes.
+    // Re-target the old default — same pattern as the camera-store frusta v4
+    // migration; anyone who wants the axes back is one toggle away.
+    if (getBoolean(state.showAxes) === true) {
+      state.showAxes = false;
+    }
+  }
+
   state.galleryViewMode = getGalleryViewModeSetting(state.galleryViewMode) ?? 'auto';
   state.galleryColumns = getGalleryColumns(state.galleryColumns) ?? DEFAULT_GALLERY_COLUMNS;
   state.galleryCameraFilter = getGalleryCameraFilter(state.galleryCameraFilter) ?? 'all';
