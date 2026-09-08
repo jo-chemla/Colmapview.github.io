@@ -216,6 +216,20 @@ describe('url loader policy helpers', () => {
     ]);
   });
 
+  it('routes the images slot to the poses preview only when opted in AND declared', () => {
+    const withPreview = { ...manifest, posesPreview: 'custom/poses-preview.bin' };
+
+    // Opt-in + declared: preview path under the same slot key.
+    expect(getManifestColmapFileEntries(withPreview, { posesPreviewInImagesSlot: true }).requiredFiles)
+      .toContainEqual({ key: 'sparse/0/images.bin', path: 'custom/poses-preview.bin' });
+    // Declared but not opted in (non-progressive): full images.bin as before.
+    expect(getManifestColmapFileEntries(withPreview).requiredFiles)
+      .toContainEqual({ key: 'sparse/0/images.bin', path: 'custom/images.bin' });
+    // Opted in but not declared: full images.bin.
+    expect(getManifestColmapFileEntries(manifest, { posesPreviewInImagesSlot: true }).requiredFiles)
+      .toContainEqual({ key: 'sparse/0/images.bin', path: 'custom/images.bin' });
+  });
+
   it('exposes a full-points upgrade plan only for manifests with a preview', () => {
     expect(getPointsPreviewPlan(manifest)).toBeNull();
     expect(getPointsPreviewPlan({ ...manifest, pointsPreview: 'custom/points3D-preview.bin' })).toEqual({

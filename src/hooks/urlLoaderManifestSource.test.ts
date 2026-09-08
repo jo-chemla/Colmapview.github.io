@@ -147,6 +147,114 @@ describe('URL loader manifest source helpers', () => {
     expect(deps.setUrlProgress).toHaveBeenLastCalledWith({ percent: 100, message: 'Complete' });
   });
 
+  it('progressively loads the poses preview first, then swaps in the full images.bin as stage 3', async () => {
+    const previewImages = buildFile('images.bin', 'poses preview');
+    const fullImages = buildFile('images.bin', 'full images with observations');
+    const files = new Map([
+      ['sparse/0/cameras.bin', buildFile('cameras.bin')],
+      ['sparse/0/images.bin', previewImages],
+      ['sparse/0/points3D.bin', buildFile('points3D.bin')],
+    ]);
+    const imagesStart = vi.fn(async () => fullImages);
+    const fetchColmapFiles = vi.fn(async (
+      _manifest: ColmapManifest,
+      options?: {
+        onDeferredPoints3D?: (deferred: { key: string; promise: Promise<File> }) => void;
+        onDeferredImages?: (deferred: { key: string; fullPath: string; start: () => Promise<File> }) => void;
+      }
+    ) => {
+      options?.onDeferredPoints3D?.({
+        key: 'sparse/0/points3D.bin',
+        promise: Promise.resolve(buildFile('points3D.bin', 'full point cloud')),
+      });
+      options?.onDeferredImages?.({
+        key: 'sparse/0/images.bin',
+        fullPath: 'custom/images.bin',
+        start: imagesStart,
+      });
+      return files;
+    });
+    const imagesAtCall: File[] = [];
+    const processFiles = vi.fn(async (processed: Map<string, File>) => {
+      imagesAtCall.push(processed.get('sparse/0/images.bin')!);
+      // The full-images download must not start before the points stage-2
+      // rebuild ran (it would compete with the visible stages for bandwidth).
+      if (processFiles.mock.calls.length <= 2) {
+        expect(imagesStart).not.toHaveBeenCalled();
+      }
+    });
+    const deps = {
+      fetchColmapFiles,
+      log: vi.fn(),
+      processFiles,
+      progressive: true,
+      setSourceInfo: vi.fn(),
+      setUrlProgress: vi.fn(),
+    };
+
+    await expect(loadManifestSource(
+      { ...manifest, posesPreview: 'custom/poses-preview.bin' },
+      { type: 'manifest' },
+      deps
+    )).resolves.toBe(true);
+
+    // Stage 1 stub+preview parse, stage 2 real points, stage 3 full images.
+    expect(processFiles).toHaveBeenCalledTimes(3);
+    expect(imagesAtCall).toEqual([previewImages, previewImages, fullImages]);
+    expect(imagesStart).toHaveBeenCalledTimes(1);
+    expect(deps.setUrlProgress).toHaveBeenLastCalledWith({ percent: 100, message: 'Complete' });
+  });
+
+  it('keeps the poses preview when the stage-3 full images download fails', async () => {
+    const previewImages = buildFile('images.bin', 'poses preview');
+    const files = new Map([
+      ['sparse/0/cameras.bin', buildFile('cameras.bin')],
+      ['sparse/0/images.bin', previewImages],
+      ['sparse/0/points3D.bin', buildFile('points3D.bin')],
+    ]);
+    const fetchColmapFiles = vi.fn(async (
+      _manifest: ColmapManifest,
+      options?: {
+        onDeferredPoints3D?: (deferred: { key: string; promise: Promise<File> }) => void;
+        onDeferredImages?: (deferred: { key: string; fullPath: string; start: () => Promise<File> }) => void;
+      }
+    ) => {
+      options?.onDeferredPoints3D?.({
+        key: 'sparse/0/points3D.bin',
+        promise: Promise.resolve(buildFile('points3D.bin', 'full point cloud')),
+      });
+      options?.onDeferredImages?.({
+        key: 'sparse/0/images.bin',
+        fullPath: 'custom/images.bin',
+        start: vi.fn(async () => {
+          throw new Error('network gone');
+        }),
+      });
+      return files;
+    });
+    const deps = {
+      fetchColmapFiles,
+      log: vi.fn(),
+      processFiles: vi.fn(async () => {}),
+      progressive: true,
+      setSourceInfo: vi.fn(),
+      setUrlProgress: vi.fn(),
+    };
+
+    // Non-fatal: the scene stays usable from the preview.
+    await expect(loadManifestSource(
+      { ...manifest, posesPreview: 'custom/poses-preview.bin' },
+      { type: 'manifest' },
+      deps
+    )).resolves.toBe(true);
+
+    // Stage 3 rebuild never ran (stages 1 + 2 only).
+    expect(deps.processFiles).toHaveBeenCalledTimes(2);
+    expect(deps.log).toHaveBeenCalledWith(
+      '[URL Loader] Progressive: full images download failed (network gone); keeping the poses preview'
+    );
+  });
+
   it('reports the full-points upgrade plan once a preview-backed load completes', async () => {
     const deps = { ...makeDeps(), onPointsPreviewLoaded: vi.fn() };
 

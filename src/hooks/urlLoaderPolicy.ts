@@ -733,7 +733,10 @@ function manifestFileExt(path: string): 'txt' | 'bin' {
   return /\.txt$/i.test(path) ? 'txt' : 'bin';
 }
 
-export function getManifestColmapFileEntries(manifest: ColmapManifest): ManifestColmapFileEntries {
+export function getManifestColmapFileEntries(
+  manifest: ColmapManifest,
+  options?: { posesPreviewInImagesSlot?: boolean }
+): ManifestColmapFileEntries {
   const { files } = manifest;
   const ext = manifestFileExt;
   // A decimated preview (tracks stripped) loads into the points3D slot instead
@@ -741,9 +744,17 @@ export function getManifestColmapFileEntries(manifest: ColmapManifest): Manifest
   // becomes the deferred stage-2 download). The full points3D stays available
   // for the explicit "load full" upgrade (getPointsPreviewPlan).
   const points3DPath = manifest.pointsPreview ?? files.points3D;
+  // Progressive single-dataset loads opt the images slot into posesPreview (all
+  // poses kept, observations stripped — the same cheap file the multi-dataset
+  // loader fetches), so first paint never waits on a multi-hundred-MB
+  // images.bin. The full file lands later via the deferred-images stage
+  // (fetchManifestColmapFiles onDeferredImages).
+  const imagesPath = options?.posesPreviewInImagesSlot && manifest.posesPreview
+    ? manifest.posesPreview
+    : files.images;
   const requiredFiles = [
     { key: `sparse/0/cameras.${ext(files.cameras)}`, path: files.cameras },
-    { key: `sparse/0/images.${ext(files.images)}`, path: files.images },
+    { key: `sparse/0/images.${ext(imagesPath)}`, path: imagesPath },
     { key: `sparse/0/points3D.${ext(points3DPath)}`, path: points3DPath },
   ];
 

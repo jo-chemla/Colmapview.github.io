@@ -33,8 +33,10 @@ export interface ColmapManifest {
    * "sparse/0/poses-preview.bin"). A valid COLMAP images file with all poses
    * kept but observations stripped (num_points2D = 0), generated offline
    * (~70 B/record, so full 10k-pose rigs stay around 1 MB). Used by the
-   * multi-dataset loader (?urls=) to fetch poses cheaply; single-dataset loads
-   * keep using files.images.
+   * multi-dataset loader (?urls=) to fetch poses cheaply, and by progressive
+   * single-dataset loads (?progressive=1) as the stage-1 images slot — the
+   * full files.images then downloads as a sequenced background stage.
+   * Non-progressive single-dataset loads keep using files.images directly.
    */
   posesPreview?: string;
   /**

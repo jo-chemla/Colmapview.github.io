@@ -8,7 +8,7 @@ import {
   type PointsPreviewPlan,
   type RemoteSplatCandidate,
 } from './urlLoaderPolicy';
-import { fetchManifestColmapFiles, type DeferredPoints3D } from './urlLoaderManifestFetch';
+import { fetchManifestColmapFiles, type DeferredImages, type DeferredPoints3D } from './urlLoaderManifestFetch';
 
 type ProcessFiles = (
   files: Map<string, File>,
@@ -20,6 +20,7 @@ type FetchColmapFiles = (
   options?: {
     onDeferredPoints3D?: (deferred: DeferredPoints3D) => void;
     onDeferredPoints3DProgress?: (loadedBytes: number, totalBytes: number) => void;
+    onDeferredImages?: (deferred: DeferredImages) => void;
   }
 ) => Promise<Map<string, File>>;
 type SetSourceInfo = (
@@ -51,6 +52,9 @@ export interface LoadManifestSourceDeps {
    * Opt-in progressive loading (?progressive=1): parse cameras+images with an
    * empty points3D stub so poses/gallery show immediately, then swap in the
    * full reconstruction when the (already in-flight) points3D download lands.
+   * When the manifest ships a posesPreview, the images slot additionally loads
+   * that cheap file first (stage 1 is then seconds even for 100k-pose rigs)
+   * and the full images.bin becomes a third, sequenced background stage.
    */
   progressive?: boolean;
 }
@@ -68,9 +72,11 @@ export async function loadManifestSource(
       onRemoteSplatCatalog: deps.onRemoteSplatCatalog,
       onDeferredPoints3D: options?.onDeferredPoints3D,
       onDeferredPoints3DProgress: options?.onDeferredPoints3DProgress,
+      onDeferredImages: options?.onDeferredImages,
     }));
 
   const deferredPoints3D: { value: DeferredPoints3D | null } = { value: null };
+  const deferredImages: { value: DeferredImages | null } = { value: null };
   // Byte progress for the deferred points3D download. It starts alongside the
   // cameras+images fetch, but is only surfaced (as a compact, non-blocking
   // indicator) once stage 1 has the poses on screen — before that, the blocking
@@ -109,6 +115,11 @@ export async function loadManifestSource(
           pointsDownload.total = totalBytes;
         }
         reportPointsDownloadProgress();
+      },
+      // Poses preview in the images slot (when the manifest ships one): the
+      // full images.bin comes back as a not-yet-started thunk for stage 3.
+      onDeferredImages: (deferred) => {
+        deferredImages.value = deferred;
       },
     })
     : await fetchColmapFiles(manifest);
@@ -160,6 +171,49 @@ export async function loadManifestSource(
     // 'Complete' write below (splat progress is non-background and would
     // otherwise leave the compact card up forever).
     deps.setUrlProgress({ percent: 100, message: 'Points loaded' });
+  }
+
+  if (deferredImages.value) {
+    // Stage 3: poses (preview) and points are on screen — NOW start the full
+    // images.bin download to restore the stripped observations. Sequenced after
+    // stage 2 on purpose: the multi-hundred-MB file must not compete with the
+    // visible stages for bandwidth. Poses are identical between preview and
+    // full file, so the georef-recenter offset is unchanged and the rebuild
+    // doesn't jump. A failure here is non-fatal: the scene stays fully
+    // navigable from the preview (frusta + gallery names), only per-image
+    // observations are missing.
+    const { key, fullPath, start } = deferredImages.value;
+    log(`[URL Loader] Progressive: downloading full ${fullPath} in background (observations)...`);
+    const imagesDownload = { lastReport: 0 };
+    const reportImagesProgress = (loaded: number, total: number) => {
+      const now = Date.now();
+      if (now - imagesDownload.lastReport < 200) {
+        return;
+      }
+      imagesDownload.lastReport = now;
+      deps.setUrlProgress({
+        background: true,
+        percent: total > 0 ? Math.min(100, Math.round((Math.min(loaded, total) / total) * 100)) : 0,
+        message: 'Scene ready — downloading full poses file',
+        ...(total > 0 ? { bytesLoaded: Math.min(loaded, total), bytesTotal: total } : { bytesLoaded: loaded }),
+      });
+    };
+    try {
+      const fullImages = await start(reportImagesProgress);
+      files.set(key, fullImages);
+      log('[URL Loader] Progressive: full images file downloaded, restoring observations...');
+      deps.setUrlProgress({
+        background: true,
+        percent: 100,
+        message: 'Full poses downloaded — rebuilding scene',
+      });
+      await deps.processFiles(files, { start: 80, end: 100 }, { throwOnError: true, backgroundRefresh: true });
+      deps.setUrlProgress({ percent: 100, message: 'Full poses loaded' });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      log(`[URL Loader] Progressive: full images download failed (${message}); keeping the poses preview`);
+      deps.setUrlProgress(null);
+    }
   }
 
   // The preview (fetched into the points3D slot by getManifestColmapFileEntries,

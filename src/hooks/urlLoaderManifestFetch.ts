@@ -76,6 +76,20 @@ export interface DeferredPoints3D {
   promise: Promise<File>;
 }
 
+/**
+ * Progressive poses handle: stage 1 loads the manifest's posesPreview (all
+ * poses kept, observations stripped) into the images slot, and the full
+ * images.bin is handed back here as a NOT-yet-started thunk — the caller
+ * `start()`s it only after the points preview is live, so the potentially
+ * multi-hundred-MB download never competes with the visible stages for
+ * bandwidth. Swapping the file under the same key restores observations.
+ */
+export interface DeferredImages {
+  key: string;
+  fullPath: string;
+  start: (onProgress?: DownloadProgressCallback) => Promise<File>;
+}
+
 export interface FetchManifestColmapFilesDeps {
   fetchImpl?: FetchUrl;
   fetchFile?: FetchManifestFile;
@@ -94,6 +108,13 @@ export interface FetchManifestColmapFilesDeps {
    * decides when to surface it (i.e. only once poses are on screen).
    */
   onDeferredPoints3DProgress?: DownloadProgressCallback;
+  /**
+   * Progressive poses preview (opt-in, needs manifest.posesPreview): when set
+   * alongside onDeferredPoints3D, the images slot downloads the cheap
+   * posesPreview instead of the full images.bin, which is handed back here as
+   * a not-yet-started thunk for a later background upgrade (see DeferredImages).
+   */
+  onDeferredImages?: (deferred: DeferredImages) => void;
   /**
    * Receives the full discovered remote splat catalog (all tiles, with sizes)
    * so the caller can list every tile as a lazy, on-demand source. At most the
@@ -756,7 +777,15 @@ export async function fetchManifestColmapFiles(
     isTouchDevice: deps.isTouchDevice,
   });
   const { baseUrl } = manifestWithDiscoveredSplats;
-  const entries = getManifestColmapFileEntries(manifestWithDiscoveredSplats);
+  // Progressive + posesPreview: the images slot downloads the cheap preview
+  // (all poses, observations stripped) so stage 1 shows every frustum in
+  // seconds; the full images.bin becomes a deferred background upgrade below.
+  const usePosesPreview = Boolean(
+    deps.onDeferredImages && deps.onDeferredPoints3D && manifestWithDiscoveredSplats.posesPreview
+  );
+  const entries = getManifestColmapFileEntries(manifestWithDiscoveredSplats, {
+    posesPreviewInImagesSlot: usePosesPreview,
+  });
   const { optionalFiles } = entries;
 
   // Progressive loading: carve points3D out of the awaited batch. Its download
@@ -777,6 +806,24 @@ export async function fetchManifestColmapFiles(
         throw isUrlLoadError(err) ? err : classifyFetchError(err, `${baseUrl}/${path}`);
       }),
     });
+  }
+  if (usePosesPreview) {
+    // NOT started here: `start()` fires after the points preview is live, so
+    // the (potentially multi-hundred-MB) full images.bin never steals
+    // bandwidth from the two visible stages. Same slot key — the stage-3 swap
+    // restores observations without touching poses (identical set, so the
+    // georef-recenter offset is unchanged and the scene doesn't jump).
+    const imagesEntry = entries.requiredFiles.find(({ key }) => key.startsWith('sparse/0/images.'));
+    const fullPath = manifestWithDiscoveredSplats.files.images;
+    if (imagesEntry) {
+      deps.onDeferredImages?.({
+        key: imagesEntry.key,
+        fullPath,
+        start: (onProgress) => fetchFile(baseUrl, fullPath, onProgress).catch((err) => {
+          throw isUrlLoadError(err) ? err : classifyFetchError(err, `${baseUrl}/${fullPath}`);
+        }),
+      });
+    }
   }
 
   const totalFiles = requiredFiles.length;
